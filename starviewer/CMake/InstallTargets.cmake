@@ -82,11 +82,34 @@ elseif(UNIX AND NOT APPLE)
         xcbglintegrations/qxcb-glx-integration
     )
 endif()
+# QT_DIR is either a Qt installation prefix (Windows, a custom SDK
+# installation) or a system prefix such as /usr, where Debian-based
+# distributions put Qt under the multiarch library directory. Detect which
+# layout is in use, so the same install rules work for both.
+if(WIN32)
+    set(QT_LIB_DIR ${QT_DIR}/bin)
+    set(QT_PLUGINS_DIR ${QT_DIR}/plugins)
+    set(QT_QML_DIR ${QT_DIR}/qml)
+    set(QT_TRANSLATIONS_DIR ${QT_DIR}/translations)
+else()
+    if(EXISTS "${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE}/qt5/plugins")
+        set(QT_LIB_DIR ${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE})
+        set(QT_PLUGINS_DIR ${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE}/qt5/plugins)
+        set(QT_QML_DIR ${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE}/qt5/qml)
+        set(QT_TRANSLATIONS_DIR ${QT_DIR}/share/qt5/translations)
+    else()
+        set(QT_LIB_DIR ${QT_DIR}/lib)
+        set(QT_PLUGINS_DIR ${QT_DIR}/plugins)
+        set(QT_QML_DIR ${QT_DIR}/qml)
+        set(QT_TRANSLATIONS_DIR ${QT_DIR}/translations)
+    endif()
+endif()
+
 foreach(PLUGIN ${PLUGINS})
     # TODO use cmake_path from CMake 3.20
     string(REGEX MATCH "([^/]+)/([^/]+)" _ ${PLUGIN})
     set(FILENAME ${CMAKE_SHARED_LIBRARY_PREFIX}${CMAKE_MATCH_2}${DEBUG_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX})
-    install(PROGRAMS "${QT_DIR}/plugins/${CMAKE_MATCH_1}/${FILENAME}" DESTINATION "plugins/${CMAKE_MATCH_1}")
+    install(PROGRAMS "${QT_PLUGINS_DIR}/${CMAKE_MATCH_1}/${FILENAME}" DESTINATION "plugins/${CMAKE_MATCH_1}")
 endforeach()
 
 set(QMLS
@@ -95,9 +118,11 @@ set(QMLS
     ${CMAKE_SHARED_LIBRARY_PREFIX}qtquick2plugin${DEBUG_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}
 )
 foreach(QML ${QMLS})
-    install(PROGRAMS "${QT_DIR}/qml/QtQuick.2/${QML}" DESTINATION qml/QtQuick.2)
+    install(PROGRAMS "${QT_QML_DIR}/QtQuick.2/${QML}" DESTINATION qml/QtQuick.2)
 endforeach()
 
+# Qt only ships translations for the modules installed with it, so missing
+# files are skipped instead of failing the package.
 set(TRANSLATIONS
     qt_ca.qm
     qt_es.qm
@@ -111,10 +136,11 @@ set(TRANSLATIONS
     qtxmlpatterns_es.qm
 )
 foreach(TRANSLATION ${TRANSLATIONS})
-    install(FILES "${QT_DIR}/translations/${TRANSLATION}" DESTINATION translations)
+    if(EXISTS "${QT_TRANSLATIONS_DIR}/${TRANSLATION}")
+        install(FILES "${QT_TRANSLATIONS_DIR}/${TRANSLATION}" DESTINATION translations)
+    endif()
 endforeach()
 
-# TODO use install(RUNTIME_DEPENDENCY_SET ...) available since CMake 3.21 (not yet released at the time of writing)
 # Qt
 set(QT_LIBS
     Qt5Concurrent
@@ -140,7 +166,6 @@ if(WIN32)
 elseif(UNIX AND NOT APPLE)
     list(APPEND QT_LIBS
         Qt5DBus
-        Qt5X11Extras
         Qt5XcbQpa
         icudata
         icui18n
@@ -150,162 +175,59 @@ endif()
 foreach(LIB ${QT_LIBS})
     set(FILENAME ${CMAKE_SHARED_LIBRARY_PREFIX}${LIB}${DEBUG_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX})
     if(WIN32)
-        install(PROGRAMS "${QT_DIR}/bin/${FILENAME}" DESTINATION .)
-    elseif(UNIX AND NOT APPLE)
-        install(PROGRAMS "${QT_DIR}/lib/${FILENAME}" TYPE LIB)
-        if(${LIB} MATCHES Qt5)
-            install(PROGRAMS "${QT_DIR}/lib/${FILENAME}.5" TYPE LIB)
-            install(PROGRAMS "${QT_DIR}/lib/${FILENAME}.5.12" TYPE LIB)
-            install(PROGRAMS "${QT_DIR}/lib/${FILENAME}.5.12.6" TYPE LIB)
-        elseif(${LIB} MATCHES icu)
-            install(PROGRAMS "${QT_DIR}/lib/${FILENAME}.56" TYPE LIB)
-            install(PROGRAMS "${QT_DIR}/lib/${FILENAME}.56.1" TYPE LIB)
-        endif()
-    endif()
-endforeach()
-
-# VTK
-set(VTK_LIBS
-    CommonColor
-    CommonComputationalGeometry
-    CommonCore
-    CommonDataModel
-    CommonExecutionModel
-    CommonMath
-    CommonMisc
-    CommonSystem
-    CommonTransforms
-    DICOMParser
-    doubleconversion
-    FiltersCore
-    FiltersExtraction
-    FiltersGeneral
-    FiltersGeometry
-    FiltersHybrid
-    FiltersModeling
-    FiltersSources
-    FiltersStatistics
-    freetype
-    glew
-    GUISupportQt
-    ImagingColor
-    ImagingCore
-    ImagingFourier
-    ImagingGeneral
-    ImagingHybrid
-    ImagingMath
-    ImagingSources
-    InteractionStyle
-    InteractionWidgets
-    IOCore
-    IOImage
-    IOLegacy
-    jpeg
-    lz4
-    lzma
-    metaio
-    png
-    RenderingAnnotation
-    RenderingCore
-    RenderingFreeType
-    RenderingImage
-    RenderingOpenGL2
-    RenderingVolume
-    RenderingVolumeOpenGL2
-    sys
-    tiff
-    zlib
-)
-foreach(LIB ${VTK_LIBS})
-    set(FILENAME ${CMAKE_SHARED_LIBRARY_PREFIX}vtk${LIB}-9.2${CMAKE_SHARED_LIBRARY_SUFFIX})
-    if(WIN32)
-        install(PROGRAMS "${SDK_INSTALL_DIR}/bin/${FILENAME}" DESTINATION .)
-    elseif(UNIX AND NOT APPLE)
-        if(EXISTS "${SDK_INSTALL_DIR}/lib64")
-            set(LIBDIR lib64)
-        else()
-            set(LIBDIR lib)
-        endif()
-        install(PROGRAMS "${SDK_INSTALL_DIR}/${LIBDIR}/${FILENAME}" TYPE LIB)
-        install(PROGRAMS "${SDK_INSTALL_DIR}/${LIBDIR}/${FILENAME}.1" TYPE LIB)
-        install(PROGRAMS "${SDK_INSTALL_DIR}/${LIBDIR}/${FILENAME}.9.2.5" TYPE LIB)
-    endif()
-endforeach()
-
-# GDCM
-set(GDCM_LIBS
-    gdcmcharls
-    gdcmCommon
-    gdcmDICT
-    gdcmDSED
-    gdcmexpat
-    gdcmIOD
-    gdcmjpeg8
-    gdcmjpeg12
-    gdcmjpeg16
-    gdcmMSFF
-    gdcmopenjp2
-    gdcmzlib
-    vtkgdcm-9.2
-)
-if(UNIX AND NOT APPLE)
-    list(APPEND GDCM_LIBS
-        gdcmuuid
-    )
-endif()
-foreach(LIB ${GDCM_LIBS})
-    set(FILENAME ${CMAKE_SHARED_LIBRARY_PREFIX}${LIB}${CMAKE_SHARED_LIBRARY_SUFFIX})
-    if(WIN32)
-        install(PROGRAMS "${SDK_INSTALL_DIR}/bin/${FILENAME}" DESTINATION .)
-    elseif(UNIX AND NOT APPLE)
-        install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}" TYPE LIB)
-        if(${LIB} STREQUAL gdcmcharls)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.2" TYPE LIB)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.2.0" TYPE LIB)
-        elseif(${LIB} STREQUAL gdcmexpat)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.2.0" TYPE LIB)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.2.0.0" TYPE LIB)
-        elseif(${LIB} STREQUAL gdcmopenjp2)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.2.3.0" TYPE LIB)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.7" TYPE LIB)
-        elseif(${LIB} STREQUAL vtkgdcm-9.2)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}" TYPE LIB)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.1" TYPE LIB)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.3.0.21" TYPE LIB)
-        else()
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.3.0" TYPE LIB)
-            install(PROGRAMS "${SDK_INSTALL_DIR}/lib/${FILENAME}.3.0.21" TYPE LIB)
-        endif()
-    endif()
-endforeach()
-
-# ThreadWeaver
-set(FILENAME ${CMAKE_SHARED_LIBRARY_PREFIX}KF5ThreadWeaver${CMAKE_SHARED_LIBRARY_SUFFIX})
-if(WIN32)
-    install(PROGRAMS "${SDK_INSTALL_DIR}/bin/${FILENAME}" DESTINATION .)
-elseif(UNIX AND NOT APPLE)
-    if(EXISTS "${SDK_INSTALL_DIR}/lib64")
-        set(LIBDIR lib64)
-    elseif(EXISTS "${SDK_INSTALL_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE}")
-        set(LIBDIR lib/${CMAKE_LIBRARY_ARCHITECTURE})
+        install(PROGRAMS "${QT_LIB_DIR}/${FILENAME}" DESTINATION .)
     else()
-        set(LIBDIR lib)
+        # Every versioned file of the library, so that the rules do not
+        # need updating when the Qt version changes. The unversioned files
+        # are development symlinks and are not needed at runtime.
+        file(GLOB QT_LIB_FILES "${QT_LIB_DIR}/${FILENAME}.so.*")
+        if(NOT QT_LIB_FILES)
+            message(FATAL_ERROR "No Qt runtime library files found for ${LIB} in ${QT_LIB_DIR}")
+        endif()
+        list(FILTER QT_LIB_FILES EXCLUDE REGEX "\\.py$")
+        install(FILES ${QT_LIB_FILES} DESTINATION lib)
     endif()
-    install(PROGRAMS "${SDK_INSTALL_DIR}/${LIBDIR}/${FILENAME}" TYPE LIB)
-    install(PROGRAMS "${SDK_INSTALL_DIR}/${LIBDIR}/${FILENAME}.5" TYPE LIB)
-    install(PROGRAMS "${SDK_INSTALL_DIR}/${LIBDIR}/${FILENAME}.5.64.0" TYPE LIB)
-endif()
+endforeach()
 
-# OpenSSL
-# TODO With a newer version of CMake (3.18) it could be directly downloaded and extracted from here.
-#      However for now we assume the dlls are in the sdk-install folder.
+# SDK
+# DCMTK, VTK and ITK are built static and need no runtime files. ThreadWeaver
+# comes from a system package on Linux (see CPACK_DEBIAN_PACKAGE_DEPENDS in
+# Installers.cmake). The libraries the SDK builds shared (GDCM and vtkgdcm,
+# plus ThreadWeaver on Windows) are bundled with globs, so that the rules do
+# not need updating when a library version changes.
 if(WIN32)
+    # All shared libraries the SDK installs (GDCM, vtkgdcm, ThreadWeaver,
+    # and OpenSSL if DCMTK was ever built with it). DCMTK's command line
+    # tools are .exe files and are not bundled.
+    file(GLOB SDK_RUNTIME_FILES "${SDK_INSTALL_DIR}/bin/*.dll")
+    install(FILES ${SDK_RUNTIME_FILES} DESTINATION .)
+
+    # QtNetwork uses OpenSSL for HTTPS (WADO). DCMTK is built without
+    # OpenSSL on Windows, so the SDK install directory does not have the
+    # DLLs; Qt ships its own.
     set(OPENSSL_LIBS
         libcrypto-1_1-x64
         libssl-1_1-x64
     )
     foreach(LIB ${OPENSSL_LIBS})
         set(FILENAME ${LIB}${CMAKE_SHARED_LIBRARY_SUFFIX})
-        install(PROGRAMS "${SDK_INSTALL_DIR}/bin/${FILENAME}" DESTINATION .)
+        if(EXISTS "${SDK_INSTALL_DIR}/bin/${FILENAME}")
+            set(OPENSSL_FILE "${SDK_INSTALL_DIR}/bin/${FILENAME}")
+        elseif(EXISTS "${QT_LIB_DIR}/${FILENAME}")
+            set(OPENSSL_FILE "${QT_LIB_DIR}/${FILENAME}")
+        else()
+            message(FATAL_ERROR "OpenSSL runtime library ${FILENAME} not found in ${SDK_INSTALL_DIR}/bin or ${QT_LIB_DIR}")
+        endif()
+        install(FILES ${OPENSSL_FILE} DESTINATION .)
+    endforeach()
+else()
+    foreach(SDK_LIB_DIR ${SDK_INSTALL_DIR}/lib ${SDK_INSTALL_DIR}/lib64)
+        if(EXISTS "${SDK_LIB_DIR}")
+            file(GLOB SDK_LIB_FILES "${SDK_LIB_DIR}/*.so.*")
+            if(SDK_LIB_FILES)
+                list(FILTER SDK_LIB_FILES EXCLUDE REGEX "\\.py$|\\.debug$")
+                install(FILES ${SDK_LIB_FILES} DESTINATION lib)
+            endif()
+        endif()
     endforeach()
 endif()

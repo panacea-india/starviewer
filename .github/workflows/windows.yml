@@ -177,3 +177,44 @@ jobs:
           .github/scripts/list-missing-dlls.sh build/tests/auto/autotests.exe -- "$(cygpath -u "$SDK_BASE_PREFIX")" || true
           cd build
           ctest --output-on-failure
+
+      # NSIS, for cpack -G NSIS. Not part of the MSYS2 environment: the
+      # installer step below inherits it through PATH.
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          Add-Content $env:GITHUB_PATH 'C:\Program Files (x86)\NSIS'
+
+      # Packaged builds embed a qt.conf (USE_QTCONF) that makes Qt look for
+      # plugins and translations next to the installed executable instead of
+      # in the development Qt. Configured and rebuilt after testing, so the
+      # tests keep using the development Qt plugins.
+      - name: Reconfigure for packaging
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake -S starviewer -B build -G "NMake Makefiles JOM" \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_RELEASE_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR="$QTDIR" \
+            -DBUILD_PDF_MANUALS=OFF \
+            -DUSE_QTCONF=ON
+
+      - name: Rebuild for packaging
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake --build build
+
+      - name: Package NSIS installer
+        run: |
+          cd build
+          cpack -G NSIS
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            build/*~*.exe
+            build/*.sha256
+          if-no-files-found: error

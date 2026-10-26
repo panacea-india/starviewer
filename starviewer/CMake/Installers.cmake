@@ -49,16 +49,27 @@ endif()
 
 set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}~${STARVIEWER_VERSION}~${STARVIEWER_ARCH}-${STARVIEWER_OS})
 
+# The PDF manuals are only installed when they are built, so the shortcuts
+# to them are only created when they exist.
+get_property(PDF_MANUALS GLOBAL PROPERTY PDF_MANUALS)
+if(PDF_MANUALS)
+    set(CPACK_INSTALL_IFU_DESKTOP ON)
+else()
+    set(CPACK_INSTALL_IFU_DESKTOP OFF)
+endif()
+
 # NSIS
 set(CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CMAKE_SOURCE_DIR}/installerresources\\\\nsis-welcome.bmp")
 set(CPACK_NSIS_MODIFY_PATH ON)
 set(CPACK_NSIS_INSTALLED_ICON_NAME starviewer.exe)
 set(CPACK_NSIS_EXECUTABLES_DIRECTORY .)
-set(CPACK_NSIS_MENU_LINKS
-    "[ca] User guide.pdf" "Manual d'usuari (ca)"
-    "[en] User guide.pdf" "User manual (en)"
-    "[es] User guide.pdf" "Manual de usuario (es)"
-)
+if(PDF_MANUALS)
+    set(CPACK_NSIS_MENU_LINKS
+        "[ca] User guide.pdf" "Manual d'usuari (ca)"
+        "[en] User guide.pdf" "User manual (en)"
+        "[es] User guide.pdf" "Manual de usuario (es)"
+    )
+endif()
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
     WriteRegStr HKCR 'starviewer' 'URL Protocol' ''
     WriteRegStr HKCR 'starviewer\\\\shell\\\\open\\\\command' '' '\\\"$INSTDIR\\\\starviewer.exe\\\" --url \\\"%1\\\"'
@@ -77,14 +88,22 @@ set(CPACK_WIX_UI_DIALOG "${CMAKE_SOURCE_DIR}/installerresources/wix-dialog.bmp")
 set(CPACK_WIX_PATCH_FILE "${CMAKE_SOURCE_DIR}/installerresources/wixpatch.xml")
 
 # DEB
-# TODO specify versions. Example: set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.3.1-6), libc6 (< 2.4)")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libatk1.0-0, libatk-bridge2.0-0, libatspi2.0-0, libblkid1, libbsd0, libc6, libcairo2, libcairo-gobject2, libdatrie1,
-    libdbus-1-3, libdrm2, libegl1, libepoxy0, libexpat1, libffi7, libfontconfig1, libfreetype6, libfribidi0, libgcc-s1, libgcrypt20, libgdk-pixbuf2.0-0,
-    libgl1, libglib2.0-0, libglu1-mesa, libglvnd0, libglx0, libgpg-error0, libgraphite2-3, libgtk-3-0, libharfbuzz0b, libice6, liblz4-1, liblzma5, libmount1,
-    libopengl0, libpango-1.0-0, libpangocairo-1.0-0, libpangoft2-1.0-0, libpcre2-8-0, libpcre3, libpixman-1-0, libpng16-16, libselinux1, libsm6, libstdc++6,
-    libsystemd0, libthai0, libuuid1, libwayland-client0, libwayland-cursor0, libwayland-egl1, libwayland-server0, libx11-6, libx11-xcb1, libxau6, libxcb1,
-    libxcb-glx0, libxcb-render0, libxcb-shm0, libxcb-xkb1, libxcomposite1, libxcursor1, libxdamage1, libxdmcp6, libxext6, libxfixes3, libxi6, libxinerama1,
-    libxkbcommon0, libxkbcommon-x11-0, libxrandr2, libxrender1, libxt6, openssl, zlib1g")
+# System libraries used directly by Starviewer, by the bundled Qt, or by the
+# bundled Qt plugins. Libraries they use in turn are pulled in by the
+# package manager. The package bundles Qt, ICU and GDCM (see
+# InstallTargets.cmake); DCMTK, VTK and ITK are static and ThreadWeaver comes
+# from a system package. Built against Ubuntu 24.04; other distributions
+# will need their own package names.
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libgcc-s1, libstdc++6,
+    libegl1, libgl1,
+    libx11-6, libx11-xcb1, libxext6, libxi6, libxcb1, libxcb-glx0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1,
+    libxcb-randr0, libxcb-render0, libxcb-render-util0, libxcb-shape0, libxcb-shm0, libxcb-sync1,
+    libxcb-xfixes0, libxcb-xinerama0, libxcb-xkb1, libxkbcommon0, libxkbcommon-x11-0,
+    libwayland-client0, libwayland-cursor0, libwayland-egl1, libwayland-server0,
+    libfontconfig1, libfreetype6, libharfbuzz0b, libmd4c0, libpng16-16,
+    libglib2.0-0, libdbus-1-3, libdouble-conversion3, libpcre2-8-0, libb2-1, libzstd1, liblzma5,
+    libgssapi-krb5-2, libssl3, zlib1g, libsqlite3-0,
+    libgtk-3-0, libkf5threadweaver5, libxt6")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Starviewer Team <support@starviewer.udg.edu>")
 
 include(CPack)

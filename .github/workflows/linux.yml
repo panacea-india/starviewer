@@ -33,6 +33,8 @@ jobs:
             qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 \
             qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtqml-models2 \
             libkf5threadweaver-dev extra-cmake-modules \
+            qtbase5-gtk-platformtheme qttranslations5-l10n qtwayland5 \
+            squashfs-tools \
             xvfb xauth
 
       # Each SDK library is cached on its own, keyed on its scripts and
@@ -130,3 +132,37 @@ jobs:
         run: |
           cd build
           xvfb-run -a -s "-screen 0 1280x1024x24" ctest --output-on-failure
+
+      # Packaged builds embed a qt.conf (USE_QTCONF) that makes Qt look for
+      # plugins, translations and QML next to the installed executable
+      # instead of in the development Qt. Configured and rebuilt after
+      # testing, so the tests keep using the development Qt plugins.
+      - name: Reconfigure for packaging
+        run: |
+          cmake -S starviewer -B build \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR=/usr \
+            -DBUILD_PDF_MANUALS=OFF \
+            -DUSE_QTCONF=ON
+
+      - name: Rebuild for packaging
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Package DEB
+        run: |
+          cd build
+          cpack -G DEB
+
+      - name: Package AppImage
+        run: .github/scripts/make-appimage.sh build
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: |
+            build/*.deb
+            build/*.AppImage
+            build/*.sha256
+          if-no-files-found: error
