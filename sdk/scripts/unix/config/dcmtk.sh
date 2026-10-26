@@ -13,10 +13,11 @@ then
     CMAKE_EXTRA_OPTIONS=-DCMAKE_PREFIX_PATH:PATH=/usr/local/opt/openssl
 elif [[ $(uname) == 'MSYS_NT'* ]]
 then
-    SUPPORT_LIBS_PATH="$SDK_SOURCE_DIR_BASE/dcmtk-3.6.7-win64-support-MD-iconv-msvc-15.9"
-    mkdir -p "$SDK_INSTALL_PREFIX/lib"
-    cp "$SUPPORT_LIBS_PATH/libiconv-1.16/lib/charset_o.lib" "$SDK_INSTALL_PREFIX/lib"
-    cp "$SUPPORT_LIBS_PATH/libiconv-1.16/lib/libiconv_o.lib" "$SDK_INSTALL_PREFIX/lib"
+    # DCMTK's installed package config refers to the support libraries by
+    # absolute path, so they are copied into the install prefix (see
+    # libs/dcmtk.sh) and DCMTK is built against that copy.
+    SUPPORT_LIBS_SOURCE_PATH="$SDK_SOURCE_DIR_BASE/dcmtk-3.6.7-win64-support-MD-iconv-msvc-15.9"
+    SUPPORT_LIBS_PATH="$SDK_INSTALL_PREFIX/dcmtk-support"
 
     ICONV=TRUE
     STDLIBC_ICONV=FALSE
