@@ -14,6 +14,8 @@
 
 #include "senddicomfilestopacs.h"
 
+#include <cstring>
+
 #include <diutil.h>
 #include <dcfilefo.h>
 #include <assoc.h>
@@ -191,7 +193,7 @@ bool SendDICOMFilesToPACS::storeSCU(T_ASC_Association *association, QString file
     else
     {
         // Prepare the transmission of data
-        bzero((char*)&request, sizeof(request));
+        memset(&request, 0, sizeof(request));
         request.MessageID = msgId;
         strcpy(request.AffectedSOPClassUID, sopClass);
         strcpy(request.AffectedSOPInstanceUID, sopInstance);
