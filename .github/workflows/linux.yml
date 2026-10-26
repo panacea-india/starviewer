@@ -1,0 +1,82 @@
+name: Linux
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+
+    env:
+      # DCMTK, VTK, GDCM and ITK are built from source with the patches in
+      # sdk/patches. Never link Starviewer against distribution packages of
+      # these libraries: they lack the patches (e.g. GDCM error handling).
+      SDK_LIBS: dcmtk vtk gdcm itk
+      SDK_BASE_PREFIX: ${{ github.workspace }}/.sdk
+      SDK_BUILD_TYPE: RelWithDebInfo
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake git rsync wget xsltproc \
+            libssl-dev zlib1g-dev libgl1-mesa-dev libglu1-mesa-dev libxt-dev \
+            qtbase5-dev qttools5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev \
+            libqt5opengl5-dev libqt5sql5-sqlite \
+            qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 \
+            qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtqml-models2 \
+            libkf5threadweaver-dev extra-cmake-modules \
+            xvfb xauth
+
+      - name: Restore patched SDK
+        id: sdk-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-install
+          key: sdk-ubuntu-24.04-${{ env.SDK_BUILD_TYPE }}-${{ hashFiles('sdk/patches/**', 'sdk/scripts/unix/**') }}
+
+      - name: Build patched SDK
+        if: steps.sdk-cache.outputs.cache-hit != 'true'
+        working-directory: sdk/scripts/unix
+        env:
+          QTDIR: /usr
+          MAKE_VERBOSE: "no"
+        run: |
+          export LIBS="$SDK_LIBS"
+          ./sdk_download.sh
+          ./sdk_extract.sh > /dev/null
+          ./sdk_build.sh
+
+      # Saved right away so that a later Starviewer build or test failure
+      # does not discard an SDK build that takes over an hour.
+      - name: Save patched SDK
+        if: steps.sdk-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-install
+          key: ${{ steps.sdk-cache.outputs.cache-primary-key }}
+
+      - name: Configure
+        run: |
+          cmake -S starviewer -B build \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR=/usr \
+            -DBUILD_PDF_MANUALS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Test
+        env:
+          LD_LIBRARY_PATH: ${{ env.SDK_BASE_PREFIX }}/sdk-install/lib
+          QT_QPA_PLATFORM: xcb
+        run: |
+          cd build
+          xvfb-run -a -s "-screen 0 1280x1024x24" ctest --output-on-failure
