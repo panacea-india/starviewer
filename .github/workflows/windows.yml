@@ -1,0 +1,109 @@
+name: Windows
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-2022
+    timeout-minutes: 330
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    env:
+      # DCMTK, VTK, GDCM and ITK are built from source with the patches in
+      # sdk/patches. Never link Starviewer against prebuilt binaries of these
+      # libraries: they lack the patches (e.g. GDCM error handling).
+      SDK_LIBS: dcmtk vtk gdcm itk ecm threadweaver
+      SDK_BUILD_TYPE: RelWithDebInfo
+      # Short, to stay under the Windows path length limit in VTK and ITK.
+      SDK_BASE_PREFIX: D:/sdk
+      # The SDK scripts use the native CMake rather than MSYS2's.
+      CMAKE: cmake
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Sets VCToolsVersion, so the SDK scripts do not run vcvarsall.bat
+      # from a hardcoded Visual Studio 2017 path.
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: 5.15.2
+          arch: win64_msvc2019_64
+          cache: true
+
+      # The SDK scripts check for uname MSYS_NT*, so they must run in the
+      # MSYS environment. path-type inherit keeps MSVC, Qt and CMake on PATH.
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          path-type: inherit
+          update: false
+          install: git rsync wget unzip tar libxslt
+
+      - name: Set up paths
+        run: |
+          # MSYS2's link.exe would shadow MSVC's.
+          rm -f /usr/bin/link.exe
+          mkdir -p .jom
+          wget -q -O .jom/jom.zip https://download.qt.io/official_releases/jom/jom.zip
+          unzip -q -o .jom/jom.zip -d .jom
+          {
+            echo "QTDIR=$(cygpath -m "$QT_ROOT_DIR")"
+            echo "JOM_PATH=$(cygpath -u "$GITHUB_WORKSPACE")/.jom"
+          } >> "$GITHUB_ENV"
+
+      - name: Restore patched SDK
+        id: sdk-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-install
+          key: sdk-windows-2022-${{ env.SDK_BUILD_TYPE }}-${{ hashFiles('sdk/patches/**', 'sdk/scripts/unix/**') }}
+
+      - name: Build patched SDK
+        if: steps.sdk-cache.outputs.cache-hit != 'true'
+        working-directory: sdk/scripts/unix
+        env:
+          MAKE_VERBOSE: "no"
+        run: |
+          export LIBS="$SDK_LIBS"
+          ./sdk_download.sh
+          ./sdk_extract.sh > /dev/null
+          ./sdk_build.sh
+
+      # Saved right away so that a later Starviewer build or test failure
+      # does not discard an SDK build that takes over an hour.
+      - name: Save patched SDK
+        if: steps.sdk-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-install
+          key: ${{ steps.sdk-cache.outputs.cache-primary-key }}
+
+      - name: Configure
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake -S starviewer -B build -G "NMake Makefiles JOM" \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_RELEASE_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR="$QTDIR" \
+            -DBUILD_PDF_MANUALS=OFF
+
+      - name: Build
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake --build build
+
+      - name: Test
+        run: |
+          export PATH="$(cygpath -u "$SDK_BASE_PREFIX")/sdk-install/bin:$(cygpath -u "$QTDIR")/bin:$PATH"
+          cd build
+          ctest --output-on-failure
