@@ -11,6 +11,8 @@ set(STARVIEWER_VERSION 2.0.0-devel)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
 
+include(CTest)
+
 include(Options)
 include(CacheVariables)
 include(BuildSettings)
@@ -18,11 +20,14 @@ include(DefaultSdkDirectories)
 include(Theme)
 
 include(GetTargetIncludes)
-include(LinkQt)
+include(LinkLibraries)
 include(Translations)
 
 add_subdirectory(src)
-add_subdirectory(tests)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 add_translation_targets()
 

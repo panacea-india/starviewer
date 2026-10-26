@@ -35,7 +35,7 @@ function addToPrefixFiles() {
     VARIABLE=$1
     VALUE=${!VARIABLE}
     ISPATH=$2
-
+    
     echo "declare -x $VARIABLE='$VALUE'" >> $SDK_ENVIRONMENT_FILE
 
     # We also generate a windows bath prefix file (.bat)
@@ -47,6 +47,7 @@ function addToPrefixFiles() {
         else
             echo "set $VARIABLE=`cygpath -pw \"$VALUE\"`" >> $SDK_WINDOWS_ENVIRONMENT_FILE
         fi
+        
     fi
 }
 

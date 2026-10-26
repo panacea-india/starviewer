@@ -36,7 +36,6 @@ INITIALIZE_EASYLOGGINGPP
 #include "shortcuts.h"
 #include "starviewerapplicationcommandline.h"
 #include "loggingoutputwindow.h"
-#include "vtkinit.h"
 
 #ifndef NO_CRASH_REPORTER
 #include "crashhandler.h"
@@ -95,14 +94,6 @@ void initializeTranslations(QApplication &app)
             ERROR_LOG("Error carregant el mediator de " + mediatorName);
         }
     }
-}
-
-/// Afegeix els directoris on s'han de buscar els plugins de Qt. Útil a windows.
-void initQtPluginsDirectory()
-{
-#ifdef Q_OS_WIN32
-    QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath() + "/plugins");
-#endif
 }
 
 void sendToFirstStarviewerInstanceCommandLineOptions(QtSingleApplication &app)
@@ -189,7 +180,6 @@ int main(int argc, char *argv[])
     Q_UNUSED(crashHandler);
 #endif
 
-    initQtPluginsDirectory();
     initializeTranslations(app);
 
     // Inicialitzem els settings

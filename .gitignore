@@ -1,11 +1,12 @@
 *~
 
-prefix.sh
+prefix.*
 starviewer.deb
 sdk-download*
 sdk-build*
 sdk-install*
 starviewer-build*
+starviewer-packaging*
 build-starviewer*
 starviewer-install*
 
