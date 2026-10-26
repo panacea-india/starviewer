@@ -204,7 +204,9 @@ if(WIN32)
 
     # QtNetwork uses OpenSSL for HTTPS (WADO). DCMTK is built without
     # OpenSSL on Windows, so the SDK install directory does not have the
-    # DLLs; Qt ships its own.
+    # DLLs, and Qt does not ship them either: the OpenSSL 1.1.1 tools
+    # component has been removed from Qt's repository. The package is
+    # built without them, which only means WADO over HTTPS does not work.
     set(OPENSSL_LIBS
         libcrypto-1_1-x64
         libssl-1_1-x64
@@ -212,13 +214,12 @@ if(WIN32)
     foreach(LIB ${OPENSSL_LIBS})
         set(FILENAME ${LIB}${CMAKE_SHARED_LIBRARY_SUFFIX})
         if(EXISTS "${SDK_INSTALL_DIR}/bin/${FILENAME}")
-            set(OPENSSL_FILE "${SDK_INSTALL_DIR}/bin/${FILENAME}")
+            install(FILES "${SDK_INSTALL_DIR}/bin/${FILENAME}" DESTINATION .)
         elseif(EXISTS "${QT_LIB_DIR}/${FILENAME}")
-            set(OPENSSL_FILE "${QT_LIB_DIR}/${FILENAME}")
+            install(FILES "${QT_LIB_DIR}/${FILENAME}" DESTINATION .)
         else()
-            message(FATAL_ERROR "OpenSSL runtime library ${FILENAME} not found in ${SDK_INSTALL_DIR}/bin or ${QT_LIB_DIR}")
+            message(WARNING "OpenSSL runtime library ${FILENAME} not found in ${SDK_INSTALL_DIR}/bin or ${QT_LIB_DIR}; the package will not support HTTPS (WADO)")
         endif()
-        install(FILES ${OPENSSL_FILE} DESTINATION .)
     endforeach()
 else()
     foreach(SDK_LIB_DIR ${SDK_INSTALL_DIR}/lib ${SDK_INSTALL_DIR}/lib64)

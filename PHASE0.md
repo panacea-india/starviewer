@@ -39,7 +39,7 @@ sudo apt-get install build-essential cmake git rsync wget xsltproc \
   qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 \
   qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtqml-models2 \
   libkf5threadweaver-dev extra-cmake-modules \
-  qtbase5-gtk-platformtheme qttranslations5-l10n qtwayland5 squashfs-tools \
+  qt5-gtk-platformtheme qttranslations5-l10n qtwayland5 squashfs-tools \
   xvfb xauth
 ```
 
@@ -148,8 +148,10 @@ rewritten for the current SDK:
   ThreadWeaver comes from the `libkf5threadweaver5` package instead of being
   bundled.
 - On Windows the OpenSSL runtime DLLs (needed by QtNetwork for WADO over
-  HTTPS) come from the Qt installation, because DCMTK is built without
-  OpenSSL there and the SDK does not provide them.
+  HTTPS) are taken from the SDK install directory if present, then from the
+  Qt installation. Qt's repository removed the OpenSSL 1.1.1 tools
+  component, so neither has them: the current Windows package is built
+  without the DLLs and WADO over HTTPS does not work there.
 - The DEB dependency list was replaced with the system libraries directly
   needed by the bundled Qt and plugins on Ubuntu 24.04 (the old list named
   libraries that no longer exist in 24.04, such as `libffi7`).
@@ -221,7 +223,11 @@ they are verified to build in CI only.
   (`src/core/presentationstatefillerstep.cpp`).
 - The `segmentation-ai` branch (2025) has not been reviewed.
 - Windows: DCMTK is built without OpenSSL (`WITH_OPENSSLINC` is unset), so
-  DICOM TLS is not available there.
+  DICOM TLS is not available there. QtNetwork has no TLS backend either:
+  Qt's repository removed the OpenSSL 1.1.1 tools component, so the Windows
+  package has no `libcrypto`/`libssl` DLLs at all and WADO over HTTPS does
+  not work. Building OpenSSL 1.1.1 into the SDK would fix both and let
+  DCMTK enable `DCMTK_WITH_OPENSSL`.
 - CI uses actions that target Node.js 20, which GitHub has deprecated
   (`actions/cache`, `actions/checkout`, `ilammy/msvc-dev-cmd`).
 - Packaging: the NSIS installer is only built in CI, never run. The WiX
