@@ -74,6 +74,9 @@ jobs:
         env:
           MAKE_VERBOSE: "no"
         run: |
+          # MSYS2 tools such as tar read "D:/..." as host:path, so the SDK
+          # scripts get the POSIX form of the same directory.
+          export SDK_BASE_PREFIX="$(cygpath -u "$SDK_BASE_PREFIX")"
           export LIBS="$SDK_LIBS"
           ./sdk_download.sh
           ./sdk_extract.sh > /dev/null
