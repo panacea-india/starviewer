@@ -3,6 +3,10 @@
 # other DLLs, and that cannot be found on PATH. Windows only reports a missing
 # DLL as exit code 0xc0000135, without naming it.
 # Needs dumpbin, so run it in a Visual Studio environment.
+#
+# Usage: list-missing-dlls.sh <executable>... [-- <directory to search>...]
+# A missing DLL is looked for in the directories after --, to show where it
+# was installed instead.
 
 declare -A SEEN
 MISSING=0
@@ -24,6 +28,10 @@ check()
         if [[ -z $FOUND ]]
         then
             echo "MISSING: $DEPENDENCY (needed by $(basename "$1"))"
+            if [[ ${#SEARCH_DIRECTORIES[@]} -gt 0 ]]
+            then
+                find "${SEARCH_DIRECTORIES[@]}" -iname "$DEPENDENCY" -printf '  found at %p\n'
+            fi
             MISSING=1
         elif [[ $FOUND != /c/[Ww]indows/* ]]
         then
@@ -32,7 +40,20 @@ check()
     done
 }
 
-for EXECUTABLE in "$@"
+EXECUTABLES=()
+SEARCH_DIRECTORIES=()
+while [[ $# -gt 0 && $1 != -- ]]
+do
+    EXECUTABLES+=("$1")
+    shift
+done
+if [[ $1 == -- ]]
+then
+    shift
+    SEARCH_DIRECTORIES=("$@")
+fi
+
+for EXECUTABLE in "${EXECUTABLES[@]}"
 do
     check "$EXECUTABLE"
 done
