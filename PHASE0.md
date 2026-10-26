@@ -38,8 +38,14 @@ sudo apt-get install build-essential cmake git rsync wget xsltproc \
   libqt5opengl5-dev libqt5sql5-sqlite \
   qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 \
   qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtqml-models2 \
-  libkf5threadweaver-dev extra-cmake-modules xvfb xauth
+  libkf5threadweaver-dev extra-cmake-modules \
+  qtbase5-gtk-platformtheme qttranslations5-l10n qtwayland5 squashfs-tools \
+  xvfb xauth
 ```
+
+(The last three Qt packages and `squashfs-tools` are only needed to build
+the packages; `qtbase5-gtk-platformtheme` provides the bundled `qgtk3`
+plugin and `qtwayland5` the bundled Wayland plugins.)
 
 Patched SDK (downloads are checksum-verified; takes over an hour):
 
@@ -68,7 +74,10 @@ LD_LIBRARY_PATH=$SDK_BASE_PREFIX/sdk-install/lib \
 
 CI runs the same steps in `.github/workflows/linux.yml`. On GitHub's
 `ubuntu-24.04` runner an uncached SDK build takes about 46 minutes, the
-Starviewer build about 12 minutes, and the tests a few seconds.
+Starviewer build about 12 minutes, and the tests a few seconds. The workflow
+then rebuilds with `USE_QTCONF=ON` and packages a `.deb` (CPack) and an
+AppImage (`.github/scripts/make-appimage.sh`), uploaded as workflow
+artifacts.
 
 CI caches each SDK library separately (`.github/scripts/sdk-library.sh`). A
 library's cache key covers the shared SDK scripts, its own `config/`, `libs/`
@@ -100,7 +109,9 @@ Things that matter when reproducing it by hand:
 
 On GitHub's `windows-2022` runner an uncached SDK build takes about 66
 minutes, the Starviewer build about 13 minutes, and the tests about 7
-seconds. With the SDK cached, a run takes about 15 minutes.
+seconds. With the SDK cached, a run takes about 15 minutes. The workflow
+then rebuilds with `USE_QTCONF=ON` and packages an NSIS installer (CPack),
+uploaded as a workflow artifact.
 
 ## Test baseline
 
@@ -113,6 +124,52 @@ seconds. With the SDK cached, a run takes about 15 minutes.
 The same baseline passes in Linux CI. On Windows `autotests` also passes
 (ctest reports only the overall result, which is 0 failures). The application starts under Xvfb and stays up without crashing. It has not
 yet been exercised interactively with studies.
+
+## Packaging
+
+Both workflows end by producing installable packages and uploading them as
+workflow artifacts: `starviewer~<version>~<arch>-<os>.deb` and
+`starviewer~<version>~<arch>.AppImage` on Linux,
+`starviewer~<version>~<arch>-winnt.exe` (NSIS) on Windows. `COMPILE.mkd`
+describes how to build them by hand.
+
+The existing CPack configuration (`starviewer/CMake/Installers.cmake`) was
+kept; its install rules (`starviewer/CMake/InstallTargets.cmake`) were
+rewritten for the current SDK:
+
+- The old rules were written for a Qt 5.12.6 installed under a custom
+  prefix, with hardcoded sonames (`*.so.5.12.6`, ICU 56). They now work with
+  a Qt installation prefix and with a system Qt (Debian multiarch layout,
+  any 5.15.x sonames), detected at configure time from `QT_DIR`.
+- The old rules bundled VTK, GDCM and ThreadWeaver from the SDK with
+  hardcoded file lists and versions. VTK, DCMTK and ITK are built static and
+  need no runtime files; the shared libraries the SDK installs are now
+  bundled with globs, so the rules follow library version changes. On Linux
+  ThreadWeaver comes from the `libkf5threadweaver5` package instead of being
+  bundled.
+- On Windows the OpenSSL runtime DLLs (needed by QtNetwork for WADO over
+  HTTPS) come from the Qt installation, because DCMTK is built without
+  OpenSSL there and the SDK does not provide them.
+- The DEB dependency list was replaced with the system libraries directly
+  needed by the bundled Qt and plugins on Ubuntu 24.04 (the old list named
+  libraries that no longer exist in 24.04, such as `libffi7`).
+- NSIS shortcuts to the PDF manuals and the DEB "How to access IFU" menu
+  entry are only created when the manuals were built; with
+  `BUILD_PDF_MANUALS=OFF` they pointed at files that do not exist.
+
+Package builds are configured with `USE_QTCONF=ON`, which embeds a qt.conf
+so that Qt finds plugins and translations next to the installed executable.
+Because that hides the development Qt plugins from a build tree, the
+workflows test first on a `USE_QTCONF=OFF` build and only then reconfigure
+and relink for packaging.
+
+The AppImage is packed with `appimagetool` 1.9.1
+(`.github/scripts/make-appimage.sh`). It installs the same tree as the DEB
+under `AppDir/opt/starviewer` and uses an AppRun that adds the bundled
+`lib` directory to the loader path.
+
+The packages have not been installed or exercised on a real machine yet;
+they are verified to build in CI only.
 
 ## Fixes made in Phase 0
 
@@ -130,6 +187,10 @@ yet been exercised interactively with studies.
   (`--- a/path`, `+++ b/path`) like the existing ones.
 - Removed the Travis and AppVeyor configurations, which depended on a
   precompiled SDK hosted at trueta.udg.edu.
+- The packaging install rules (`starviewer/CMake/InstallTargets.cmake`)
+  still described Starviewer 0.13's SDK (bundled VTK 6.1 and ThreadWeaver,
+  Qt 5.12.6 under a custom prefix, hardcoded sonames, ICU 56). They were
+  rewritten; see "Packaging" above.
 - Windows: ITK's internal Eigen was silently not installed; `libs/itk.sh`
   now installs it explicitly and fails if it is missing.
 - Windows: `bzero` replaced with `memset` in the PACS query and send code.
@@ -143,9 +204,11 @@ yet been exercised interactively with studies.
 
 ## Still open in Phase 0
 
-- Packaging (Linux `.deb`/AppImage, Windows installer) from CI.
-- `COMPILE.mkd` describes Starviewer 0.13 on Debian 8 and should be replaced
-  by the steps above.
+- The packages produced by CI have been built, but not installed and
+  exercised on a real machine (the application itself has not been exercised
+  interactively with studies either).
+- Only the plain (non-CE) build is packaged. The CE variant, which needs the
+  deployment repository and PDF manuals, is not.
 
 ## Backlog found during Phase 0
 
@@ -161,6 +224,14 @@ yet been exercised interactively with studies.
   DICOM TLS is not available there.
 - CI uses actions that target Node.js 20, which GitHub has deprecated
   (`actions/cache`, `actions/checkout`, `ilammy/msvc-dev-cmd`).
+- Packaging: the NSIS installer is only built in CI, never run. The WiX
+  configuration in `Installers.cmake` is kept but no workflow uses it.
+- Packaging: the `appimagetool` download in `make-appimage.sh` is not
+  checksum-verified, and appimagetool fetches the type2 runtime at package
+  time. The AppImage also only runs on systems with a glibc as new as the
+  build system's (ubuntu-24.04).
+- Packaging: `CPACK_DEBIAN_PACKAGE_DEPENDS` names Ubuntu 24.04 packages;
+  other distributions need their own list.
 - A change to VTK or to the shared SDK scripts still rebuilds most of the
   SDK (about 66 minutes on Windows, 46 on Linux). Publishing a prebuilt
   patched SDK as a CI artifact would also let developers skip the SDK build.
