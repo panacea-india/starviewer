@@ -71,6 +71,29 @@ keyed on `sdk/patches/` and `sdk/scripts/unix/`. On GitHub's `ubuntu-24.04`
 runner an uncached SDK build takes about 46 minutes, the Starviewer build about
 12 minutes, and the tests a few seconds.
 
+## Building on Windows (verified in CI: Windows Server 2022, MSVC 19.44)
+
+`.github/workflows/windows.yml` is the reference. It uses Visual Studio 2022
+(x64), Qt 5.15.2 `msvc2019_64`, MSYS2 (the `MSYS` environment with
+`path-type: inherit`, so MSVC, Qt and CMake stay on `PATH`) and jom. The SDK
+scripts run in that MSYS2 shell, built `RelWithDebInfo`, and include
+ThreadWeaver and ECM (`LIBS="dcmtk vtk gdcm itk ecm threadweaver"`).
+
+Things that matter when reproducing it by hand:
+
+- Keep `SDK_BASE_PREFIX` short (CI uses `D:/sdk`): VTK and ITK exceed the
+  Windows path length limit otherwise.
+- Give the SDK scripts the POSIX form of that path (`cygpath -u`). MSYS2's tar
+  reads `D:/...` as a remote host.
+- Remove or shadow MSYS2's `/usr/bin/link.exe`, which hides MSVC's linker.
+- Run the tests with `sdk-install/bin` and Qt's `bin` on `PATH`.
+  `.github/scripts/list-missing-dlls.sh` names any DLL the tests cannot load
+  (ctest only reports exit code `0xc0000135`).
+
+On GitHub's `windows-2022` runner an uncached SDK build takes about 66
+minutes, the Starviewer build about 13 minutes, and the tests about 7
+seconds. With the SDK cached, a run takes about 15 minutes.
+
 ## Test baseline
 
 `autotests` (registered as a single CTest test):
@@ -79,7 +102,8 @@ runner an uncached SDK build takes about 46 minutes, the Starviewer build about
 | -----: | ---------: | -----: | -----: | ------: |
 |    111 |      4,757 |  4,757 |      0 |       0 |
 
-The same baseline passes in CI. The application starts under Xvfb and stays up without crashing. It has not
+The same baseline passes in Linux CI. On Windows `autotests` also passes
+(ctest reports only the overall result, which is 0 failures). The application starts under Xvfb and stays up without crashing. It has not
 yet been exercised interactively with studies.
 
 ## Fixes made in Phase 0
@@ -98,11 +122,19 @@ yet been exercised interactively with studies.
   (`--- a/path`, `+++ b/path`) like the existing ones.
 - Removed the Travis and AppVeyor configurations, which depended on a
   precompiled SDK hosted at trueta.udg.edu.
+- Windows: ITK's internal Eigen was silently not installed; `libs/itk.sh`
+  now installs it explicitly and fails if it is missing.
+- Windows: `bzero` replaced with `memset` in the PACS query and send code.
+- Windows: DCMTK's support libraries (zlib, libiconv) are copied into
+  `sdk-install/dcmtk-support`, because DCMTK's package config refers to them
+  by absolute path and the SDK build directory is not kept.
+- Windows: GDCM did not install `vtkgdcm-9.2.dll`; a patch gives
+  `vtk_module_build` GDCM's `bin` and `lib` destinations
+  (`sdk/patches/gdcm/vtkgdcmInstallDestinations.patch`), and `libs/gdcm.sh`
+  fails if the library is missing.
 
 ## Still open in Phase 0
 
-- Windows CI (MSVC). The SDK scripts support Windows through MSYS2; this
-  needs to be brought up on a GitHub Windows runner.
 - Packaging (Linux `.deb`/AppImage, Windows installer) from CI.
 - `COMPILE.mkd` describes Starviewer 0.13 on Debian 8 and should be replaced
   by the steps above.
@@ -117,3 +149,11 @@ yet been exercised interactively with studies.
 - The GSPS presentation state loader is a stub
   (`src/core/presentationstatefillerstep.cpp`).
 - The `segmentation-ai` branch (2025) has not been reviewed.
+- Windows: DCMTK is built without OpenSSL (`WITH_OPENSSLINC` is unset), so
+  DICOM TLS is not available there.
+- CI uses actions that target Node.js 20, which GitHub has deprecated
+  (`actions/cache`, `actions/checkout`, `ilammy/msvc-dev-cmd`).
+- Any change to `sdk/patches/` or `sdk/scripts/unix/` rebuilds the whole SDK
+  (about 66 minutes on Windows, 46 on Linux). Caching each library
+  separately, or publishing a prebuilt patched SDK as a CI artifact, would
+  cut this.
