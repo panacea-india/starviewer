@@ -108,5 +108,8 @@ jobs:
       - name: Test
         run: |
           export PATH="$(cygpath -u "$SDK_BASE_PREFIX")/sdk-install/bin:$(cygpath -u "$QTDIR")/bin:$PATH"
+          # Names any DLL the tests cannot load, which ctest only reports as
+          # exit code 0xc0000135. Informational, ctest decides the result.
+          .github/scripts/list-missing-dlls.sh build/tests/auto/autotests.exe || true
           cd build
           ctest --output-on-failure
