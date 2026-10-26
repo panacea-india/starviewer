@@ -67,7 +67,9 @@ LD_LIBRARY_PATH=$SDK_BASE_PREFIX/sdk-install/lib \
 ```
 
 CI runs the same steps in `.github/workflows/linux.yml` and caches the SDK
-keyed on `sdk/patches/` and `sdk/scripts/unix/`.
+keyed on `sdk/patches/` and `sdk/scripts/unix/`. On GitHub's `ubuntu-24.04`
+runner an uncached SDK build takes about 46 minutes, the Starviewer build about
+12 minutes, and the tests a few seconds.
 
 ## Test baseline
 
@@ -77,7 +79,7 @@ keyed on `sdk/patches/` and `sdk/scripts/unix/`.
 | -----: | ---------: | -----: | -----: | ------: |
 |    111 |      4,757 |  4,757 |      0 |       0 |
 
-The application starts under Xvfb and stays up without crashing. It has not
+The same baseline passes in CI. The application starts under Xvfb and stays up without crashing. It has not
 yet been exercised interactively with studies.
 
 ## Fixes made in Phase 0
@@ -89,6 +91,11 @@ yet been exercised interactively with studies.
   library failed to configure, compile or install, and when a download failed
   checksum verification. They now exit with status 1. (This hid a real VTK
   build failure during Phase 0.)
+- Inside an enclosing git repository (such as the CI workspace), `git apply`
+  skipped the files of git-format patches and still succeeded. The SDK
+  scripts now stop git from looking above the source directory and fail if
+  any file of a patch is skipped. SDK patches should be plain unified diffs
+  (`--- a/path`, `+++ b/path`) like the existing ones.
 - Removed the Travis and AppVeyor configurations, which depended on a
   precompiled SDK hosted at trueta.udg.edu.
 
