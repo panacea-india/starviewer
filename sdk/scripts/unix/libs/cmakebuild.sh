@@ -11,10 +11,17 @@ then
     rsync -a --delete "$SOURCE_DIR/" "$PATCHED_SOURCE_DIR"
     pushd "$PATCHED_SOURCE_DIR"
 
+    # Inside an enclosing git repository, git apply skips the files of a
+    # git-format patch and still succeeds, so stop git from looking above the
+    # source directory and treat any skipped file as a failure.
+    export GIT_CEILING_DIRECTORIES="$(dirname "$PATCHED_SOURCE_DIR")"
+
     for PATCH in "$PATCHES_ROOT/$ALIB"/*
     do
-        git apply "$PATCH" --ignore-whitespace -v
-        if [ $? -ne 0 ]
+        APPLY_OUTPUT=$(git apply "$PATCH" --ignore-whitespace -v 2>&1)
+        APPLY_STATUS=$?
+        echo "$APPLY_OUTPUT"
+        if [ $APPLY_STATUS -ne 0 ] || [[ $APPLY_OUTPUT == *"Skipped patch"* ]]
         then
             echo "ERROR: The \""$PATCH\"" patch could not be applied."
             exit 1
@@ -22,6 +29,7 @@ then
     done
 
     popd
+    unset GIT_CEILING_DIRECTORIES
     SOURCE_DIR="$PATCHED_SOURCE_DIR"
 fi
 
