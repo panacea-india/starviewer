@@ -17,7 +17,7 @@ then
         if [ $? -ne 0 ]
         then
             echo "ERROR: The \""$PATCH\"" patch could not be applied."
-            exit $?
+            exit 1
         fi
     done
 
@@ -36,21 +36,21 @@ $CMAKE -G "$CMAKE_GENERATOR" -Wno-dev $CMAKE_OPTIONS $CMAKE_DISTCC $CMAKE_COMPIL
 if [[ $? -ne 0 ]]
 then
     echo "ERROR: CMake of $ALIB failed"
-    exit
+    exit 1
 fi
 
 $MAKE -j$MAKE_CONCURRENCY VERBOSE=$MAKE_VERBOSE
 if [[ $? -ne 0 ]]
 then
     echo "ERROR: Compilation of $ALIB failed"
-    exit
+    exit 1
 fi
 
 $MAKE VERBOSE=$MAKE_VERBOSE install
 if [[ $? -ne 0 ]]
 then
     echo "ERROR: Installation phase of $ALIB failed"
-    exit
+    exit 1
 fi
 
 popd

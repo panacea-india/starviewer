@@ -97,7 +97,7 @@ download_and_verify()
     echo 'DO NOT USE THE DOWNLOADED FILE; delete it.'
     echo ''
     rm -i "${DOWNLOAD_PREFIX}/${FILENAME}"
-    exit
+    exit 1
     fi
 }
 

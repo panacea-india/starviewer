@@ -1,0 +1,12 @@
+diff --git a/Modules/Filtering/MathematicalMorphology/include/itkMathematicalMorphologyEnums.h b/Modules/Filtering/MathematicalMorphology/include/itkMathematicalMorphologyEnums.h
+index 0411b17..fa0fa21 100644
+--- a/Modules/Filtering/MathematicalMorphology/include/itkMathematicalMorphologyEnums.h
++++ b/Modules/Filtering/MathematicalMorphology/include/itkMathematicalMorphologyEnums.h
+@@ -20,6 +20,7 @@
+ 
+ #include <iostream>
+ #include "ITKMathematicalMorphologyExport.h"
++#include <cstdint>
+ 
+ 
+ namespace itk
