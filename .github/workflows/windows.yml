@@ -93,7 +93,6 @@ jobs:
 
       - name: Configure
         run: |
-          find "$(cygpath -u "$SDK_BASE_PREFIX")/sdk-install" -iname '*eigen3*config*.cmake'
           export PATH="$JOM_PATH:$PATH"
           cmake -S starviewer -B build -G "NMake Makefiles JOM" \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
