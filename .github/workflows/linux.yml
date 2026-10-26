@@ -14,9 +14,10 @@ jobs:
       # DCMTK, VTK, GDCM and ITK are built from source with the patches in
       # sdk/patches. Never link Starviewer against distribution packages of
       # these libraries: they lack the patches (e.g. GDCM error handling).
-      SDK_LIBS: dcmtk vtk gdcm itk
       SDK_BASE_PREFIX: ${{ github.workspace }}/.sdk
       SDK_BUILD_TYPE: RelWithDebInfo
+      QTDIR: /usr
+      MAKE_VERBOSE: "no"
 
     steps:
       - uses: actions/checkout@v4
@@ -34,33 +35,82 @@ jobs:
             libkf5threadweaver-dev extra-cmake-modules \
             xvfb xauth
 
-      - name: Restore patched SDK
-        id: sdk-cache
+      # Each SDK library is cached on its own, keyed on its scripts and
+      # patches and those of the libraries it is built against, so changing
+      # one library only rebuilds that library and the ones that use it.
+      # Each library is saved as soon as it is built, so that a later failure
+      # does not discard it. Libraries are listed in dependency order.
+      - name: SDK cache keys
+        id: sdk-keys
+        run: .github/scripts/sdk-library.sh keys sdk-ubuntu-24.04-${{ env.SDK_BUILD_TYPE }} dcmtk vtk gdcm itk
+
+      - name: Restore SDK library dcmtk
+        id: cache-dcmtk
         uses: actions/cache/restore@v4
         with:
-          path: ${{ env.SDK_BASE_PREFIX }}/sdk-install
-          key: sdk-ubuntu-24.04-${{ env.SDK_BUILD_TYPE }}-${{ hashFiles('sdk/patches/**', 'sdk/scripts/unix/**') }}
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/dcmtk
+          key: ${{ steps.sdk-keys.outputs.dcmtk }}
 
-      - name: Build patched SDK
-        if: steps.sdk-cache.outputs.cache-hit != 'true'
-        working-directory: sdk/scripts/unix
-        env:
-          QTDIR: /usr
-          MAKE_VERBOSE: "no"
-        run: |
-          export LIBS="$SDK_LIBS"
-          ./sdk_download.sh
-          ./sdk_extract.sh > /dev/null
-          ./sdk_build.sh
+      - name: Build or install SDK library dcmtk
+        run: .github/scripts/sdk-library.sh install dcmtk
 
-      # Saved right away so that a later Starviewer build or test failure
-      # does not discard an SDK build that takes over an hour.
-      - name: Save patched SDK
-        if: steps.sdk-cache.outputs.cache-hit != 'true'
+      - name: Save SDK library dcmtk
+        if: steps.cache-dcmtk.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: ${{ env.SDK_BASE_PREFIX }}/sdk-install
-          key: ${{ steps.sdk-cache.outputs.cache-primary-key }}
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/dcmtk
+          key: ${{ steps.sdk-keys.outputs.dcmtk }}
+
+      - name: Restore SDK library vtk
+        id: cache-vtk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/vtk
+          key: ${{ steps.sdk-keys.outputs.vtk }}
+
+      - name: Build or install SDK library vtk
+        run: .github/scripts/sdk-library.sh install vtk
+
+      - name: Save SDK library vtk
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/vtk
+          key: ${{ steps.sdk-keys.outputs.vtk }}
+
+      - name: Restore SDK library gdcm
+        id: cache-gdcm
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/gdcm
+          key: ${{ steps.sdk-keys.outputs.gdcm }}
+
+      - name: Build or install SDK library gdcm
+        run: .github/scripts/sdk-library.sh install gdcm
+
+      - name: Save SDK library gdcm
+        if: steps.cache-gdcm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/gdcm
+          key: ${{ steps.sdk-keys.outputs.gdcm }}
+
+      - name: Restore SDK library itk
+        id: cache-itk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/itk
+          key: ${{ steps.sdk-keys.outputs.itk }}
+
+      - name: Build or install SDK library itk
+        run: .github/scripts/sdk-library.sh install itk
+
+      - name: Save SDK library itk
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/itk
+          key: ${{ steps.sdk-keys.outputs.itk }}
 
       - name: Configure
         run: |

@@ -66,10 +66,18 @@ LD_LIBRARY_PATH=$SDK_BASE_PREFIX/sdk-install/lib \
   xvfb-run -a -s "-screen 0 1280x1024x24" ctest --output-on-failure
 ```
 
-CI runs the same steps in `.github/workflows/linux.yml` and caches the SDK
-keyed on `sdk/patches/` and `sdk/scripts/unix/`. On GitHub's `ubuntu-24.04`
-runner an uncached SDK build takes about 46 minutes, the Starviewer build about
-12 minutes, and the tests a few seconds.
+CI runs the same steps in `.github/workflows/linux.yml`. On GitHub's
+`ubuntu-24.04` runner an uncached SDK build takes about 46 minutes, the
+Starviewer build about 12 minutes, and the tests a few seconds.
+
+CI caches each SDK library separately (`.github/scripts/sdk-library.sh`). A
+library's cache key covers the shared SDK scripts, its own `config/`, `libs/`
+and `sdk/patches/` files, and those of the libraries it is built against
+(GDCM against VTK; ITK against DCMTK, VTK and GDCM). So a GDCM patch rebuilds
+GDCM and ITK only, and an ITK patch rebuilds ITK only. Changing the shared
+scripts (`config/setup.sh`, `libs/cmakebuild.sh`, `sdk_*.sh`) rebuilds
+everything. When adding a library or a dependency between libraries, update
+`DEPENDENCIES` in that script and the per-library steps in both workflows.
 
 ## Building on Windows (verified in CI: Windows Server 2022, MSVC 19.44)
 
@@ -153,7 +161,6 @@ yet been exercised interactively with studies.
   DICOM TLS is not available there.
 - CI uses actions that target Node.js 20, which GitHub has deprecated
   (`actions/cache`, `actions/checkout`, `ilammy/msvc-dev-cmd`).
-- Any change to `sdk/patches/` or `sdk/scripts/unix/` rebuilds the whole SDK
-  (about 66 minutes on Windows, 46 on Linux). Caching each library
-  separately, or publishing a prebuilt patched SDK as a CI artifact, would
-  cut this.
+- A change to VTK or to the shared SDK scripts still rebuilds most of the
+  SDK (about 66 minutes on Windows, 46 on Linux). Publishing a prebuilt
+  patched SDK as a CI artifact would also let developers skip the SDK build.
