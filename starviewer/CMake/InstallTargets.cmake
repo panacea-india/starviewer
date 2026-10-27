@@ -178,9 +178,11 @@ foreach(LIB ${QT_LIBS})
         install(PROGRAMS "${QT_LIB_DIR}/${FILENAME}" DESTINATION .)
     else()
         # Every versioned file of the library, so that the rules do not
-        # need updating when the Qt version changes. The unversioned files
-        # are development symlinks and are not needed at runtime.
-        file(GLOB QT_LIB_FILES "${QT_LIB_DIR}/${FILENAME}.so.*")
+        # need updating when the Qt version changes. FILENAME already ends
+        # in the shared library suffix; the versioned files are the
+        # unversioned name plus the version. The unversioned files are
+        # development symlinks and are not needed at runtime.
+        file(GLOB QT_LIB_FILES "${QT_LIB_DIR}/${FILENAME}.*")
         if(NOT QT_LIB_FILES)
             message(FATAL_ERROR "No Qt runtime library files found for ${LIB} in ${QT_LIB_DIR}")
         endif()
