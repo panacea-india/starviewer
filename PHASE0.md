@@ -36,6 +36,9 @@ sudo apt-get install build-essential cmake git rsync wget xsltproc \
   libssl-dev zlib1g-dev libgl1-mesa-dev libglu1-mesa-dev libxt-dev \
   qtbase5-dev qttools5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev \
   libqt5opengl5-dev libqt5sql5-sqlite \
+  libqt5concurrent5 libqt5core5a libqt5dbus5 libqt5gui5 libqt5network5 \
+  libqt5opengl5 libqt5qml5 libqt5quick5 libqt5quickwidgets5 libqt5sql5 \
+  libqt5svg5 libqt5widgets5 libqt5xml5 libqt5xmlpatterns5 \
   qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 \
   qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtqml-models2 \
   libkf5threadweaver-dev extra-cmake-modules \
