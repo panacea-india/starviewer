@@ -30,10 +30,13 @@ exec "$HERE/opt/starviewer/starviewer" "$@"
 EOF
 chmod +x "$APPDIR/AppRun"
 
-# Icon and desktop file at the locations the AppImage tools expect.
+# Icon and desktop file at the locations the AppImage tools expect. Note
+# that appimagetool wants the icon at the AppDir root, named after the
+# desktop file's Icon key, in addition to the freedesktop icon layout.
 mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 cp "$APPDIR/opt/starviewer/logo/ico-256.png" \
    "$APPDIR/usr/share/icons/hicolor/256x256/apps/starviewer.png"
+cp "$APPDIR/opt/starviewer/logo/ico-256.png" "$APPDIR/starviewer.png"
 ln -s usr/share/icons/hicolor/256x256/apps/starviewer.png "$APPDIR/.DirIcon"
 cat > "$APPDIR/starviewer.desktop" <<'EOF'
 [Desktop Entry]
