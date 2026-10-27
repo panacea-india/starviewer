@@ -207,6 +207,8 @@ jobs:
 
       - name: Package NSIS installer
         run: |
+          # cpack runs the preinstall target, which needs the make program.
+          export PATH="$JOM_PATH:$PATH"
           cd build
           cpack -G NSIS
 
