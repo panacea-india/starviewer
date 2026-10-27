@@ -161,6 +161,11 @@ rewritten for the current SDK:
 - NSIS shortcuts to the PDF manuals and the DEB "How to access IFU" menu
   entry are only created when the manuals were built; with
   `BUILD_PDF_MANUALS=OFF` they pointed at files that do not exist.
+- Qt's platform-critical plugins (`qxcb`, `qwindows`) fail the package when
+  missing; the integration plugins (Wayland, GTK theme, input methods) are
+  bundled only when the Qt installation provides them, because they vary
+  across Qt builds (current qtwayland no longer ships the
+  wayland-graphics-integration plugins, for example).
 
 Package builds are configured with `USE_QTCONF=ON`, which embeds a qt.conf
 so that Qt finds plugins and translations next to the installed executable.

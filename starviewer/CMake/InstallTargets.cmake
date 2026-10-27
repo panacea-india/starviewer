@@ -51,13 +51,19 @@ if(WIN32)
     )
 elseif(UNIX AND NOT APPLE)
     list(APPEND PLUGINS
+        platforms/qxcb
+    )
+    # Integration plugins (Wayland, GTK theme, input methods) that a Qt
+    # distribution may not ship: current qtwayland no longer provides the
+    # wayland-graphics-integration plugins, for example. They are bundled
+    # when present and skipped otherwise.
+    set(OPTIONAL_PLUGINS
         platforminputcontexts/composeplatforminputcontextplugin
         platforminputcontexts/ibusplatforminputcontextplugin
         platforms/qwayland-egl
         platforms/qwayland-generic
         platforms/qwayland-xcomposite-egl
         platforms/qwayland-xcomposite-glx
-        platforms/qxcb
         platformthemes/qgtk3
         wayland-decoration-client/bradient
         wayland-graphics-integration-client/dmabuf-server
@@ -110,6 +116,14 @@ foreach(PLUGIN ${PLUGINS})
     string(REGEX MATCH "([^/]+)/([^/]+)" _ ${PLUGIN})
     set(FILENAME ${CMAKE_SHARED_LIBRARY_PREFIX}${CMAKE_MATCH_2}${DEBUG_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX})
     install(PROGRAMS "${QT_PLUGINS_DIR}/${CMAKE_MATCH_1}/${FILENAME}" DESTINATION "plugins/${CMAKE_MATCH_1}")
+endforeach()
+
+foreach(PLUGIN ${OPTIONAL_PLUGINS})
+    string(REGEX MATCH "([^/]+)/([^/]+)" _ ${PLUGIN})
+    set(FILENAME ${CMAKE_SHARED_LIBRARY_PREFIX}${CMAKE_MATCH_2}${DEBUG_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    if(EXISTS "${QT_PLUGINS_DIR}/${CMAKE_MATCH_1}/${FILENAME}")
+        install(PROGRAMS "${QT_PLUGINS_DIR}/${CMAKE_MATCH_1}/${FILENAME}" DESTINATION "plugins/${CMAKE_MATCH_1}")
+    endif()
 endforeach()
 
 set(QMLS
