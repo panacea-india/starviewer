@@ -29,7 +29,7 @@ build and test baseline. It was written on 2026-10-31 against branch `phase0`
    no DICOM TLS, and the Windows package has no HTTPS backend for WADO.
 3. **Several everyday DICOM objects are not displayed.** Structured reports and
    DICOM video have no viewer, and the GSPS and key image note loaders are
-   stubs. JPEG-LS files do not decode, and show as blank images with no error.
+   stubs.
 4. **The advanced 3D tools are behind OsiriX.** Curved MPR, 3D measurement,
    registration, sculpting, STL export and endoscopy are all missing.
 5. **macOS and receiving pushed studies are real gaps but low priority** for
@@ -121,7 +121,7 @@ build and test baseline. It was written on 2026-10-31 against branch `phase0`
 | DICOMweb | QIDO, WADO-RS, STOW and WADO-URI; no authentication found | WADO | Not listed | Not listed | Not listed |
 | JPEG, JPEG Lossless, RLE | Yes | Yes | Not listed | Yes | Not listed |
 | JPEG 2000 | Yes, through GDCM | Yes | Yes | Yes | Yes |
-| JPEG-LS | **Broken** (see Phase 1) | Yes | Not listed | Yes | Not listed |
+| JPEG-LS | Yes, fixed in Phase 0.5 (A-01) | Yes | Not listed | Yes | Not listed |
 | Enhanced multi-frame | Yes: CT, MR, tomosynthesis | Not listed | Not listed | Not listed | Not listed |
 | URL scheme and command line | Yes | Yes, plus XML-RPC | Not listed | Yes | Command line |
 | RIS integration | Yes, listener | Yes | Not listed | Not listed | Not listed |
@@ -223,12 +223,10 @@ still to run, using [test-protocol.md](quality/test-protocol.md).
 - **DICOMweb authentication:** add basic and OAuth 2 bearer tokens, with
   credentials in the operating system's secure store. None was found in the WADO
   request classes.
-- **JPEG-LS:** fix, and report undecodable frames to the user (A-01). The files
-  show as blank images with no error. `main.cpp:203` registers only the JPEG and
-  RLE decoders, and `volumepixeldatareaderfactory.cpp` sends only JPEG 2000 and
-  segmented palettes to GDCM.
-- **Wrong-length pixel data:** reject the file, and check for an out-of-bounds
-  read (A-20).
+- **JPEG-LS:** done (A-01). Undecodable frames now give an error instead of a
+  blank image.
+- **Wrong-length pixel data:** done for the default reader (A-20). Add the same
+  check to the GDCM and ITK readers.
 - **Update checker:** move it to HTTPS and make sending version and OS optional
   (`applicationupdatechecker.cpp`).
 - **Malformed input:** fuzz the DICOM parsers and decoders in CI and pin
