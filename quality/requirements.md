@@ -24,10 +24,10 @@ treatment decisions. See the open decision in the
 
 | ID | Requirement | Hazards | Verification | Status |
 | --- | --- | --- | --- | --- |
-| SR-DEC-01 | Displays images in each transfer syntax of `transfer-syntaxes/`, with pixels matching the uncompressed source for lossless syntaxes. | H-05 | TP-03 | Not verified |
-| SR-DEC-02 | Reports an error for a truncated file, a file with the wrong pixel length, or a file that is not DICOM, without crashing and without showing a partial image as complete. | H-05 | TP-04 | Not verified |
-| SR-DEC-03 | Does not present a series with missing slices as continuous anatomy without warning. | H-05, H-04 | TP-04 | Not verified |
-| SR-DEC-04 | Displays MONOCHROME1 images with the correct polarity. | H-06 | TP-05 | Not verified |
+| SR-DEC-01 | Displays images in each transfer syntax of `transfer-syntaxes/`, with pixels matching the uncompressed source for lossless syntaxes. | H-05 | TP-03 | Failed in run 1 (A-01) |
+| SR-DEC-02 | Reports an error for a truncated file, a file with the wrong pixel length, or a file that is not DICOM, without crashing and without showing a partial image as complete. | H-05 | TP-04 | Failed in run 1 (A-20) |
+| SR-DEC-03 | Does not present a series with missing slices as continuous anatomy without warning. | H-05, H-04 | TP-04 | Passed on Linux, run 1 |
+| SR-DEC-04 | Displays MONOCHROME1 images with the correct polarity. | H-06 | TP-05 | Passed on Linux, run 1 |
 | SR-DEC-05 | Displays multi-frame images with every frame, in order. | H-05 | TP-05 | Not verified |
 | SR-DEC-06 | Reports an object it cannot display, such as an unsupported type, rather than omitting it silently. | H-05 | TP-03, TP-05 | Not verified |
 
@@ -35,10 +35,10 @@ treatment decisions. See the open decision in the
 
 | ID | Requirement | Hazards | Verification | Status |
 | --- | --- | --- | --- | --- |
-| SR-PAT-01 | Shows the patient's name and ID, and the study date, with the images. | H-01 | TP-02 | Not verified |
+| SR-PAT-01 | Shows the patient's name and ID, and the study date, with the images. | H-01 | TP-02 | Passed on Linux, run 1 |
 | SR-PAT-02 | Never mixes images of different patients in one view without warning. | H-01 | TP-06 | Not verified |
 | SR-ORI-01 | Shows correct orientation labels in axial, sagittal, coronal and oblique views, and in MPR. | H-02 | TP-02, TP-07 | Not verified |
-| SR-ORI-02 | Displays patient left on the viewer's right in a standard axial view of the reference CT. | H-02 | TP-02 | Not verified |
+| SR-ORI-02 | Displays patient left on the viewer's right in a standard axial view of the reference CT. | H-02 | TP-02 | Passed on Linux, run 1 |
 | SR-ORI-03 | Shows mammography laterality from the file. | H-02 | TP-05 | Not verified |
 
 ## Measurement
@@ -78,4 +78,4 @@ treatment decisions. See the open decision in the
 
 | ID | Requirement | Hazards | Verification | Status |
 | --- | --- | --- | --- | --- |
-| SR-INS-01 | The `.deb`, AppImage and NSIS packages install on a clean machine, and the application starts with no other software added. | | TP-01 | Not verified |
+| SR-INS-01 | The `.deb`, AppImage and NSIS packages install on a clean machine, and the application starts with no other software added. | | TP-01 | Failed in run 1 (A-17, A-18, A-19) |

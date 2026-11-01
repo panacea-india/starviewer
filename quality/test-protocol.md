@@ -43,11 +43,34 @@ and correct them.
 ## Results
 
 Record the commit, CI run, package file name and SHA-256, corpus checksum, operating system,
-GPU and tester for each run. Nothing has been run yet.
+GPU and tester for each run.
 
 | Run | Date | Platform | Commit | CI run | Steps passed | Steps failed | New anomalies |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | | |
+| 1 | 2026-10-31 | Linux, clean `ubuntu:24.04` container, Xvfb, Mesa software rendering | `f9cc1c38c` | 41260260302 | See below | TP-01, TP-03, TP-04 | A-17, A-19 to A-23 |
+
+Run 1 used the `.deb` with SHA-256 starting `7a3163e6`, tested by Claude driving the interface
+with scripted input. Software rendering says nothing about performance. A person still has to
+repeat this on a real desktop.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| TP-01 | **Failed** | Did not start until libraries were added (A-17). The AppImage failed too (A-19). The title bar shows the label; the About dialog was not checked |
+| TP-02 | Passed | Patient, ID, date and labels correct, with the block on the viewer's right and towards the top |
+| TP-03 | **Failed** | JPEG-LS displays blank (A-01). The other 6 lossless CT variants match `implicit-le` on screen, pixel for pixel. The lossy CT variants and RGB folders display, and were judged by eye only |
+| TP-04 | **Failed** | Wrong-length file displays with no warning (A-20). Truncated and not-DICOM files give "no patient data that can be loaded", with no crash. `missing-slice` shows "Slices 5 and 6 missing" |
+| TP-05 | Partial | Mammogram polarity correct. Enhanced CT shows 20 frames. Cines were not played, and the PDF was not opened (A-22) |
+| TP-06 | Partial | Opening another patient replaced the first, with no mixing. Adding studies by other routes was not tried |
+| TP-07 | Partial | MPR opened by default with correct labels. The oblique series shows AF and PH labels and reference lines. 3D and geometry were not checked |
+| TP-08, TP-09, TP-11 | Not run | |
+| TP-10 | Partial | C-FIND and C-MOVE of `ct-reference` retrieved all 100 instances and displayed them, with the PACS settings written directly to the configuration file. C-STORE, DICOMweb, mid-transfer failure and the settings dialog were not tested |
+
+No crash occurred in any of the 28 cases opened, including `pydicom-test-files`. Windows is
+checked only by inspecting the installer (A-18).
+
+The JPEG 2000 lossy case was 500:1 in this run, too coarse to judge. The generator now uses
+10:1, with a separate decoder measuring an RMS error of 2.4 stored values, but that file has
+not yet been opened in the viewer.
 
 ### Baseline timings
 
