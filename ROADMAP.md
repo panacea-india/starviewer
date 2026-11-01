@@ -192,28 +192,32 @@ Certification-ready practices add overhead on top of these figures, probably
 
 Everything after this builds on the assumption that the baseline works.
 
-- Install the `.deb`, AppImage and NSIS packages on clean machines of the kind
-  internal users have.
+- Install the NSIS package on a clean Windows machine of the kind internal users
+  have. Deferred to the first internal release, with the `.deb`, the AppImage and
+  CI, because Windows is the target and a local build is enough until then.
 - Build a test corpus of real or public de-identified studies covering CT, MR,
   PET-CT, US, XA, MG, multi-frame and every supported transfer syntax.
 - Exercise the main flows: open from disc, query and retrieve against a test
-  PACS such as Orthanc and the internal PACS, MPR, 3D, fusion, measurement,
-  export and printing.
+  PACS such as Orthanc, MPR, 3D, fusion, measurement, export and printing.
+  Testing against a real site's PACS is not a priority for now.
 - Hands-on benchmark against RadiAnt on the same studies, and correct this
-  document where the desk research was wrong.
+  document where the desk research was wrong. Deferred until before Phase 4.
 - Set up the foundations in
   [Certification-ready engineering](#certification-ready-engineering).
 - Open the PR from `phase0` into `devel`.
 
-**Exit:** packages install and work on clean machines, findings are triaged,
-baseline timings for load, scroll and 3D are recorded, and the foundations are
-in place.
+**Exit:** the application works on Windows, findings are triaged, baseline
+timings for load, scroll and 3D are recorded, and the foundations are in place.
 
 **Status:** the test corpus, test PACS and foundation records are in
-[quality/](quality/README.md). Installing, the main flows and the benchmark are
-still to run, using [test-protocol.md](quality/test-protocol.md).
+[quality/](quality/README.md). A local Windows build has run the main flows, with
+no failed step and some steps partial (run 2 in
+[test-protocol.md](quality/test-protocol.md)).
 
 ### Phase 1: Network security and decoding
+
+Start with decoding and malformed input. No real PACS needs TLS or authentication
+yet, so those follow.
 
 - **Windows OpenSSL:** build it into the SDK, restoring WADO over HTTPS and
   enabling DICOM TLS support in DCMTK.
@@ -229,15 +233,15 @@ still to run, using [test-protocol.md](quality/test-protocol.md).
   check to the GDCM and ITK readers.
 - **Update checker:** move it to HTTPS and make sending version and OS optional
   (`applicationupdatechecker.cpp`).
-- **Malformed input:** fuzz the DICOM parsers and decoders in CI and pin
-  dependency updates. RadiAnt's 2026.1 release fixed an out-of-bounds write
+- **Malformed input:** fuzz the DICOM parsers and decoders, locally until CI is
+  back in scope, and pin dependency updates. RadiAnt's 2026.1 release fixed an out-of-bounds write
   triggered by a malicious DICOM file (CVE-2026-17264), and Starviewer has
   comparable exposure.
 - **Backlog fix:** make `autotests` report failures correctly, so 256 failures
   cannot wrap to exit code 0.
 
-**Exit:** TLS and authenticated DICOMweb work against Orthanc and the internal
-PACS, every transfer syntax in the corpus decodes, and fuzzing runs in CI.
+**Exit:** TLS and authenticated DICOMweb work against Orthanc, every transfer
+syntax in the corpus decodes, and fuzzing runs regularly.
 
 ### Phase 2: Display every everyday DICOM object
 
