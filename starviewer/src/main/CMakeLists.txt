@@ -23,6 +23,7 @@ if(STARVIEWER_CE)
     )
 
     file(COPY ${DEPLOYMENT_REPO_DIR}/celabelsymbols DESTINATION ${CMAKE_SOURCE_DIR}/src/external)
+    file(COPY ${DEPLOYMENT_REPO_DIR}/labels DESTINATION ${CMAKE_SOURCE_DIR}/src/external)
 endif()
 
 if(USE_QTCONF)
@@ -66,6 +67,7 @@ target_link_vtk(starviewer
 
 target_link_dcmtk(starviewer
     dcmjpeg
+    dcmjpls
 )
 
 

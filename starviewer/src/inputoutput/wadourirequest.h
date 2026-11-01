@@ -1,5 +1,5 @@
 /*************************************************************************************
-  Copyright (C) 2014 Laboratori de Gràfics i Imatge, Universitat de Girona &
+  Copyright (C) 2024 Laboratori de Gràfics i Imatge, Universitat de Girona &
   Institut de Diagnòstic per la Imatge.
   Girona 2014. All rights reserved.
   http://starviewer.udg.edu
@@ -22,6 +22,8 @@
 #include <QSet>
 
 namespace udg {
+
+class StudyOperationResult;
 
 /**
  * @brief The WadoUriRequest class implements a WADO-URI download (PS3.18§9) of a study, series or instance.
@@ -47,15 +49,15 @@ public:
     void cancel() override;
 
 signals:
-    /// Emitted when a local study is deleted to free up space. The end goal is to update the local database view.
-    void studyFromCacheWillBeDeleted(const QString &studyInstanceUid);
     /// Emitted each time an instance is downloaded, with the total number of instances downloaded until now.
     void instanceDownloaded(int totalInstancesDownloaded);
     /// Emitted each time a new series is downloaded, with the total number of different series downloaded until now.
     void seriesDownloaded(int totalSeriesDownloaded);
+    /// Internal signal used to call abort in the thread where the network replies live.
+    void cancelRequested();
 
 private:
-    /// Starts the download.
+    /// Starts the request.
     void startInternal() override;
 
     /// Checks available space in the local cache and if needed deletes studies until there is enough.
@@ -63,9 +65,15 @@ private:
     bool ensureEnoughHardDiskSpace();
 
     /// Performs a query on the PACS to obtain the UIDs of all the instances in the requested study or series.
-    bool obtainSopInstanceUids();
+    void obtainSopInstanceUids();
+
+    /// Downloads the instances.
+    void downloadInstances();
 
 private slots:
+    /// Called when the search of instances in the PACS finishes.
+    void getSearchResults(StudyOperationResult *result);
+
     /// Called when a QNetworkReply finishes.
     void onReplyFinished(QNetworkReply *reply);
 
@@ -90,6 +98,11 @@ private:
     uint m_numberOfInstancesDownloaded;
     /// Set with the distinct Series Instance UIDs found until now. Used to know the number of different series received.
     QSet<QString> m_downloadedSeriesUids;
+
+    /// Accumulates errors "statistics" to show a summary at the end.
+    /// The key is the error text with any HTTP or HTTPS URL reduced to the host and port so that variations in the URL are grouped.
+    /// The pair is the number of instances of this error and the common pattern in the error to show in the end summary.
+    QHash<QString, QPair<int, QString>> m_errors;
 };
 
 } // namespace udg

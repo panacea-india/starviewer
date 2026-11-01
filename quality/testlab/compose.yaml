@@ -1,0 +1,27 @@
+name: starviewer-testlab
+
+services:
+  tools:
+    build: .
+    profiles: [tools]
+    volumes:
+      - ./:/lab
+
+  orthanc:
+    image: jodogne/orthanc-plugins:1.12.6
+    # Published on the loopback interface only: this is a test server with a
+    # well-known password.
+    ports:
+      - "127.0.0.1:14242:4242"
+      - "127.0.0.1:18042:8042"
+    # Docker Desktop defines this name already. Linux needs it spelled out, so that
+    # Orthanc can reach a Starviewer running on the host for C-MOVE.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Replaces the image's configuration: Orthanc refuses a setting defined in two files.
+      - ./orthanc-lab.json:/etc/orthanc/orthanc.json:ro
+      - orthanc-storage:/var/lib/orthanc/db
+
+volumes:
+  orthanc-storage:

@@ -11,3 +11,11 @@ configure_file("${SOURCE_DIR}/installerresources/Starviewer.desktop.in" "${CMAKE
 # URL handler
 configure_file("${SOURCE_DIR}/installerresources/StarviewerUrlHandler.desktop.in"
                "${CMAKE_CURRENT_BINARY_DIR}/usr/share/applications/${OUTPUT_FILENAME}UrlHandler.desktop")
+
+# How to access IFU
+# The desktop file opens a PDF that is only installed when the manuals are
+# built (CPACK_INSTALL_IFU_DESKTOP, set in Installers.cmake).
+if(CPACK_INSTALL_IFU_DESKTOP)
+    configure_file("${SOURCE_DIR}/installerresources/StarviewerHowToAccessIFU.desktop.in"
+                   "${CMAKE_CURRENT_BINARY_DIR}/usr/share/applications/${OUTPUT_FILENAME}HowToAccessIFU.desktop")
+endif()

@@ -158,8 +158,9 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadoinstancedownloader.cpp" line="98"/>
-        <source>Can&apos;t save file to disk.</source>
+        <location filename="wadoinstancedownloader.cpp" line="102"/>
+        <source>Can&apos;t save file %1 to disk.</source>
+        <oldsource>Can&apos;t save file to disk.</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -483,25 +484,25 @@
 <context>
     <name>udg::DICOMDIRImporter</name>
     <message>
-        <location filename="dicomdirimporter.cpp" line="347"/>
+        <location filename="dicomdirimporter.cpp" line="351"/>
         <source>Importing image %1 of series %2 from study %3, %4</source>
         <oldsource>Importing Image %1 of Series %2 from Study %3, %4</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dicomdirimporter.cpp" line="352"/>
+        <location filename="dicomdirimporter.cpp" line="356"/>
         <source>Importing series %1 of study %2, %3</source>
         <oldsource>Importing Series %1 of Study %2, %3</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dicomdirimporter.cpp" line="357"/>
+        <location filename="dicomdirimporter.cpp" line="361"/>
         <source>Importing study %1, %2</source>
         <oldsource>Importing Study %1, %2</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dicomdirimporter.cpp" line="362"/>
+        <location filename="dicomdirimporter.cpp" line="366"/>
         <source>Importing images from DICOMDIR</source>
         <oldsource>Importing Images from DICOMDIR</oldsource>
         <translation type="unfinished"></translation>
@@ -1957,18 +1958,18 @@ Close all the others %1 windows and try again.</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="qinputoutputpacswidget.cpp" line="404"/>
+        <location filename="qinputoutputpacswidget.cpp" line="407"/>
         <source>Please select a PACS to query.</source>
         <oldsource>Please select a PACS to query</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="qinputoutputpacswidget.cpp" line="411"/>
+        <location filename="qinputoutputpacswidget.cpp" line="414"/>
         <source>No search fields were filled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="qinputoutputpacswidget.cpp" line="412"/>
+        <location filename="qinputoutputpacswidget.cpp" line="415"/>
         <source>The query can take a long time.
 Do you want continue?</source>
         <translation type="unfinished"></translation>
@@ -3065,7 +3066,12 @@ Error details:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="retrievedicomfilesfrompacsjob.cpp" line="383"/>
+        <location filename="retrievedicomfilesfrompacsjob.cpp" line="379"/>
+        <source>&lt;p&gt;&lt;b&gt;Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements on reconstructed planes may be wrong. Check the number of images in each series before using it for such purposes. Refer to the user guide for more information.&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="retrievedicomfilesfrompacsjob.cpp" line="386"/>
         <source>Cannot retrieve images from study %1 of patient %2 from PACS %3 due to an unknown error.</source>
         <oldsource>An unknown error has occurred and thus retrieval of images from study %1 of patient %2 from PACS %3 could not be performed.</oldsource>
         <translation type="unfinished"></translation>
@@ -3153,32 +3159,47 @@ Details:
 <context>
     <name>udg::WadoRetrieveRequest</name>
     <message>
-        <location filename="wadoretrieverequest.cpp" line="94"/>
+        <location filename="wadoretrieverequest.cpp" line="96"/>
         <source>Not enough space to download studies.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadoretrieverequest.cpp" line="98"/>
+        <location filename="wadoretrieverequest.cpp" line="100"/>
         <source>Error when trying to delete studies to free up space in disk.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadoretrieverequest.cpp" line="276"/>
+        <location filename="wadoretrieverequest.cpp" line="283"/>
         <source>Invalid or unsupported server response.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadoretrieverequest.cpp" line="362"/>
+        <location filename="wadoretrieverequest.cpp" line="370"/>
         <source>Download ended prematurely for an unknown reason.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="wadoretrieverequest.cpp" line="386"/>
+        <source>&lt;p&gt;Some images have been downloaded. However there have been some errors. Maybe those images are missing or corrupted in PACS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadoretrieverequest.cpp" line="388"/>
+        <source>&lt;p&gt;&lt;b&gt;Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements on reconstructed planes may be wrong. Check the number of images in each series before using it for such purposes. Refer to the user guide for more information.&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadoretrieverequest.cpp" line="391"/>
+        <source>&lt;p&gt;Details:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadoretrieverequest.cpp" line="401"/>
         <source>Can&apos;t read correctly data from downloaded images. They may be corrupt.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadoretrieverequest.cpp" line="390"/>
+        <location filename="wadoretrieverequest.cpp" line="405"/>
         <source>Database error when saving downloaded images.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3194,39 +3215,53 @@ Details:
 <context>
     <name>udg::WadoUriRequest</name>
     <message>
-        <location filename="wadourirequest.cpp" line="123"/>
+        <location filename="wadourirequest.cpp" line="89"/>
         <source>Not enough space to download studies.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadourirequest.cpp" line="127"/>
+        <location filename="wadourirequest.cpp" line="93"/>
         <source>Error when trying to delete studies to free up space in disk.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadourirequest.cpp" line="185"/>
+        <location filename="wadourirequest.cpp" line="214"/>
         <source>Could not obtain the list of files in the study.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadourirequest.cpp" line="263"/>
-        <source>Can&apos;t read correctly data from downloaded images. They may be corrupt.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="wadourirequest.cpp" line="267"/>
-        <source>Database error when saving downloaded images.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="wadourirequest.cpp" line="276"/>
-        <source>Some images have been downloaded. However there have been some errors:
-
+        <location filename="wadourirequest.cpp" line="318"/>
+        <source>%2 (%1 times)
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="wadourirequest.cpp" line="288"/>
+        <location filename="wadourirequest.cpp" line="334"/>
+        <source>Can&apos;t read correctly data from downloaded images. They may be corrupt.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadourirequest.cpp" line="338"/>
+        <source>Database error when saving downloaded images.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadourirequest.cpp" line="347"/>
+        <source>&lt;p&gt;Some images have been downloaded. However there have been some errors. Maybe those images are missing or corrupted in PACS.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadourirequest.cpp" line="349"/>
+        <source>&lt;p&gt;&lt;b&gt;Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements on reconstructed planes may be wrong. Check the number of images in each series before using it for such purposes. Refer to the user guide for more information.&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadourirequest.cpp" line="352"/>
+        <source>&lt;p&gt;Details:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="wadourirequest.cpp" line="365"/>
         <source>Could not download any image. Errors:
 
 </source>

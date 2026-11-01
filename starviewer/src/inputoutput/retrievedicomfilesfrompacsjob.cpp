@@ -1,5 +1,5 @@
 /*************************************************************************************
-  Copyright (C) 2014 Laboratori de Gràfics i Imatge, Universitat de Girona &
+  Copyright (C) 2024 Laboratori de Gràfics i Imatge, Universitat de Girona &
   Institut de Diagnòstic per la Imatge.
   Girona 2014. All rights reserved.
   http://starviewer.udg.edu
@@ -246,9 +246,6 @@ int RetrieveDICOMFilesFromPACSJob::priority() const
 PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACSJob::thereIsAvailableSpaceOnHardDisk()
 {
     LocalDatabaseManager localDatabaseManager;
-    // TODO: Aquest signal no s'hauria de fer des d'aquesta classe sinó des d'una CacheManager, però com de moment encara no està implementada
-    //       temporalment emetem el signal des d'aquí*/
-    connect(&localDatabaseManager, SIGNAL(studyWillBeDeleted(QString)), SIGNAL(studyFromCacheWillBeDeleted(QString)));
 
     if (!localDatabaseManager.thereIsAvailableSpaceOnHardDisk())
     {
@@ -376,8 +373,11 @@ QString RetrieveDICOMFilesFromPACSJob::getStatusDescription()
         case PACSRequestStatus::RetrieveSomeDICOMFilesFailed:
             message = tr("Unable to retrieve some images from study %1 of patient %2 from PACS %3. Maybe those images are missing or corrupted in PACS.")
                 .arg(studyID, patientName, pacsAETitle);
-            message += "\n";
-            message += errorDetails;
+            message += tr("<p><b>Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements on reconstructed "
+                          "planes may be wrong. Check the number of images in each series before using it for such purposes. Refer to the user guide for more "
+                          "information.</b>");
+            message += errorDetails.replace('\n', "<br>");
+
             break;
         default:
             message = tr("Cannot retrieve images from study %1 of patient %2 from PACS %3 due to an unknown error.")

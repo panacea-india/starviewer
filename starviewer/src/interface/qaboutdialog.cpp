@@ -37,7 +37,8 @@ QAboutDialog::QAboutDialog(QWidget *parent)
 
 #ifdef STARVIEWER_LITE
     m_liteAboutTextLabel->setText(m_liteAboutTextLabel->text().arg(ApplicationNameString).arg(2019).arg(StarviewerVersionString).arg(OrganizationEmailString)
-                                                              .arg(OrganizationWebURL));
+                                                              .arg(OrganizationWebURL)
+                                     + "<p><b>" + tr("Not for diagnostic use.") + "</b></p>");
     m_liteAboutTextLabel->setOpenExternalLinks(true);
     m_stackedWidget->setCurrentIndex(1);
 #elif defined STARVIEWER_CE
@@ -45,7 +46,8 @@ QAboutDialog::QAboutDialog(QWidget *parent)
     m_stackedWidget->setCurrentIndex(index);
 #else
     m_aboutTextLabel->setText(m_aboutTextLabel->text().arg(ApplicationNameString).arg(2019).arg(StarviewerVersionString).arg(OrganizationEmailString)
-                                                      .arg(OrganizationWebURL));
+                                                      .arg(OrganizationWebURL)
+                                 + "<p><b>" + tr("Not for diagnostic use.") + "</b></p>");
     m_aboutTextLabel->setOpenExternalLinks(true);
     m_stackedWidget->setCurrentIndex(0);
 #endif
@@ -53,6 +55,12 @@ QAboutDialog::QAboutDialog(QWidget *parent)
     m_crashButton = m_buttonBox->addButton(tr("Crash test"), QDialogButtonBox::ActionRole);
     m_crashButton->setAutoDefault(false);
     connect(m_crashButton, &QPushButton::clicked, this, &QAboutDialog::crash);
+
+#ifdef STARVIEWER_CE
+    QPushButton *showLabelButton = m_buttonBox->addButton(tr("Show label"), QDialogButtonBox::ActionRole);
+    showLabelButton->setAutoDefault(false);
+    connect(showLabelButton, &QPushButton::clicked, this, &QAboutDialog::requestedShowLabel);
+#endif
 
     QPushButton *licenseButton = m_buttonBox->addButton(tr("License information"), QDialogButtonBox::ActionRole);
     licenseButton->setAutoDefault(false);

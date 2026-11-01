@@ -154,6 +154,7 @@ set(SOURCES
     opacitytransferfunction.cpp
     optimalviewersgridestimator.cpp
     orderimagesfillerstep.cpp
+    ordervolumesfillerstep.cpp
     orthogonalplane.cpp
     pacsdevice.cpp
     pairedvolumedisplayunithandler.cpp
@@ -327,6 +328,7 @@ set(SOURCES
     translatelefttool.cpp
     translatetool.cpp
     trilinearinterpolator.cpp
+    utils.cpp
     viewerslayout.cpp
     viewerslayouttosyncactionmanageradapter.cpp
     viewpointgenerator.cpp

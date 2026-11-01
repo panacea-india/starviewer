@@ -1,5 +1,5 @@
 /*************************************************************************************
-  Copyright (C) 2014 Laboratori de Gràfics i Imatge, Universitat de Girona &
+  Copyright (C) 2024 Laboratori de Gràfics i Imatge, Universitat de Girona &
   Institut de Diagnòstic per la Imatge.
   Girona 2014. All rights reserved.
   http://starviewer.udg.edu
@@ -20,11 +20,13 @@
 #include "series.h"
 #include "studyoperationresult.h"
 #include "studyoperationsservice.h"
+#include "utils.h"
 #include "wadoinstancedownloader.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QRegularExpression>
 #include <QUrlQuery>
 
 namespace udg {
@@ -53,28 +55,94 @@ const QString& WadoUriRequest::getSopInstanceUid() const
 
 void WadoUriRequest::cancel()
 {
-    for (QNetworkReply *reply : qAsConst(m_pendingReplies))
-    {
-        reply->abort();
-    }
+    emit cancelRequested();
 }
 
 // This is run in the WADO thread.
 void WadoUriRequest::startInternal()
 {
-    if (!ensureEnoughHardDiskSpace())
-    {
-        return;
-    }
-
     emit started();
 
-    if (!obtainSopInstanceUids())
+    if (!ensureEnoughHardDiskSpace())
     {
         emit finished();
         return;
     }
 
+    obtainSopInstanceUids();
+}
+
+// This is run in the WADO thread.
+bool WadoUriRequest::ensureEnoughHardDiskSpace()
+{
+    // Copied and adapted from RetrieveDICOMFilesFromPACSJob::thereIsAvailableSpaceOnHardDisk
+    LocalDatabaseManager localDatabaseManager;
+
+    // This method will delete studies if configured in settings if there is not enough space. It returns whether there is enough space after that.
+    if (!localDatabaseManager.thereIsAvailableSpaceOnHardDisk())
+    {
+        m_status = Status::Errored;
+
+        if (localDatabaseManager.getLastError() == LocalDatabaseManager::Ok)
+        {
+            m_errorsDescription = tr("Not enough space to download studies.");  // TODO unify messages with the ones for DIMSE
+        }
+        else
+        {
+            m_errorsDescription = tr("Error when trying to delete studies to free up space in disk.");
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+// This is run in the WADO thread.
+void WadoUriRequest::obtainSopInstanceUids()
+{
+    if (!m_sopInstanceUid.isEmpty())
+    {
+        m_instancesToDownload.insert({m_seriesInstanceUid, m_sopInstanceUid});
+        downloadInstances();
+    }
+    else
+    {
+        INFO_LOG(QString("Asking PACS %1 about all instances to download.").arg(getPacsDevice().getAETitle()));
+
+        DicomMask mask;
+        mask.setStudyInstanceUID(m_studyInstanceUid);
+        mask.setSeriesInstanceUID(m_seriesInstanceUid.isNull() ? "" : m_seriesInstanceUid);
+        mask.setSOPInstanceUID("");
+        StudyOperationResult *result = nullptr;
+
+        // This calls the given lambda in the StudyOperationsService's thread (the main thread) but blocks until the call has returned, so that we have a
+        // StudyOperationResult instance in result
+        QMetaObject::invokeMethod(StudyOperationsService::instance(), [=] {
+                return StudyOperationsService::instance()->searchPacs(getPacsDevice(), mask, StudyOperations::TargetResource::Instances);
+            }, Qt::BlockingQueuedConnection, &result);
+
+        Q_ASSERT(result);
+
+        // A cancellation request may be received during this auxiliary query.
+        connect(this, &WadoUriRequest::cancelRequested, result, &StudyOperationResult::cancel);
+        // Network access manager provided as context object so that the lambda is called in the WADO thread.
+        connect(result, &StudyOperationResult::finished, m_networkAccessManager, [=] {
+            getSearchResults(result);
+        });
+        // Network access manager provided as context object so that the lambda is called in the WADO thread.
+        connect(result, &StudyOperationResult::cancelled, m_networkAccessManager, [=] {
+            INFO_LOG(QString("Cancelled retrieve of study %1 (series %2, instance %3).").arg(m_studyInstanceUid, m_seriesInstanceUid, m_sopInstanceUid));
+            m_status = Status::Cancelled;
+            emit cancelled();
+            result->deleteLater();
+        });
+    }
+}
+
+// This is run in the WADO thread.
+void WadoUriRequest::downloadInstances()
+{
     QUrl baseUri = getPacsDevice().getBaseUri();
     INFO_LOG(QString("Starting retrieve of %1 instances from WADO-URI PACS with base URI %2.").arg(m_instancesToDownload.size()).arg(baseUri.toString()));
     QUrlQuery urlQuery;
@@ -100,56 +168,16 @@ void WadoUriRequest::startInternal()
         QNetworkReply *reply = m_networkAccessManager->get(request);
         m_pendingReplies.insert(reply);
 
+        connect(this, &WadoUriRequest::cancelRequested, reply, &QNetworkReply::abort);
         connect(reply, &QNetworkReply::finished, this, [=] {
-            onReplyFinished(reply);
-        }, Qt::DirectConnection);
+                onReplyFinished(reply);
+            }, Qt::DirectConnection);
     }
 }
 
 // This is run in the WADO thread.
-bool WadoUriRequest::ensureEnoughHardDiskSpace()
+void WadoUriRequest::getSearchResults(StudyOperationResult *result)
 {
-    // Copied and adapted from RetrieveDICOMFilesFromPACSJob::thereIsAvailableSpaceOnHardDisk
-    LocalDatabaseManager localDatabaseManager;
-    connect(&localDatabaseManager, &LocalDatabaseManager::studyWillBeDeleted, this, &WadoUriRequest::studyFromCacheWillBeDeleted);
-
-    // This method will delete studies if configured in settings if there is not enough space. It returns whether there is enough space after that.
-    if (!localDatabaseManager.thereIsAvailableSpaceOnHardDisk())
-    {
-        m_status = Status::Errored;
-
-        if (localDatabaseManager.getLastError() == LocalDatabaseManager::Ok)
-        {
-            m_errorsDescription = tr("Not enough space to download studies.");  // TODO unify messages with the ones for DIMSE
-        }
-        else
-        {
-            m_errorsDescription = tr("Error when trying to delete studies to free up space in disk.");
-        }
-
-        return false;
-    }
-
-    return true;
-}
-
-// This is run in the WADO thread.
-bool WadoUriRequest::obtainSopInstanceUids()
-{
-    if (!m_sopInstanceUid.isEmpty())
-    {
-        m_instancesToDownload.insert({m_seriesInstanceUid, m_sopInstanceUid});
-        return true;
-    }
-
-    INFO_LOG(QString("Asking PACS %1 about all instances to download.").arg(getPacsDevice().getAETitle()));
-
-    DicomMask mask;
-    mask.setStudyInstanceUID(m_studyInstanceUid);
-    mask.setSeriesInstanceUID(m_seriesInstanceUid.isNull() ? "" : m_seriesInstanceUid);
-    mask.setSOPInstanceUID("");
-    StudyOperationResult *result = StudyOperationsService::instance()->searchPacs(getPacsDevice(), mask, StudyOperations::TargetResource::Instances);
-
     const QList<Series*> &series = result->getSeries();
     const QList<Image*> &instances = result->getInstances();
 
@@ -176,7 +204,7 @@ bool WadoUriRequest::obtainSopInstanceUids()
         WARN_LOG(m_errorsDescription);
     }
 
-    delete result;
+    result->deleteLater();
 
     // With Raïmserver in some cases we can receive an empty response without error because of a 10 minute limit (see #2982).
     if (m_instancesToDownload.isEmpty())
@@ -187,34 +215,64 @@ bool WadoUriRequest::obtainSopInstanceUids()
         ok = false;
     }
 
-    return ok;
+    if (ok)
+    {
+        downloadInstances();
+    }
+    else
+    {
+        emit finished();
+    }
 }
 
 // This is run in the WADO thread.
 void WadoUriRequest::onReplyFinished(QNetworkReply *reply)
 {
+    static const QRegularExpression HttpUrlRegExp(R"((https?://[^/?#\s]*)[^?#\s]*(?:\?[^#\s]*)?(?:#.*)?)", QRegularExpression::UseUnicodePropertiesOption);
+
     m_pendingReplies.remove(reply);
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        QUrlQuery query(reply->url().query());
-        WadoInstanceDownloader wadoInstanceDownloader;
-        wadoInstanceDownloader.setStudyInstanceUid(m_studyInstanceUid);
-        wadoInstanceDownloader.setSeriesInstanceUid(query.queryItemValue("seriesUID"));
-        wadoInstanceDownloader.setSopInstanceUid(query.queryItemValue("objectUID"));
-        wadoInstanceDownloader.setInstanceSize(reply->bytesAvailable());
-        wadoInstanceDownloader.setDataSource(reply);
-        wadoInstanceDownloader.read();
-
-        emit instanceDownloaded(++m_numberOfInstancesDownloaded);
-
-        if (!m_downloadedSeriesUids.contains(wadoInstanceDownloader.getSeriesInstanceUid()))
+        try
         {
-            m_downloadedSeriesUids.insert(wadoInstanceDownloader.getSeriesInstanceUid());
-            emit seriesDownloaded(m_downloadedSeriesUids.size());
-        }
+            QUrlQuery query(reply->url().query());
+            WadoInstanceDownloader wadoInstanceDownloader;
+            wadoInstanceDownloader.setStudyInstanceUid(m_studyInstanceUid);
+            wadoInstanceDownloader.setSeriesInstanceUid(query.queryItemValue("seriesUID"));
+            wadoInstanceDownloader.setSopInstanceUid(query.queryItemValue("objectUID"));
+            wadoInstanceDownloader.setInstanceSize(reply->bytesAvailable());
+            wadoInstanceDownloader.setDataSource(reply);
+            wadoInstanceDownloader.read();
 
-        m_downloadedFilesProcessor->processFile(wadoInstanceDownloader.getPath());
+            emit instanceDownloaded(++m_numberOfInstancesDownloaded);
+
+            if (!m_downloadedSeriesUids.contains(wadoInstanceDownloader.getSeriesInstanceUid()))
+            {
+                m_downloadedSeriesUids.insert(wadoInstanceDownloader.getSeriesInstanceUid());
+                emit seriesDownloaded(m_downloadedSeriesUids.size());
+            }
+
+            m_downloadedFilesProcessor->processFile(wadoInstanceDownloader.getPath());
+        }
+        catch (const std::runtime_error &error)
+        {
+            m_status = Status::Warnings;
+
+            QString key = QString(error.what()).replace(HttpUrlRegExp, "\\1");
+
+            if (m_errors.contains(key))
+            {
+                m_errors[key].first++;
+                m_errors[key].second = Utils::findCommonPattern(m_errors[key].second, error.what());
+            }
+            else
+            {
+                m_errors[key] = {1, error.what()};
+            }
+
+            ERROR_LOG(m_errorsDescription);
+        }
     }
     else if (reply->error() == QNetworkReply::OperationCanceledError)
     {
@@ -229,25 +287,37 @@ void WadoUriRequest::onReplyFinished(QNetworkReply *reply)
     {
         m_status = Status::Warnings;
 
-        if (m_errorsDescription.size() < 1000)  // avoid excessive errors accumulation
+        QString key = reply->errorString().replace(HttpUrlRegExp, "\\1");
+
+        if (m_errors.contains(key))
         {
-            m_errorsDescription += '\n' + reply->errorString();
+            m_errors[key].first++;
+            m_errors[key].second = Utils::findCommonPattern(m_errors[key].second, reply->errorString());
         }
-        else if (!m_errorsDescription.endsWith("…"))
+        else
         {
-            m_errorsDescription += "\n…";
+            m_errors[key] = {1, reply->errorString()};
         }
 
-        ERROR_LOG(QString("QNetworkReply::NetworkError %1: %2. (HTTP %3: %4)")
+        ERROR_LOG(QString("QNetworkReply::NetworkError %1: %2. (HTTP %3: %4) [URL: %5]")
                   .arg(reply->error()).arg(reply->errorString())
                   .arg(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt())
-                  .arg(reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString()));
+                  .arg(reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString())
+                  .arg(reply->url().toString()));
     }
 
     reply->deleteLater();
 
     if (m_pendingReplies.isEmpty())
     {
+        if (!m_errors.isEmpty())
+        {
+            foreach (const auto &pair, m_errors)
+            {
+                m_errorsDescription += tr("%2 (%1 times)\n").arg(pair.first).arg(pair.second);
+            }
+        }
+
         if (m_numberOfInstancesDownloaded > 0)
         {
             INFO_LOG(QString("Finished retrieve of study %1 (series %2, instance %3). %4 instance(s) downloaded.")
@@ -273,7 +343,13 @@ void WadoUriRequest::onReplyFinished(QNetworkReply *reply)
             {
                 if (!m_errorsDescription.isEmpty())
                 {
-                    m_errorsDescription = tr("Some images have been downloaded. However there have been some errors:\n\n") + m_errorsDescription;
+                    m_errorsDescription = tr("<p>Some images have been downloaded. However there have been some errors. Maybe those images are missing or "
+                                             "corrupted in PACS.")
+                                        + tr("<p><b>Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements "
+                                             "on reconstructed planes may be wrong. Check the number of images in each series before using it for such "
+                                             "purposes. Refer to the user guide for more information.</b>")
+                                        + tr("<p>Details:")
+                                        + m_errorsDescription.replace('\n', "<br>");
                     // TODO unify error messages with WADO-RS and DIMSE
                 }
             }

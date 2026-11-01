@@ -30,6 +30,7 @@ set(SOURCES
     test_filteroutput.cpp
     test_griditerator.cpp
     test_hangingprotocol.cpp
+    test_hangingprotocolfiller.cpp
     test_hangingprotocolimagesetrestriction.cpp
     test_hangingprotocolimagesetrestrictionexpression.cpp
     test_hangingprotocolmanager.cpp
@@ -75,6 +76,7 @@ set(SOURCES
     test_systemrequirementstest.cpp
     test_temporaldimensionfillerstep.cpp
     test_transferfunction.cpp
+    test_utils.cpp
     test_vector3double.cpp
     test_vector3float.cpp
     test_voilut.cpp
@@ -85,6 +87,7 @@ set(SOURCES
     test_volumepixeldataiterator.cpp
     test_volumepixeldatareaderfactory.cpp
     test_voxel.cpp
+    test_vtkdcmtkimagereader.cpp
     test_vtkimagedatacreator.cpp
     test_windowlevel.cpp
 )

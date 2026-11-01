@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="es">
+<TS version="2.1" language="es_ES">
 <context>
     <name>QCeAboutContentBase</name>
     <message>
@@ -42,17 +42,22 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="qceaboutcontentbase.ui" line="127"/>
+        <location filename="qceaboutcontentbase.ui" line="121"/>
         <source>Consult instructions</source>
         <translation>Consulte las instrucciones</translation>
     </message>
     <message>
-        <location filename="qceaboutcontentbase.ui" line="143"/>
+        <location filename="qceaboutcontentbase.ui" line="137"/>
+        <source>eIFU</source>
+        <translation>eIFU</translation>
+    </message>
+    <message>
+        <location filename="qceaboutcontentbase.ui" line="150"/>
         <source>Manufacturer</source>
         <translation>Fabricante</translation>
     </message>
     <message>
-        <location filename="qceaboutcontentbase.ui" line="156"/>
+        <location filename="qceaboutcontentbase.ui" line="163"/>
         <source>&lt;p&gt;Institut de Diagnòstic per la Imatge&lt;br&gt;
 Parc Sanitari Pere Virgili&lt;br&gt;
 Esteve Terradas, 30 — Edifici Mestral 2a planta&lt;br&gt;
@@ -71,7 +76,7 @@ Tel. +34 93 259 41 75&lt;br&gt;
 Fax +34 93 259 41 85&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="qceaboutcontentbase.ui" line="193"/>
+        <location filename="qceaboutcontentbase.ui" line="200"/>
         <source>&lt;h1&gt;2797&lt;/h1&gt;</source>
         <translation></translation>
     </message>
@@ -127,28 +132,39 @@ Fax +34 93 259 41 85&lt;/p&gt;</translation>
     <message>
         <location filename="qmedicaldeviceinformationdialogbase.ui" line="30"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Cantarell&apos;; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;Starviewer is not meant to be used in emergency situations. As such, there are no foreseeable medical emergency situations related to it.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;To ensure correct diagnosis when using %1 as a medical device take into account the following points:&lt;/span&gt;&lt;/p&gt;
+&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;
+&lt;li style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;calibrated displays&lt;/span&gt;. For mammography (MG) use calibrated specialized MG displays certified as medical devices.&lt;/li&gt;
+&lt;li style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;medical displays with their intended graphics card and drivers&lt;/span&gt;. Using alternative hardware or drivers can lead to incorrect visualizations such as wrong grayscale conversion.&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <oldsource>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Cantarell&apos;; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;To ensure correct diagnosis when using %1 as a medical device take into account the following points:&lt;/span&gt;&lt;/p&gt;
 &lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;calibrated displays&lt;/span&gt;. For mammography (MG) use calibrated specialized MG displays certified as medical devices.&lt;/li&gt;
-&lt;li style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;medical displays with their intended graphics card and drivers&lt;/span&gt;. Using alternative hardware or drivers can lead to incorrect visualizations such as wrong grayscale conversion.&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <oldsource>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Cantarell&apos;; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;To ensure correct diagnosis when using %1 as a medical device take into account the following points:&lt;/span&gt;&lt;/p&gt;
-&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;calibrated displays&lt;/span&gt;. For mammography (MG) use calibrated specialized MG displays certified as medical devices.&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</oldsource>
+&lt;li style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;medical displays with their intended graphics card and drivers&lt;/span&gt;. Using alternative hardware or drivers can lead to incorrect visualizations such as wrong grayscale conversion.&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</oldsource>
         <translation>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Cantarell&apos;; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot;&gt;Starviewer no está destinado a ser utilizado en situaciones de emergencia. Como tal, no hay situaciones de emergencia médica previsibles relacionadas con él.&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Para asegurar un diagnóstico correcto cuando use %1 como dispositivo médico tenga en cuenta los puntos siguientes:&lt;/span&gt;&lt;/p&gt;
-&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;pantallas calibradas&lt;/span&gt;. Para mamografía (MG) use pantallas calibradas especializadas para MG y certificadas como dispositivos médicos.&lt;/li&gt;
+&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;
+&lt;li style=&quot; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;pantallas calibradas&lt;/span&gt;. Para mamografía (MG) use pantallas calibradas especializadas para MG y certificadas como dispositivos médicos.&lt;/li&gt;
 &lt;li style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8pt;&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Use &lt;span style=&quot; font-weight:600;&quot;&gt;pantallas médicas con su tarjeta gráfica y controladores previstos&lt;/span&gt;. Usar hardware o controladores alternativoss puede conducir a visualizaciones incorrectas tales como una conversión a escala de grises errónea.&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="qmedicaldeviceinformationdialogbase.ui" line="43"/>
+        <location filename="qmedicaldeviceinformationdialogbase.ui" line="48"/>
         <source>Don&apos;t show this information again</source>
         <translation>No volver a mostrar esta información</translation>
     </message>
@@ -237,17 +253,22 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="qaboutdialog.cpp" line="53"/>
-        <location filename="qaboutdialog.cpp" line="93"/>
+        <location filename="qaboutdialog.cpp" line="99"/>
         <source>Crash test</source>
         <translation>Prueba de fallo</translation>
     </message>
     <message>
-        <location filename="qaboutdialog.cpp" line="57"/>
+        <location filename="qaboutdialog.cpp" line="58"/>
+        <source>Show label</source>
+        <translation>Mostrar etiqueta</translation>
+    </message>
+    <message>
+        <location filename="qaboutdialog.cpp" line="63"/>
         <source>License information</source>
         <translation>Información de la licencia</translation>
     </message>
     <message>
-        <location filename="qaboutdialog.cpp" line="93"/>
+        <location filename="qaboutdialog.cpp" line="99"/>
         <source>Are you sure you want to crash %1 on purpose?</source>
         <translation>¿Está seguro de querer hacer fallar %1 a propósito?</translation>
     </message>
@@ -321,42 +342,42 @@ p, li { white-space: pre-wrap; }
         <translation>Abrir uno o varios archivos de volumen existentes</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="327"/>
+        <location filename="qapplicationmainwindow.cpp" line="332"/>
         <source>&amp;About</source>
         <translation>&amp;Acerca de</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="328"/>
+        <location filename="qapplicationmainwindow.cpp" line="333"/>
         <source>Show the application&apos;s About box</source>
         <translation>Muestra información de la aplicación</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="340"/>
+        <location filename="qapplicationmainwindow.cpp" line="345"/>
         <source>E&amp;xit</source>
         <translation>&amp;Salir</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="342"/>
+        <location filename="qapplicationmainwindow.cpp" line="347"/>
         <source>Exit the application</source>
         <translation>Salir de la aplicación</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="333"/>
+        <location filename="qapplicationmainwindow.cpp" line="338"/>
         <source>&amp;Close</source>
         <translation>&amp;Cerrar</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="399"/>
+        <location filename="qapplicationmainwindow.cpp" line="404"/>
         <source>&amp;File</source>
         <translation>&amp;Archivo</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="447"/>
+        <location filename="qapplicationmainwindow.cpp" line="452"/>
         <source>&amp;Help</source>
         <translation>A&amp;yuda</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="427"/>
+        <location filename="qapplicationmainwindow.cpp" line="432"/>
         <source>&amp;Language</source>
         <translation>&amp;Idioma</translation>
     </message>
@@ -376,7 +397,7 @@ p, li { white-space: pre-wrap; }
         <translation>Abrir el diálogo de consulta del PACS</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="417"/>
+        <location filename="qapplicationmainwindow.cpp" line="422"/>
         <source>&amp;Visualization</source>
         <translation>&amp;Visualización</translation>
     </message>
@@ -386,23 +407,23 @@ p, li { white-space: pre-wrap; }
         <translation>Abrir una carpeta DICOM existente</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="571"/>
+        <location filename="qapplicationmainwindow.cpp" line="579"/>
         <source>Language Switch</source>
         <translation>Cambio de idioma</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="335"/>
+        <location filename="qapplicationmainwindow.cpp" line="340"/>
         <source>Close current extension page</source>
         <oldsource>Close the current extension page</oldsource>
         <translation>Cerrar la página de la extensión actual</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="316"/>
+        <location filename="qapplicationmainwindow.cpp" line="321"/>
         <source>Show log file</source>
         <translation>Mostrar archivo de registro</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="437"/>
+        <location filename="qapplicationmainwindow.cpp" line="442"/>
         <source>&amp;Window</source>
         <translation>V&amp;entana</translation>
     </message>
@@ -454,7 +475,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="qapplicationmainwindow.cpp" line="274"/>
-        <location filename="qapplicationmainwindow.cpp" line="438"/>
+        <location filename="qapplicationmainwindow.cpp" line="443"/>
         <source>Move to Screen</source>
         <oldsource>Move To Screen</oldsource>
         <translation>Mover a la pantalla</translation>
@@ -527,113 +548,118 @@ p, li { white-space: pre-wrap; }
         <translation>Información sobre el uso como dispositivo médico</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="315"/>
+        <location filename="qapplicationmainwindow.cpp" line="314"/>
+        <source>Show label</source>
+        <translation>Mostrar etiqueta</translation>
+    </message>
+    <message>
+        <location filename="qapplicationmainwindow.cpp" line="320"/>
         <source>Show Log File</source>
         <translation>Mostrar archivo de registro</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="322"/>
+        <location filename="qapplicationmainwindow.cpp" line="327"/>
         <source>&amp;Release Notes</source>
         <oldsource>&amp;Release notes</oldsource>
         <translation>&amp;Notas de la versión</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="323"/>
+        <location filename="qapplicationmainwindow.cpp" line="328"/>
         <source>Show the application&apos;s release notes for current version</source>
         <translation>Mostrar las notas de la versión actual de la aplicación</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="347"/>
+        <location filename="qapplicationmainwindow.cpp" line="352"/>
         <source>&amp;Configuration...</source>
         <translation>&amp;Configuración...</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="354"/>
+        <location filename="qapplicationmainwindow.cpp" line="359"/>
         <source>&amp;Run Diagnosis Tests</source>
         <oldsource>&amp;Run diagnosis tests</oldsource>
         <translation>&amp;Ejecutar tests de diagnóstico</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="355"/>
+        <location filename="qapplicationmainwindow.cpp" line="360"/>
         <source>Run %1 diagnosis tests</source>
         <oldsource>Run %1 diagnosis test</oldsource>
         <translation>Ejecutar los tests de diagnóstico de %1</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="359"/>
+        <location filename="qapplicationmainwindow.cpp" line="364"/>
         <source>Show &amp;patient identification in window title</source>
         <translation>Mostrar identificación del &amp;paciente en el título de la ventana</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="360"/>
+        <location filename="qapplicationmainwindow.cpp" line="365"/>
         <source>Show patient identification in window title</source>
         <translation>Mostrar identificación del paciente en el título de la ventana</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="426"/>
+        <location filename="qapplicationmainwindow.cpp" line="431"/>
         <source>&amp;Tools</source>
         <translation>&amp;Herramientas</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="466"/>
+        <location filename="qapplicationmainwindow.cpp" line="474"/>
         <source>Catalan</source>
         <translation>Catalán</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="467"/>
+        <location filename="qapplicationmainwindow.cpp" line="475"/>
         <source>Spanish</source>
         <translation>Español</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="468"/>
+        <location filename="qapplicationmainwindow.cpp" line="476"/>
         <source>English</source>
         <translation>Inglés</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="497"/>
+        <location filename="qapplicationmainwindow.cpp" line="505"/>
         <source>&amp;External applications</source>
         <translation>&amp;Aplicación externa</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="538"/>
+        <location filename="qapplicationmainwindow.cpp" line="546"/>
         <source>Switch to %1 language</source>
         <oldsource>Switch to %1 Language</oldsource>
         <translation>Cambiar al idioma %1</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="571"/>
+        <location filename="qapplicationmainwindow.cpp" line="579"/>
         <source>Changes will take effect the next time you start the application</source>
         <translation>Los canvios tendrán efecto la próxima vez que inicie la aplicación</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="585"/>
+        <location filename="qapplicationmainwindow.cpp" line="593"/>
         <source>External application launch error</source>
         <translation>Error en lanzar la aplicación externa</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="585"/>
+        <location filename="qapplicationmainwindow.cpp" line="593"/>
         <source>There has been an error launching the external application.</source>
         <translation>Ha ocurrido un error en lanzar la aplicación externa.</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="739"/>
+        <location filename="qapplicationmainwindow.cpp" line="764"/>
         <source>Beta Version</source>
         <oldsource>Beta version</oldsource>
         <translation>Versión beta</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="740"/>
+        <location filename="qapplicationmainwindow.cpp" line="765"/>
         <source>&lt;h2&gt;%1&lt;/h2&gt;&lt;p align=&apos;justify&apos;&gt;This is a preview release of %1 used exclusively for testing purposes.&lt;/p&gt;&lt;p align=&apos;justify&apos;&gt;This version is intended for radiologists and our test-team members. Users of this version should not expect extensions to function properly.&lt;/p&gt;&lt;p align=&apos;justify&apos;&gt;If you want to help us to improve %1, please report any found bug or any feature request you may have by sending an e-mail to: &lt;a href=&quot;mailto:%2&quot;&gt;%2&lt;/a&gt;&lt;/p&gt;&lt;h3&gt;We really appreciate your feedback!&lt;/h3&gt;</source>
         <oldsource>&lt;h2&gt;%1&lt;/h2&gt;&lt;p align=&apos;justify&apos;&gt;This is a preview release of %1 used exclusively for testing purposes.&lt;/p&gt;&lt;p align=&apos;justify&apos;&gt;This version is intended for radiologists and our test-team members. Users of this version should not expect the extensions function properly.&lt;/p&gt;&lt;p align=&apos;justify&apos;&gt;If you want to help us to improve %1, please report any found bug or any feature request you may have by sending an e-mail to: &lt;a href=&quot;mailto:%2&quot;&gt;%2&lt;/a&gt;&lt;/p&gt;&lt;h3&gt;We really appreciate your feedback!&lt;/h3&gt;</oldsource>
         <translation>&lt;h2&gt;%1&lt;/h2&gt;&lt;p align=&apos;justify&apos;&gt;Esta es una versión preliminar de %1, que se tendría que utilizar exclusivamente con fines de verificación.&lt;/p&gt;&lt;p align=&apos;justify&apos;&gt;Esta versión está dirigida a los radiólogos y a nuestro equipo de pruebas. En esta versión es posible que las extensiones no funcionen correctamente.&lt;/p&gt;&lt;p align=&apos;justify&apos;&gt;Si quiere ayudarnos a mejorar %1 infórmenos de cualquier error o funcionalidad que necesite enviando un correo electrónico a: &lt;a href=&quot;mailto:%2&quot;&gt;%2.&lt;/a&gt;&lt;/p&gt;&lt;h3&gt;Agradecemos mucho su colaboración.&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="156"/>
+        <location filename="qapplicationmainwindow.cpp" line="157"/>
         <source>Loading</source>
         <translation>Cargando</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="157"/>
+        <location filename="qapplicationmainwindow.cpp" line="158"/>
         <source>Loading data, please wait...</source>
         <translation>Cargando los datos, espere...</translation>
     </message>
@@ -648,19 +674,19 @@ p, li { white-space: pre-wrap; }
         <translation>Explorar estudios</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="349"/>
+        <location filename="qapplicationmainwindow.cpp" line="354"/>
         <source>Modify %1 configuration</source>
         <translation>Modificar la configuración de %1</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="114"/>
+        <location filename="qapplicationmainwindow.cpp" line="115"/>
         <source>There have been some errors:</source>
         <oldsource>There have been some errors:
 </oldsource>
         <translation>Han ocurrido algunos errores:</translation>
     </message>
     <message>
-        <location filename="qapplicationmainwindow.cpp" line="115"/>
+        <location filename="qapplicationmainwindow.cpp" line="116"/>
         <source>You can resolve this error at Tools &gt; Configuration &gt; Local Database.</source>
         <oldsource>
 

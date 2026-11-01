@@ -1,0 +1,32 @@
+{
+  "Name": "Starviewer test lab",
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "IndexDirectory": "/var/lib/orthanc/db",
+  "Plugins": [
+    "/usr/local/share/orthanc/plugins/libOrthancDicomWeb.so",
+    "/usr/local/share/orthanc/plugins/libOrthancGdcm.so"
+  ],
+  "DicomAet": "ORTHANC",
+  "DicomPort": 4242,
+  "HttpPort": 8042,
+  "RemoteAccessAllowed": true,
+  "AuthenticationEnabled": true,
+  "RegisteredUsers": { "qa": "qa-only" },
+  "UnknownSopClassAccepted": true,
+  "DicomCheckModalityHost": false,
+  "DicomAlwaysAllowEcho": true,
+  "DicomAlwaysAllowFind": true,
+  "DicomAlwaysAllowFindWorklist": true,
+  "DicomAlwaysAllowGet": true,
+  "DicomAlwaysAllowMove": true,
+  "DicomAlwaysAllowStore": true,
+  "DicomModalities": {
+    "starviewer": [ "STARVIEWER", "host.docker.internal", 4006 ]
+  },
+  "DicomWeb": {
+    "Enable": true,
+    "Root": "/dicom-web/",
+    "EnableWado": true,
+    "WadoRoot": "/wado"
+  }
+}

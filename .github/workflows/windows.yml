@@ -1,0 +1,227 @@
+name: Windows
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-2022
+    timeout-minutes: 330
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    env:
+      # DCMTK, VTK, GDCM and ITK are built from source with the patches in
+      # sdk/patches. Never link Starviewer against prebuilt binaries of these
+      # libraries: they lack the patches (e.g. GDCM error handling).
+      SDK_BUILD_TYPE: RelWithDebInfo
+      # Short, to stay under the Windows path length limit in VTK and ITK.
+      SDK_BASE_PREFIX: D:/sdk
+      # The SDK scripts use the native CMake rather than MSYS2's.
+      CMAKE: cmake
+      MAKE_VERBOSE: "no"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Sets VCToolsVersion, so the SDK scripts do not run vcvarsall.bat
+      # from a hardcoded Visual Studio 2017 path.
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: 5.15.2
+          arch: win64_msvc2019_64
+          cache: true
+
+      # The SDK scripts check for uname MSYS_NT*, so they must run in the
+      # MSYS environment. path-type inherit keeps MSVC, Qt and CMake on PATH.
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          path-type: inherit
+          update: false
+          install: git rsync wget unzip tar libxslt
+
+      - name: Set up paths
+        run: |
+          # MSYS2's link.exe would shadow MSVC's.
+          rm -f /usr/bin/link.exe
+          mkdir -p .jom
+          wget -q -O .jom/jom.zip https://download.qt.io/official_releases/jom/jom.zip
+          unzip -q -o .jom/jom.zip -d .jom
+          {
+            echo "QTDIR=$(cygpath -m "$QT_ROOT_DIR")"
+            echo "JOM_PATH=$(cygpath -u "$GITHUB_WORKSPACE")/.jom"
+          } >> "$GITHUB_ENV"
+
+      # Each SDK library is cached on its own, keyed on its scripts and
+      # patches and those of the libraries it is built against, so changing
+      # one library only rebuilds that library and the ones that use it.
+      # Each library is saved as soon as it is built, so that a later failure
+      # does not discard it. Libraries are listed in dependency order.
+      - name: SDK cache keys
+        id: sdk-keys
+        run: .github/scripts/sdk-library.sh keys sdk-windows-2022-${{ env.SDK_BUILD_TYPE }} dcmtk vtk gdcm itk threadweaver
+
+      - name: Restore SDK library dcmtk
+        id: cache-dcmtk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/dcmtk
+          key: ${{ steps.sdk-keys.outputs.dcmtk }}
+
+      - name: Build or install SDK library dcmtk
+        run: .github/scripts/sdk-library.sh install dcmtk
+
+      - name: Save SDK library dcmtk
+        if: steps.cache-dcmtk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/dcmtk
+          key: ${{ steps.sdk-keys.outputs.dcmtk }}
+
+      - name: Restore SDK library vtk
+        id: cache-vtk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/vtk
+          key: ${{ steps.sdk-keys.outputs.vtk }}
+
+      - name: Build or install SDK library vtk
+        run: .github/scripts/sdk-library.sh install vtk
+
+      - name: Save SDK library vtk
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/vtk
+          key: ${{ steps.sdk-keys.outputs.vtk }}
+
+      - name: Restore SDK library gdcm
+        id: cache-gdcm
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/gdcm
+          key: ${{ steps.sdk-keys.outputs.gdcm }}
+
+      - name: Build or install SDK library gdcm
+        run: .github/scripts/sdk-library.sh install gdcm
+
+      - name: Save SDK library gdcm
+        if: steps.cache-gdcm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/gdcm
+          key: ${{ steps.sdk-keys.outputs.gdcm }}
+
+      - name: Restore SDK library itk
+        id: cache-itk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/itk
+          key: ${{ steps.sdk-keys.outputs.itk }}
+
+      - name: Build or install SDK library itk
+        run: .github/scripts/sdk-library.sh install itk
+
+      - name: Save SDK library itk
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/itk
+          key: ${{ steps.sdk-keys.outputs.itk }}
+
+      - name: Restore SDK library threadweaver
+        id: cache-threadweaver
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/threadweaver
+          key: ${{ steps.sdk-keys.outputs.threadweaver }}
+
+      - name: Build or install SDK library threadweaver
+        run: .github/scripts/sdk-library.sh install threadweaver
+
+      - name: Save SDK library threadweaver
+        if: steps.cache-threadweaver.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/threadweaver
+          key: ${{ steps.sdk-keys.outputs.threadweaver }}
+
+      - name: Configure
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake -S starviewer -B build -G "NMake Makefiles JOM" \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_RELEASE_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR="$QTDIR" \
+            -DBUILD_PDF_MANUALS=OFF
+
+      - name: Build
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake --build build
+
+      - name: Test
+        run: |
+          export PATH="$(cygpath -u "$SDK_BASE_PREFIX")/sdk-install/bin:$(cygpath -u "$QTDIR")/bin:$PATH"
+          # Names any DLL the tests cannot load, which ctest only reports as
+          # exit code 0xc0000135. Informational, ctest decides the result.
+          .github/scripts/list-missing-dlls.sh build/tests/auto/autotests.exe -- "$(cygpath -u "$SDK_BASE_PREFIX")" || true
+          cd build
+          ctest --output-on-failure
+
+      # NSIS, for cpack -G NSIS. Not part of the MSYS2 environment: the
+      # installer step below inherits it through PATH.
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          Add-Content $env:GITHUB_PATH 'C:\Program Files (x86)\NSIS'
+
+      # Packaged builds embed a qt.conf (USE_QTCONF) that makes Qt look for
+      # plugins and translations next to the installed executable instead of
+      # in the development Qt. Configured and rebuilt after testing, so the
+      # tests keep using the development Qt plugins.
+      - name: Reconfigure for packaging
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake -S starviewer -B build -G "NMake Makefiles JOM" \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_RELEASE_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR="$QTDIR" \
+            -DBUILD_PDF_MANUALS=OFF \
+            -DUSE_QTCONF=ON
+
+      - name: Rebuild for packaging
+        run: |
+          export PATH="$JOM_PATH:$PATH"
+          cmake --build build
+
+      - name: Package NSIS installer
+        run: |
+          # cpack runs the preinstall target, which needs the make program.
+          export PATH="$JOM_PATH:$PATH"
+          cd build
+          cpack -G NSIS
+
+      - name: Generate software bill of materials
+        shell: pwsh
+        run: python quality/generate_sbom.py --platform windows --commit "${{ github.sha }}" --out build/starviewer-windows.cdx.json
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            build/*~*.exe
+            build/*.sha256
+            build/*.cdx.json
+          if-no-files-found: error

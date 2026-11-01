@@ -1,0 +1,178 @@
+name: Linux
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+
+    env:
+      # DCMTK, VTK, GDCM and ITK are built from source with the patches in
+      # sdk/patches. Never link Starviewer against distribution packages of
+      # these libraries: they lack the patches (e.g. GDCM error handling).
+      SDK_BASE_PREFIX: ${{ github.workspace }}/.sdk
+      SDK_BUILD_TYPE: RelWithDebInfo
+      QTDIR: /usr
+      MAKE_VERBOSE: "no"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          # The runtime packages of every Qt library the packages bundle:
+          # dev packages do not guarantee them all with
+          # --no-install-recommends.
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake git rsync wget xsltproc \
+            libssl-dev zlib1g-dev libgl1-mesa-dev libglu1-mesa-dev libxt-dev \
+            qtbase5-dev qttools5-dev qtdeclarative5-dev libqt5xmlpatterns5-dev \
+            libqt5opengl5-dev libqt5sql5-sqlite \
+            libqt5concurrent5 libqt5core5a libqt5dbus5 libqt5gui5 libqt5network5 \
+            libqt5opengl5 libqt5qml5 libqt5quick5 libqt5quickwidgets5 libqt5sql5 \
+            libqt5svg5 libqt5widgets5 libqt5xml5 libqt5xmlpatterns5 \
+            qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 \
+            qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtqml-models2 \
+            libkf5threadweaver-dev extra-cmake-modules \
+            qt5-gtk-platformtheme qttranslations5-l10n qtwayland5 \
+            squashfs-tools \
+            xvfb xauth
+
+      # Each SDK library is cached on its own, keyed on its scripts and
+      # patches and those of the libraries it is built against, so changing
+      # one library only rebuilds that library and the ones that use it.
+      # Each library is saved as soon as it is built, so that a later failure
+      # does not discard it. Libraries are listed in dependency order.
+      - name: SDK cache keys
+        id: sdk-keys
+        run: .github/scripts/sdk-library.sh keys sdk-ubuntu-24.04-${{ env.SDK_BUILD_TYPE }} dcmtk vtk gdcm itk
+
+      - name: Restore SDK library dcmtk
+        id: cache-dcmtk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/dcmtk
+          key: ${{ steps.sdk-keys.outputs.dcmtk }}
+
+      - name: Build or install SDK library dcmtk
+        run: .github/scripts/sdk-library.sh install dcmtk
+
+      - name: Save SDK library dcmtk
+        if: steps.cache-dcmtk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/dcmtk
+          key: ${{ steps.sdk-keys.outputs.dcmtk }}
+
+      - name: Restore SDK library vtk
+        id: cache-vtk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/vtk
+          key: ${{ steps.sdk-keys.outputs.vtk }}
+
+      - name: Build or install SDK library vtk
+        run: .github/scripts/sdk-library.sh install vtk
+
+      - name: Save SDK library vtk
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/vtk
+          key: ${{ steps.sdk-keys.outputs.vtk }}
+
+      - name: Restore SDK library gdcm
+        id: cache-gdcm
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/gdcm
+          key: ${{ steps.sdk-keys.outputs.gdcm }}
+
+      - name: Build or install SDK library gdcm
+        run: .github/scripts/sdk-library.sh install gdcm
+
+      - name: Save SDK library gdcm
+        if: steps.cache-gdcm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/gdcm
+          key: ${{ steps.sdk-keys.outputs.gdcm }}
+
+      - name: Restore SDK library itk
+        id: cache-itk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/itk
+          key: ${{ steps.sdk-keys.outputs.itk }}
+
+      - name: Build or install SDK library itk
+        run: .github/scripts/sdk-library.sh install itk
+
+      - name: Save SDK library itk
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/itk
+          key: ${{ steps.sdk-keys.outputs.itk }}
+
+      - name: Configure
+        run: |
+          cmake -S starviewer -B build \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR=/usr \
+            -DBUILD_PDF_MANUALS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Test
+        env:
+          LD_LIBRARY_PATH: ${{ env.SDK_BASE_PREFIX }}/sdk-install/lib
+          QT_QPA_PLATFORM: xcb
+        run: |
+          cd build
+          xvfb-run -a -s "-screen 0 1280x1024x24" ctest --output-on-failure
+
+      # Packaged builds embed a qt.conf (USE_QTCONF) that makes Qt look for
+      # plugins, translations and QML next to the installed executable
+      # instead of in the development Qt. Configured and rebuilt after
+      # testing, so the tests keep using the development Qt plugins.
+      - name: Reconfigure for packaging
+        run: |
+          cmake -S starviewer -B build \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSDK_INSTALL_DIR="$SDK_BASE_PREFIX/sdk-install" \
+            -DQT_DIR=/usr \
+            -DBUILD_PDF_MANUALS=OFF \
+            -DUSE_QTCONF=ON
+
+      - name: Rebuild for packaging
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Package DEB
+        run: |
+          cd build
+          cpack -G DEB
+
+      - name: Package AppImage
+        run: .github/scripts/make-appimage.sh build
+
+      - name: Generate software bill of materials
+        run: python3 quality/generate_sbom.py --platform linux --commit "$GITHUB_SHA" --out build/starviewer-linux.cdx.json
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages
+          path: |
+            build/*.deb
+            build/*.AppImage
+            build/*.sha256
+            build/*.cdx.json
+          if-no-files-found: error

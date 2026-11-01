@@ -36,8 +36,10 @@
 #include <vtkStreamingDemandDrivenPipeline.h>
 #include <vtkStringArray.h>
 
+#include <dcdeftag.h>   // DCM_PixelData
 #include <dcfilefo.h>   // DcmFileFormat
 #include <dcmimage.h>   // DicomImage
+#include <dcxfer.h>     // DcmXfer
 
 namespace udg {
 
@@ -240,6 +242,52 @@ QSharedPointer<DcmDataset> getDataset(const char *filename)
     }
 
     return QSharedPointer<DcmDataset>(dicomFile.getAndRemoveDataset());
+}
+
+// Throws CantReadImageException if the uncompressed pixel data is shorter than the image attributes declare.
+// DicomImage accepts such a file, and the part with no data would be displayed as if it were part of the image.
+void checkPixelDataLength(DcmDataset &dataset)
+{
+    DcmElement *pixelData = nullptr;
+
+    if (DcmXfer(dataset.getOriginalXfer()).isEncapsulated() || dataset.findAndGetElement(DCM_PixelData, pixelData).bad())
+    {
+        return;
+    }
+
+    OFString photometricInterpretation;
+    dataset.findAndGetOFString(DCM_PhotometricInterpretation, photometricInterpretation);
+
+    // Chroma subsampling makes these smaller than rows x columns x samples
+    if (photometricInterpretation == "YBR_FULL_422" || photometricInterpretation == "YBR_PARTIAL_422" || photometricInterpretation == "YBR_PARTIAL_420")
+    {
+        return;
+    }
+
+    Uint16 rows = 0, columns = 0, bitsAllocated = 0, samplesPerPixel = 1;
+    Sint32 numberOfFrames = 1;
+    dataset.findAndGetUint16(DCM_Rows, rows);
+    dataset.findAndGetUint16(DCM_Columns, columns);
+    dataset.findAndGetUint16(DCM_BitsAllocated, bitsAllocated);
+
+    if (dataset.findAndGetUint16(DCM_SamplesPerPixel, samplesPerPixel).bad())
+    {
+        samplesPerPixel = 1;
+    }
+
+    if (dataset.findAndGetSint32(DCM_NumberOfFrames, numberOfFrames).bad() || numberOfFrames < 1)
+    {
+        numberOfFrames = 1;
+    }
+
+    quint64 expectedBits = static_cast<quint64>(rows) * columns * samplesPerPixel * numberOfFrames * bitsAllocated;
+    quint64 expectedLength = (expectedBits + 7) / 8;
+
+    if (pixelData->getLength() < expectedLength)
+    {
+        throw VtkDcmtkImageReader::CantReadImageException(QString("Pixel data has %1 bytes, but the image attributes declare %2.")
+                                                          .arg(pixelData->getLength()).arg(expectedLength).toStdString());
+    }
 }
 
 const char* booleanToString(bool b)
@@ -700,6 +748,7 @@ bool VtkDcmtkImageReader::loadData(int updateExtent[6])
 void VtkDcmtkImageReader::loadSingleFrameFile(const char *filename, void *buffer)
 {
     QSharedPointer<DcmDataset> dataset = getDataset(filename);
+    checkPixelDataLength(*dataset);
     unsigned long flags = m_needsFloatScalarType ? CIF_UseFloatingInternalRepresentation : 0;
     DicomImage image(dataset.data(), dataset->getOriginalXfer(), flags);
     copyDcmtkImageToBuffer(buffer, image);
@@ -708,6 +757,7 @@ void VtkDcmtkImageReader::loadSingleFrameFile(const char *filename, void *buffer
 void VtkDcmtkImageReader::loadMultiframeFile(const char *filename, void *buffer, int updateExtent[6])
 {
     QSharedPointer<DcmDataset> dataset = getDataset(filename);
+    checkPixelDataLength(*dataset);
     unsigned long flags = CIF_UsePartialAccessToPixelData | (m_needsFloatScalarType ? CIF_UseFloatingInternalRepresentation : 0);
     double total = updateExtent[5] - updateExtent[4] + 1;
     this->UpdateProgress(0.0);
@@ -743,8 +793,8 @@ void VtkDcmtkImageReader::copyDcmtkImageToBuffer(void *buffer, DicomImage &dicom
 {
     if (dicomImage.getStatus() != EIS_Normal)
     {
-        ERROR_LOG("Found corrupt image or frame! Skipping copy.");
-        return;
+        // Skipping the frame would display it as a blank image, with nothing to tell the user it could not be read
+        throw CantReadImageException(std::string("Found corrupt image or frame: ") + DicomImage::getString(dicomImage.getStatus()));
     }
 
     if (m_isMonochrome)

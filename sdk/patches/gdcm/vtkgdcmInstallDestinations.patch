@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -695,6 +695,8 @@
+         MODULES               ${vtkgdcm_modules}
+         INSTALL_EXPORT        GDCM
+         ARCHIVE_DESTINATION   "${GDCM_INSTALL_LIB_DIR}"
++        LIBRARY_DESTINATION   "${GDCM_INSTALL_LIB_DIR}"
++        RUNTIME_DESTINATION   "${GDCM_INSTALL_BIN_DIR}"
+         HEADERS_DESTINATION   "${GDCM_INSTALL_INCLUDE_DIR}/vtk${vtk_version_suffix}"
+         CMAKE_DESTINATION     "${GDCM_INSTALL_PACKAGE_DIR}"
+         LICENSE_DESTINATION   "${GDCM_INSTALL_DATA_DIR}/vtkgdcm-${GDCM_SHORT_VERSION}"

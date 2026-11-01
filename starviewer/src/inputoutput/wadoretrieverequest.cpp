@@ -1,5 +1,5 @@
 /*************************************************************************************
-  Copyright (C) 2014 Laboratori de Gràfics i Imatge, Universitat de Girona &
+  Copyright (C) 2024 Laboratori de Gràfics i Imatge, Universitat de Girona &
   Institut de Diagnòstic per la Imatge.
   Girona 2014. All rights reserved.
   http://starviewer.udg.edu
@@ -48,8 +48,11 @@ const QString& WadoRetrieveRequest::getSopInstanceUid() const
 // This is run in the WADO thread.
 void WadoRetrieveRequest::startInternal()
 {
+    emit started();
+
     if (!ensureEnoughHardDiskSpace())
     {
+        emit finished();
         return;
     }
 
@@ -72,17 +75,15 @@ void WadoRetrieveRequest::startInternal()
     QNetworkRequest request(url);
     m_reply = m_networkAccessManager->get(request);
 
-    emit started();
-
     connect(m_reply, &QNetworkReply::readyRead, this, &WadoRetrieveRequest::onReadyRead, Qt::DirectConnection);
     connect(m_reply, &QNetworkReply::finished, this, &WadoRetrieveRequest::onReplyFinished, Qt::DirectConnection);
 }
 
+// This is run in the WADO thread.
 bool WadoRetrieveRequest::ensureEnoughHardDiskSpace()
 {
     // Copied and adapted from RetrieveDICOMFilesFromPACSJob::thereIsAvailableSpaceOnHardDisk
     LocalDatabaseManager localDatabaseManager;
-    connect(&localDatabaseManager, &LocalDatabaseManager::studyWillBeDeleted, this, &WadoRetrieveRequest::studyFromCacheWillBeDeleted);
 
     // This method will delete studies if configured in settings if there is not enough space. It returns whether there is enough space after that.
     if (!localDatabaseManager.thereIsAvailableSpaceOnHardDisk())
@@ -104,6 +105,7 @@ bool WadoRetrieveRequest::ensureEnoughHardDiskSpace()
     return true;
 }
 
+// This is run in the WADO thread.
 void WadoRetrieveRequest::initializeReading()
 {
     QVariant contentTypeVariant = m_reply->header(QNetworkRequest::ContentTypeHeader);
@@ -150,6 +152,7 @@ void WadoRetrieveRequest::initializeReading()
     }
 }
 
+// This is run in the WADO thread.
 bool WadoRetrieveRequest::readPartBoundary()
 {
     if (m_reply->canReadLine())
@@ -179,6 +182,7 @@ bool WadoRetrieveRequest::readPartBoundary()
     return false;
 }
 
+// This is run in the WADO thread.
 bool WadoRetrieveRequest::readPartHeader()
 {
     static const QString ContentType("Content-Type: application/dicom");
@@ -226,6 +230,7 @@ bool WadoRetrieveRequest::readPartHeader()
     return false;
 }
 
+// This is run in the WADO thread.
 bool WadoRetrieveRequest::readPartBody()
 {
     if (!m_wadoInstanceDownloader->hasFinished())
@@ -269,6 +274,7 @@ bool WadoRetrieveRequest::readPartBody()
     return false;
 }
 
+// This is run in the WADO thread.
 void WadoRetrieveRequest::error()
 {
     m_reply->abort();
@@ -349,10 +355,11 @@ void WadoRetrieveRequest::onReplyFinished()
     {
         errors = true;
         m_errorsDescription = m_reply->errorString();
-        WARN_LOG(QString("QNetworkReply::NetworkError %1: %2. (HTTP %3: %4)")
+        WARN_LOG(QString("QNetworkReply::NetworkError %1: %2. (HTTP %3: %4) [URL: %5]")
                   .arg(m_reply->error()).arg(m_reply->errorString())
                   .arg(m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt())
-                  .arg(m_reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString()));
+                  .arg(m_reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString())
+                  .arg(m_reply->url().toString()));
     }
     else
     {
@@ -375,6 +382,13 @@ void WadoRetrieveRequest::onReplyFinished()
             if (errors)
             {
                 m_status = Status::Warnings;
+                m_errorsDescription = tr("<p>Some images have been downloaded. However there have been some errors. Maybe those images are missing or "
+                                         "corrupted in PACS.")
+                                      + tr("<p><b>Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements "
+                                           "on reconstructed planes may be wrong. Check the number of images in each series before using it for such "
+                                           "purposes. Refer to the user guide for more information.</b>")
+                                      + tr("<p>Details:")
+                                      + m_errorsDescription.replace('\n', "<br>");
             }
         }
         else

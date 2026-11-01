@@ -309,6 +309,11 @@ void QApplicationMainWindow::createActions()
     m_showMedicalDeviceInformationAction = new QAction(this);
     m_showMedicalDeviceInformationAction->setText(tr("Information about use as medical device"));
     connect(m_showMedicalDeviceInformationAction, &QAction::triggered, this, &QApplicationMainWindow::showMedicalDeviceInformationDialogUnconditionally);
+
+    m_showLabelAction = new QAction(this);
+    m_showLabelAction->setText(tr("Show label"));
+    m_showLabelAction->setIcon(QIcon(":/celabelsymbols/ce.svg"));
+    connect(m_showLabelAction, &QAction::triggered, this, &QApplicationMainWindow::showLabel);
 #endif // STARVIEWER_CE
 
     m_logViewerAction = new QAction(this);
@@ -457,6 +462,9 @@ void QApplicationMainWindow::createMenus()
     m_helpMenu->addSeparator();
     m_helpMenu->addAction(m_openReleaseNotesAction);
     m_helpMenu->addSeparator();
+#ifdef STARVIEWER_CE
+    m_helpMenu->addAction(m_showLabelAction);
+#endif // STARVIEWER_CE
     m_helpMenu->addAction(m_aboutAction);
 }
 
@@ -693,7 +701,7 @@ void QApplicationMainWindow::showEvent(QShowEvent *event)
     // Show the beta warning automatically only the first time the first window is shown
     static bool betaVersionDialogShown = false;
 
-    if (m_isBetaVersion && !betaVersionDialogShown)
+    if (m_isBetaVersion && !betaVersionDialogShown && !Settings().getValue(InterfaceSettings::DontShowBetaMessage).toBool())
     {
         betaVersionDialogShown = true;
         QTimer::singleShot(100, this, &QApplicationMainWindow::showBetaVersionDialog);  // short delay to ensure that the window is already visible
@@ -716,6 +724,9 @@ bool QApplicationMainWindow::event(QEvent *event)
 void QApplicationMainWindow::about()
 {
     QAboutDialog *about = new QAboutDialog(this);
+#ifdef STARVIEWER_CE
+    connect(about, &QAboutDialog::requestedShowLabel, this, &QApplicationMainWindow::showLabel);
+#endif
     about->exec();
 }
 
@@ -797,7 +808,18 @@ void QApplicationMainWindow::loadStudy(const QString &studyInstanceUid)
     m_extensionHandler->getQueryScreen()->loadStudyFromDatabase(studyInstanceUid);
 }
 
+namespace {
+
+QString getLocalePrefix()
+{
+    QString defaultLocale = QLocale().name();
+    return "[" + defaultLocale.left(2).toLower() + "] ";
+}
+
+}
+
 #ifdef STARVIEWER_CE
+
 void QApplicationMainWindow::showMedicalDeviceInformationDialog()
 {
     Settings settings;
@@ -813,6 +835,23 @@ void QApplicationMainWindow::showMedicalDeviceInformationDialogUnconditionally()
     QMedicalDeviceInformationDialog *dialog = new QMedicalDeviceInformationDialog(this);
     dialog->exec();
 }
+
+void QApplicationMainWindow::showLabel()
+{
+    // Extract label from resources and show open it with the system default PDF viewer
+    QString resourcePath = ":/labels/" + getLocalePrefix() + StarviewerBuildPlatform + ".pdf";
+    QString tempPath = QDir::tempPath() + "/label.pdf";
+
+    if (QFile::exists(tempPath))
+    {
+        QFile::remove(tempPath);
+    }
+
+    QFile::copy(resourcePath, tempPath);
+    QFile::setPermissions(tempPath, QFileDevice::ReadUser | QFileDevice::WriteUser);    // write required in Windows, otherwise Starviewer can't delete it later
+    QDesktopServices::openUrl(QUrl::fromLocalFile(tempPath));
+}
+
 #endif // STARVIEWER_CE
 
 void QApplicationMainWindow::newCommandLineOptionsToRun()
@@ -848,16 +887,6 @@ void QApplicationMainWindow::updateVolumeLoadProgressNotification(int progress)
     m_progressDialog->setValue(progress);
 }
 
-namespace {
-
-QString getLocalePrefix()
-{
-    QString defaultLocale = QLocale().name();
-    return "[" + defaultLocale.left(2).toLower() + "] ";
-}
-
-}
-
 void QApplicationMainWindow::openUserGuide()
 {
     QString filePath = QCoreApplication::applicationDirPath() + "/" + getLocalePrefix() + "User guide.pdf";
@@ -884,14 +913,19 @@ void QApplicationMainWindow::showDiagnosisTestDialog()
 
 void QApplicationMainWindow::updateWindowTitle()
 {
+    QString title = ApplicationNameString;
+
     if (m_patient && m_showPatientIdentificationInWindowTitleAction->isChecked())
     {
-        this->setWindowTitle(m_patient->getID() + " : " + m_patient->getFullName());
+        title = m_patient->getID() + " : " + m_patient->getFullName();
     }
-    else
-    {
-        this->setWindowTitle(ApplicationNameString);
-    }
+
+#ifndef STARVIEWER_CE
+    // Requirement SR-LBL-01: uncertified builds say so on every main window.
+    title += " - " + tr("Not for diagnostic use");
+#endif
+
+    this->setWindowTitle(title);
 }
 
 void QApplicationMainWindow::openReleaseNotes()

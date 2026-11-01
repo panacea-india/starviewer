@@ -14,6 +14,8 @@
 
 #include "querypacs.h"
 
+#include <cstring>
+
 #include <dimse.h>
 #include <ofcond.h>
 #include <diutil.h>
@@ -143,7 +145,7 @@ PACSRequestStatus::QueryRequestStatus QueryPacs::query()
     }
 
     // Prepare the transmission of data
-    bzero((char*) &findRequest, sizeof(findRequest));
+    memset(&findRequest, 0, sizeof(findRequest));
     findRequest.MessageID = m_pacsConnection->getConnection()->nextMsgID;
     strcpy(findRequest.AffectedSOPClassUID, FindStudyAbstractSyntax);
     findRequest.DataSetType = DIMSE_DATASET_PRESENT;

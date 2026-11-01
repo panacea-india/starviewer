@@ -1,0 +1,22 @@
+{
+  "pydicom-test-files": {
+    "bytes": 1094477,
+    "files": 70,
+    "sha256": "efa17bfdf671de2311bc705950f1a47229903e59ab33ad048dee35d3fddca55f"
+  },
+  "rider-large-ct": {
+    "bytes": 551923926,
+    "files": 1049,
+    "sha256": "741c9127f68c5f27879f59004ef25722434a22e29842585e50fb4bd5fc916724"
+  },
+  "rider-petct/ct": {
+    "bytes": 33679332,
+    "files": 64,
+    "sha256": "0bcae5a68e09ad4856d4076adae7001f0e0575acceca09b78e9f6d33b9460cf2"
+  },
+  "rider-petct/pt": {
+    "bytes": 1670928,
+    "files": 47,
+    "sha256": "005c8b47dbebb24141d9e6cb240727671b354dcf4b4226b4e695030a9693510f"
+  }
+}

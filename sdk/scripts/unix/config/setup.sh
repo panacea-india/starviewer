@@ -97,7 +97,7 @@ download_and_verify()
     echo 'DO NOT USE THE DOWNLOADED FILE; delete it.'
     echo ''
     rm -i "${DOWNLOAD_PREFIX}/${FILENAME}"
-    exit
+    exit 1
     fi
 }
 
@@ -117,7 +117,7 @@ SDK_INSTALL_PREFIX=${SDK_INSTALL_PREFIX:-"$SDK_BASE_PREFIX/sdk-install"}
 VARS_TO_EXPORT+=("SDK_INSTALL_PREFIX")
 
 # List of build types to use. Possible values: Debug, Release, RelWithDebInfo, MinSizeRel.
-SDK_BUILD_TYPE=${SDK_BUILD_TYPE:-"Release"}
+SDK_BUILD_TYPE=${SDK_BUILD_TYPE:-"RelWithDebInfo"}
 VARS_TO_EXPORT+=("SDK_BUILD_TYPE")
 
 # Where the user will be asked to install Qt.
@@ -219,7 +219,7 @@ fi
 
 
 # Build type specified when compiling starviewer. Possible values: Debug, Release, RelWithDebInfo, MinSizeRel.
-STARVIEWER_BUILD_TYPE=${STARVIEWER_BUILD_TYPE:-Release}
+STARVIEWER_BUILD_TYPE=${STARVIEWER_BUILD_TYPE:-RelWithDebInfo}
 
 # Starviewer source code location
 STARVIEWER_SOURCE_DIR_BASE=$SCRIPTS_ROOT/../../../starviewer

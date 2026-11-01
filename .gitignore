@@ -9,3 +9,5 @@ starviewer-build*
 starviewer-packaging*
 build-starviewer*
 starviewer-install*
+
+starviewer/doc/doxygen

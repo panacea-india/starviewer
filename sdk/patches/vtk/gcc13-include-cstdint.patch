@@ -1,0 +1,20 @@
+--- a/IO/Image/vtkSEPReader.h
++++ b/IO/Image/vtkSEPReader.h
+@@ -25,6 +25,7 @@
+ #include "vtkImageAlgorithm.h"
+ #include "vtkNew.h" // for ivars
+ 
++#include <cstdint> // for std::uint8_t
+ #include <array>  // for std::array
+ #include <string> // for std::string
+ 
+--- a/ThirdParty/libproj/vtklibproj/src/proj_json_streaming_writer.hpp
++++ b/ThirdParty/libproj/vtklibproj/src/proj_json_streaming_writer.hpp
+@@ -33,6 +33,7 @@
+ 
+ #include <vector>
+ #include <string>
++#include <cstdint>
+ 
+ #define CPL_DLL
+ 

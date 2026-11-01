@@ -11,17 +11,25 @@ then
     rsync -a --delete "$SOURCE_DIR/" "$PATCHED_SOURCE_DIR"
     pushd "$PATCHED_SOURCE_DIR"
 
+    # Inside an enclosing git repository, git apply skips the files of a
+    # git-format patch and still succeeds, so stop git from looking above the
+    # source directory and treat any skipped file as a failure.
+    export GIT_CEILING_DIRECTORIES="$(dirname "$PATCHED_SOURCE_DIR")"
+
     for PATCH in "$PATCHES_ROOT/$ALIB"/*
     do
-        git apply "$PATCH" --ignore-whitespace -v
-        if [ $? -ne 0 ]
+        APPLY_OUTPUT=$(git apply "$PATCH" --ignore-whitespace -v 2>&1)
+        APPLY_STATUS=$?
+        echo "$APPLY_OUTPUT"
+        if [ $APPLY_STATUS -ne 0 ] || [[ $APPLY_OUTPUT == *"Skipped patch"* ]]
         then
             echo "ERROR: The \""$PATCH\"" patch could not be applied."
-            exit $?
+            exit 1
         fi
     done
 
     popd
+    unset GIT_CEILING_DIRECTORIES
     SOURCE_DIR="$PATCHED_SOURCE_DIR"
 fi
 
@@ -36,21 +44,21 @@ $CMAKE -G "$CMAKE_GENERATOR" -Wno-dev $CMAKE_OPTIONS $CMAKE_DISTCC $CMAKE_COMPIL
 if [[ $? -ne 0 ]]
 then
     echo "ERROR: CMake of $ALIB failed"
-    exit
+    exit 1
 fi
 
 $MAKE -j$MAKE_CONCURRENCY VERBOSE=$MAKE_VERBOSE
 if [[ $? -ne 0 ]]
 then
     echo "ERROR: Compilation of $ALIB failed"
-    exit
+    exit 1
 fi
 
 $MAKE VERBOSE=$MAKE_VERBOSE install
 if [[ $? -ne 0 ]]
 then
     echo "ERROR: Installation phase of $ALIB failed"
-    exit
+    exit 1
 fi
 
 popd
