@@ -177,13 +177,13 @@ QtXmlPatterns usage is added.
 | Phase | Theme | Rough effort (engineer-weeks) |
 | ---: | --- | ---: |
 | 0.5 | Close out Phase 0 | 2-3 |
-| 1 | Network security and decoding | 5-8 |
+| 1 | Network security and decoding | 6-10 |
 | 2 | Display every everyday DICOM object | 5-7 |
 | 3 | Advanced MPR and 3D | 14-20 |
 | 4 | Remaining viewing parity | 5-7 |
 | 5 | Workflow, data tools and AI | 10-16 |
-| | **Total** | **41-61** |
-| Later | macOS, Qt 6, receiving pushed studies, C-GET, worklist | 11-16 |
+| | **Total** | **42-63** |
+| Later | macOS, Qt 6, receiving pushed studies, worklist | 10-14 |
 
 Certification-ready practices add overhead on top of these figures, probably
 15-25% once established, with more at the start while the foundations are set up.
@@ -197,9 +197,8 @@ Everything after this builds on the assumption that the baseline works.
   CI, because Windows is the target and a local build is enough until then.
 - Build a test corpus of real or public de-identified studies covering CT, MR,
   PET-CT, US, XA, MG, multi-frame and every supported transfer syntax.
-- Exercise the main flows: open from disc, query and retrieve against a test
-  PACS such as Orthanc, MPR, 3D, fusion, measurement, export and printing.
-  Testing against a real site's PACS is not a priority for now.
+- Exercise the main flows: open from disc, query and retrieve against Orthanc,
+  MPR, 3D, fusion, measurement, export and printing.
 - Hands-on benchmark against RadiAnt on the same studies, and correct this
   document where the desk research was wrong. Deferred until before Phase 4.
 - Set up the foundations in
@@ -216,17 +215,21 @@ no failed step and some steps partial (run 2 in
 
 ### Phase 1: Network security and decoding
 
-Start with decoding and malformed input. No real PACS needs TLS or authentication
-yet, so those follow.
+The PACS in use is Orthanc, and DICOMweb is the primary way to reach it, so the
+work runs in the order below. DICOMweb has never been tested from the application.
 
+- **DICOMweb against Orthanc:** test query, retrieve, send and failed or partial
+  transfers, and fix what fails.
 - **Windows OpenSSL:** build it into the SDK, restoring WADO over HTTPS and
   enabling DICOM TLS support in DCMTK.
+- **DICOMweb authentication:** add basic authentication, which Orthanc has built
+  in, then OAuth 2 bearer tokens, with credentials in the operating system's
+  secure store. None was found in the WADO request classes.
 - **DICOM TLS:** add it to PACS configuration and all DIMSE operations, on
   Windows and Linux. The SDK enables OpenSSL on Linux, but the application never
   uses it.
-- **DICOMweb authentication:** add basic and OAuth 2 bearer tokens, with
-  credentials in the operating system's secure store. None was found in the WADO
-  request classes.
+- **C-GET:** retrieve without Orthanc needing to connect back to the workstation,
+  for firewalls where C-MOVE is impractical.
 - **JPEG-LS:** done (A-01). Undecodable frames now give an error instead of a
   blank image.
 - **Wrong-length pixel data:** done for the default reader (A-20). Add the same
@@ -240,8 +243,8 @@ yet, so those follow.
 - **Backlog fix:** make `autotests` report failures correctly, so 256 failures
   cannot wrap to exit code 0.
 
-**Exit:** TLS and authenticated DICOMweb work against Orthanc, every transfer
-syntax in the corpus decodes, and fuzzing runs regularly.
+**Exit:** authenticated DICOMweb over HTTPS, DICOM TLS and C-GET work against
+Orthanc, every transfer syntax in the corpus decodes, and fuzzing runs regularly.
 
 ### Phase 2: Display every everyday DICOM object
 
@@ -333,7 +336,6 @@ Not scheduled. Pick these up when internal users need them.
   `dicomdumpdefaulttagsreader`.
 - **Receiving pushed studies:** a background Store SCP, not only during retrieval
   (`retrievedicomfilesfrompacs.cpp`), and any mini PACS mode built on it.
-- **C-GET:** for sites and firewalls where C-MOVE is impractical.
 - **Worklist:** a modality worklist client.
 
 ## Certification-ready engineering

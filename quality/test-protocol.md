@@ -49,6 +49,7 @@ GPU and tester for each run.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 2026-10-31 | Linux, clean `ubuntu:24.04` container, Xvfb, Mesa software rendering | `f9cc1c38c` | 41260260302 | See below | TP-01, TP-03, TP-04 | A-17, A-19 to A-23 |
 | 2 | 2026-11-01 | Windows 11 Home 10.0.22621, local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes | None (local build) | TP-02, TP-04, TP-06, TP-08. The rest are partial; see [Run 2](#run-2) | None | A-25 to A-27 |
+| 3 | 2026-11-01 | Windows 11 Home 10.0.22621, installed local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes (the installer built after run 2) | None (local build) | TP-03, TP-09 (`petct-suv`). TP-05, TP-07 and TP-10 are partial; see [Run 3](#run-3) | None | A-28 to A-33 |
 
 Run 1 used the `.deb` with SHA-256 starting `7a3163e6`, tested by Claude driving the interface
 with scripted input. Software rendering says nothing about performance. A person still has to
@@ -115,8 +116,82 @@ them in a folder that does not exist there. The installed application does load 
 layouts, including anything in TP-07 and TP-09 that depends on a hanging protocol, may therefore
 differ from what users get, and should be repeated on an installed package.
 
+### Run 3
+
+Run 3 used the installed application in `C:\Program Files\Starviewer`, started from the Start
+menu shortcut, so it has the default hanging protocols that run 2's build-tree executable lacked.
+The installer was `starviewer~2.0.0-devel~amd64-winnt.exe`, SHA-256
+`359245dbea04c974b516a58cf7d23dfacf8901ad188cc841b6e42b4c99d71485`. I recomputed the hash, and
+it matches the `.sha256` file beside it. It is the installer built after run 2, from `3842fbcca`
+plus the uncommitted phase0 fixes, and was not rebuilt. It is a local build, not a CI package, and
+the machine is not clean (Qt and the SDK are installed), so TP-01's clean-install check was not
+run and the requirements stay *Not verified*. The corpus checksum was not recorded.
+
+The installer was run interactively with the default folder, but a person clicked through it,
+because Windows blocked Claude's input to the elevated installer. Its pages were therefore not
+seen or checked. The uninstall entry still shows version 1.1.0 (A-26). Claude drove the
+application by screenshots, clicks and typing, and used PowerShell scripts for the timings.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| TP-03 | Passed | All 14 folders in `transfer-syntaxes` open and display, with no error. I compared a screenshot of each with `implicit-le`, in the same window, over an area of 729,000 pixels. `explicit-be`, `deflated`, `rle`, `jpeg-lossless`, `jpeg-lossless-sv1`, `jpeg-2000-lossless` and `jpeg-ls-lossless` each differ in 0 pixels, so all seven lossless variants match pixel for pixel. JPEG-LS now displays the phantom (A-01). The lossy ones differ slightly, as expected: `jpeg-2000-lossy` in 377,106 pixels with a largest difference of 8 grey levels, `jpeg-ls-near-lossless` in 285,068 with a largest of 2, and `jpeg-extended-12bit` in 367,775 with a largest of 10. `jpeg-baseline-8bit` (XA data), `jpeg-baseline-rgb` and `rle-rgb` (US data) are different images from `implicit-le`, so they were judged by eye only: the XA file shows a pale image like frame 1 of `xa-multiframe`, and the two RGB files show the 30-frame US grid with the moving disc. I did not look for a lossy marking at full size, so A-21 is not rechecked. The first readings for `deflated` and `rle` were spoiled by another window over the capture, and were redone |
+| TP-05 | Partial | Both cines were played. In `us-multiframe` the disc advanced in equal steps with no jump and wrapped from the last position to the first at 2.30 s and 5.65 s, so 30 frames took 3.35 s. `xa-multiframe` repeated every 3.30 s; I could track its marker through only part of each cycle, so I cannot say every frame was shown. Both play at about 9 img/s, not at the file's frame time of 33.3 ms (US) and 66.7 ms (XA) (A-31). `mg-monochrome1` opens in a four-pane layout with the image in the second pane: a bright disc on a grey breast on a dark background, with an L marker at the top, so polarity is correct. `enhanced-ct` opens with 20 frames, and frame 11 shows the spheres, with the L block and the bone sphere on the viewer's right. `encapsulated-pdf` is listed as `QA-DOC-001`, and opening it wrote `DOC0000.dcm.pdf` beside the source file again (A-22) and handed it to Adobe Acrobat Reader. I was not allowed to view Acrobat, so I did not see the page. The extracted file's content stream reads "SYNTHETIC TEST REPORT" |
+| TP-07 | Partial | `ct-reference` opens in MPR with all 100 slices. Axial slice 51 shows the soft-tissue sphere on the viewer's left and the bone sphere on the viewer's right, beside the L block, so the bone sphere is on patient left. Dragging in MPR rotated the reference line, and the oblique reformat shows the soft-tissue sphere round (about 81 by 77 screen pixels). The 3D viewer renders `ct-reference` as a cylinder with an orientation widget showing H and L. `mr-orientations` opens in the 2D viewer with three series in three panes and one empty pane: the coronal pane is labelled R, L, H and F, and the oblique series is labelled "Axial oblique 20 degrees", with AF at the top and PH at the bottom, R and L at the sides, and green reference lines on the other panes. The MR also opens in MPR and in 3D. I did not check the MR sphere positions against `expected.json`, and the sphere positions in 3D were not checked. 3D volume rendering of the real CT shows only a grey cylinder (A-32) |
+| TP-09 | Passed for `petct-suv` | The blended fusion view exists and works in the installed package. It is not in the toolbar, the Visualization menu or the Layout popup. It is in the right-click menu of a 2D viewer pane (the patient browser menu), and appears only when a CT and a PET series share a frame of reference (A-33). Its entry is labelled "Fusion: 50% CT + 50% PT". It blends the pane that was clicked, with a CT/PT balance slider and the "PET Osirix" colour table, and it resets that pane to slice 1, where the CT shows no PET colour. In `petct-suv` the PET sphere lines up with the CT soft-tissue sphere. An elliptical ROI reads SUV (bw) mean 8.00 and max 8.00 in the sphere, and 1.00 and 1.00 in the background, so both are within 1% of 8.0 and 1.0. `rider-petct` opens in the same way, and slice 11 of 64 shows the blend. I did not judge its anatomy or alignment, and there is no ground truth |
+| TP-10 | Partial | DICOMweb against the test Orthanc: see below. The DIMSE path was not repeated, and the PACS settings dialog was used only for DICOMweb |
+
+#### DICOMweb against Orthanc
+
+Docker Desktop was not running, so I started it, and its engine was ready after about 5 s.
+`docker compose up -d` from `quality\testlab` created `starviewer-testlab-orthanc-1` (Orthanc
+1.12.6, published on 127.0.0.1 ports 14242 and 18042). It already held 21 studies and 478
+instances, including `ct-reference` with 100 and `petct-suv` with 150, so the corpus was not
+reloaded. Orthanc's authentication and configuration were not changed.
+
+- **Login:** the DICOMweb PACS was added in the settings dialog. With `http://127.0.0.1:18042/dicom-web/` as entered, its Test button reports "Host requires authentication". With `http://qa:qa-only@127.0.0.1:18042/dicom-web/` it reports "Test is correct", and I saved that entry. So the app has no login fields, but the login works in the URL (A-28), and then it shows in plain text in the node lists (A-29).
+- **Query:** an unfiltered search lists 21 studies, which matches Orthanc, and a search on Patient ID also worked.
+- **Retrieve:** `ct-reference` gave 100 instances and `petct-suv` gave 150, as the Operation List reported. On disk the study folders held 100 and 150 DICOM files, plus thumbnail PNGs (102 and 154 files in all).
+- **Send:** Send to PACS on the retrieved `ct-reference` lists the DICOMweb entry, and the queue shows SENT with 100 files. The instances were already in Orthanc, so its counts could not show receipt. I therefore deleted that study from Orthanc over REST (20 studies and 378 instances left), and sent it again from Starviewer. Orthanc then held 21 studies and 478 instances, with `QA-CT-001` back as 1 series of 100 instances. The send works.
+- **Interrupted retrieve:** Orthanc held no large study, so I uploaded `rider-large-ct` over REST (1,049 instances, 599 MB, 364 s). It is still in the test Orthanc, which now holds 22 studies and 1,527 instances. I started Retrieve on it, and a background script ran `docker compose stop -t 0 orthanc` once 150 new files had reached Starviewer's cache: 12:35:33.151, with 156 new files, and the container exited with code 137 (a hard stop, not a graceful one). After a spinner ("Operation in progress"), about 10 to 13 s later (read from screenshots, so approximate), a warning appeared: "Some images have been downloaded. However there have been some errors. Maybe those images are missing or corrupted in PACS", then a bold warning that 3D reconstructions and measurements may be wrong if a series is missing images, then "Details: Download ended prematurely for an unknown reason". Files kept arriving on disk after the stop, 278 when `docker` returned and 876 twenty seconds later, and the count was still 876 two minutes after that. The Local Database lists the study as "Series 3, 876 Images" with no marking, and it opens as 876 slices with no message (A-30). The expected 1,049 images are not shown anywhere. The Operation List entry was not read. The server was well ahead of the writer, so the stop did not interrupt the transfer at an early point.
+- **Finish:** `docker compose stop` was run from `quality\testlab` at the end. The container was already stopped, and the network and Orthanc's stored data were left in place. Docker Desktop itself was left running.
+
+`cool_wozniak` was not in Docker's container list at any point, and port 8042 was still held by process 16316, which I did not touch.
+
+Not done in run 3: TP-01 on a clean machine, the installer's pages, the DIMSE path (C-MOVE and C-STORE), reading Acrobat's view of the PDF, the Operation List after the interrupted retrieve, `benchmark-ct-1000` (not generated), and RadiAnt (not requested). After Docker Desktop started, Starviewer's viewer was empty for a while, and I do not know why.
+
 ### Baseline timings
 
 | Date | Machine | Application and version | Data | First image (s) | All loaded (s) | Memory (MB) | MPR (s) | 3D (s) |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| | | | | | | | | |
+| 2026-11-01 | AMD Ryzen 7 5825U (8 cores, 16 threads), 15.4 GB RAM, AMD Radeon integrated graphics (driver 31.0.21924.1004), 512 GB NVMe SSD (SK hynix BC711), Windows 11 Home 10.0.22621, on AC power | Starviewer 2.0.0-devel, installed local build (installer SHA-256 `359245db`) | `rider-large-ct`, 1,049 slices, 530 MB, File > Open Files from a Directory | 3.79 | 3.79 | 1,104 | 0.40 | 1.96 |
+
+Each figure is the median of three runs, restarting the application from the Start menu shortcut
+before each run. Before each run the system was idle: total CPU was 0.2 to 0.6% (a 5 s average),
+and 6.8 to 7.0 GB of RAM was free. Docker Desktop and browsers were closed; the Claude app, Tabby,
+opencode and Dell background agents were open but idle, and the Claude window was minimized.
+
+| Measure | Run 1 | Run 2 | Run 3 | Median |
+| --- | ---: | ---: | ---: | ---: |
+| `rider-large-ct`: first image, and all slices loaded (s) | 3.81 | 3.72 | 3.79 | 3.79 |
+| Same, to the process being idle (CPU under 0.05 core for 4 s) (s) | 4.10 | 4.11 | 4.16 | 4.11 |
+| Private bytes after loading (MB) | 1,106 | 1,103 | 1,104.1 | 1,104 |
+| MPR open, to the first screen change (s) | 0.36 | 0.41 | 0.40 | 0.40 |
+| MPR open, to the process being idle (s) | 0.79 | 0.76 | 0.78 | 0.78 |
+| Private bytes after MPR (MB) | 1,467 | 1,464 | 1,465 | 1,465 |
+| 3D volume rendering open, to the screen change (s) | 1.76 | 2.16 | 1.96 | 1.96 |
+| 3D open, to the process being idle (s) | 1.80 | 2.03 | 2.30 | 2.03 |
+| Private bytes after 3D (MB) | 2,754 | 2,751 | 2,751 | 2,751 |
+| `rider-petct`: first image, and all loaded (s) | 1.30 | 1.33 | 1.34 | 1.33 |
+| `rider-petct`: fusion open, to the last screen change (s) | 0.19 | 0.24 | 0.24 | 0.24 |
+| Fusion open, to the process being idle (s) | 0.54 | 0.53 | 0.52 | 0.53 |
+| Private bytes after fusion (MB) | 764 | 762 | 762 | 762 |
+| `benchmark-ct-1000` | Not run: the file was not generated | | | |
+
+How these were timed:
+
+- A background PowerShell sampler captured the Starviewer window at about 12 Hz (median interval 0.082 s) and logged each sample where a 64 by 40 grey thumbnail changed. The process's CPU and private bytes (`PrivateMemorySize64`) were logged with each sample. Zero is the click on Select Folder in the folder dialog, or the moment a script invoked the MPR, 3D or fusion menu item. The **timing resolution is therefore about 0.08 s**, plus the delay of the script's own call, which was not measured. The "idle" figures are checked every 0.25 s.
+- **The first image only appears once everything has loaded.** About 1.8 s after the click, the viewer shows its layout with empty panes. The images appear at 3.7 to 3.8 s, with a single screen change, when the process's private bytes have reached the loaded figure. So the first-image and all-loaded figures are the same measurement. I have no separate figure for the first slice appearing before the rest.
+- The three counted runs read the files from a warm file cache. An earlier run that was not counted, after the data had first been read, reached idle at 12.15 s, so a first read of 530 MB from disk is slower than these figures.
+- MPR and 3D were opened by a script, through the Visualization menu, and not by a click. Each produced a single screen change, so I have no figure for how long the content takes to settle.
+- **Smoothness:** scroll and rotation were driven by a script and sampled at 12 Hz, so I could not see frame rates above about 12 per second, and the sampler shows stalls, not frame rate. Scrolling 100 wheel notches over 10 s moved the axial view to slice 101 of 1,049, with a screen change in 100 of 124 samples, a longest gap between changes of 0.18 s, and a peak process CPU of 0.77 core. Dragging the 3D view with 376 mouse moves over 6 s gave a screen change in 65 of 67 samples, with a longest gap of 0.18 s and a peak CPU of 0.58 core. I saw no stall longer than 0.18 s, but this is not a frame-rate figure, and what was rotating was the featureless grey cylinder of A-32.
+- Private bytes after the 3D viewer opens (2.75 GB) are about five times the size of the data on disk (530 MB). I did not look into why.
