@@ -37,7 +37,8 @@ QAboutDialog::QAboutDialog(QWidget *parent)
 
 #ifdef STARVIEWER_LITE
     m_liteAboutTextLabel->setText(m_liteAboutTextLabel->text().arg(ApplicationNameString).arg(2019).arg(StarviewerVersionString).arg(OrganizationEmailString)
-                                                              .arg(OrganizationWebURL));
+                                                              .arg(OrganizationWebURL)
+                                     + "<p><b>" + tr("Not for diagnostic use.") + "</b></p>");
     m_liteAboutTextLabel->setOpenExternalLinks(true);
     m_stackedWidget->setCurrentIndex(1);
 #elif defined STARVIEWER_CE
@@ -45,7 +46,8 @@ QAboutDialog::QAboutDialog(QWidget *parent)
     m_stackedWidget->setCurrentIndex(index);
 #else
     m_aboutTextLabel->setText(m_aboutTextLabel->text().arg(ApplicationNameString).arg(2019).arg(StarviewerVersionString).arg(OrganizationEmailString)
-                                                      .arg(OrganizationWebURL));
+                                                      .arg(OrganizationWebURL)
+                                 + "<p><b>" + tr("Not for diagnostic use.") + "</b></p>");
     m_aboutTextLabel->setOpenExternalLinks(true);
     m_stackedWidget->setCurrentIndex(0);
 #endif

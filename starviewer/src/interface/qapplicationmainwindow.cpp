@@ -913,14 +913,19 @@ void QApplicationMainWindow::showDiagnosisTestDialog()
 
 void QApplicationMainWindow::updateWindowTitle()
 {
+    QString title = ApplicationNameString;
+
     if (m_patient && m_showPatientIdentificationInWindowTitleAction->isChecked())
     {
-        this->setWindowTitle(m_patient->getID() + " : " + m_patient->getFullName());
+        title = m_patient->getID() + " : " + m_patient->getFullName();
     }
-    else
-    {
-        this->setWindowTitle(ApplicationNameString);
-    }
+
+#ifndef STARVIEWER_CE
+    // Requirement SR-LBL-01: uncertified builds say so on every main window.
+    title += " - " + tr("Not for diagnostic use");
+#endif
+
+    this->setWindowTitle(title);
 }
 
 void QApplicationMainWindow::openReleaseNotes()
