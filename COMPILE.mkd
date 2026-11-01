@@ -34,7 +34,7 @@ sudo apt-get install build-essential cmake git rsync wget xsltproc \
   xvfb xauth
 ```
 
-(`qtbase5-gtk-platformtheme`, `qttranslations5-l10n` and `qtwayland5` are
+(`qt5-gtk-platformtheme`, `qttranslations5-l10n` and `qtwayland5` are
 only needed to build the packages.)
 
 Patched SDK (downloads are checksum-verified; takes over an hour):

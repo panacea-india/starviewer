@@ -47,7 +47,7 @@ sudo apt-get install build-essential cmake git rsync wget xsltproc \
 ```
 
 (The last three Qt packages and `squashfs-tools` are only needed to build
-the packages; `qtbase5-gtk-platformtheme` provides the bundled `qgtk3`
+the packages; `qt5-gtk-platformtheme` provides the bundled `qgtk3`
 plugin and `qtwayland5` the bundled Wayland plugins.)
 
 Patched SDK (downloads are checksum-verified; takes over an hour):

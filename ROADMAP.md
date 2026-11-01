@@ -209,6 +209,10 @@ Everything after this builds on the assumption that the baseline works.
 baseline timings for load, scroll and 3D are recorded, and the foundations are
 in place.
 
+**Status:** the test corpus, test PACS and foundation records are in
+[quality/](quality/README.md). Installing, the main flows and the benchmark are
+still to run, using [test-protocol.md](quality/test-protocol.md).
+
 ### Phase 1: Network security and decoding
 
 - **Windows OpenSSL:** build it into the SDK, restoring WADO over HTTPS and
