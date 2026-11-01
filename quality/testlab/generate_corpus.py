@@ -604,7 +604,7 @@ TRANSFER_SYNTAXES = {
     "jpeg-ls-lossless": ("1.2.840.10008.1.2.4.80", "ct", True, ["dcmcjpls", "+el"], ["dcmdjpls"]),
     "jpeg-ls-near-lossless": ("1.2.840.10008.1.2.4.81", "ct", False, ["dcmcjpls", "+en"], None),
     "jpeg-2000-lossless": ("1.2.840.10008.1.2.4.90", "ct", True, ["gdcmconv", "--j2k"], ["gdcmconv", "--raw"]),
-    "jpeg-2000-lossy": ("1.2.840.10008.1.2.4.91", "ct", False, ["gdcmconv", "--j2k", "--lossy", "-q", "50"], None),
+    "jpeg-2000-lossy": ("1.2.840.10008.1.2.4.91", "ct", False, ["gdcmconv", "--j2k", "--lossy", "-r", "10"], None),
 }
 
 
