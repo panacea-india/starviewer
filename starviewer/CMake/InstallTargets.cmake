@@ -163,6 +163,8 @@ set(QT_LIBS
     Qt5Network
     Qt5OpenGL
     Qt5Qml
+    Qt5QmlModels
+    Qt5QmlWorkerScript
     Qt5Quick
     Qt5QuickWidgets
     Qt5Sql
@@ -204,6 +206,13 @@ foreach(LIB ${QT_LIBS})
         install(FILES ${QT_LIB_FILES} DESTINATION lib)
     endif()
 endforeach()
+if(UNIX AND NOT APPLE)
+    # Needed by the optional Wayland plugins, so optional like them.
+    file(GLOB QT_LIB_FILES "${QT_LIB_DIR}/libQt5WaylandClient.so.*")
+    if(QT_LIB_FILES)
+        install(FILES ${QT_LIB_FILES} DESTINATION lib)
+    endif()
+endif()
 
 # SDK
 # DCMTK, VTK and ITK are built static and need no runtime files. ThreadWeaver

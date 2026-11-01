@@ -95,15 +95,18 @@ set(CPACK_WIX_PATCH_FILE "${CMAKE_SOURCE_DIR}/installerresources/wixpatch.xml")
 # from a system package. Built against Ubuntu 24.04; other distributions
 # will need their own package names.
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libgcc-s1, libstdc++6,
-    libegl1, libgl1,
+    libegl1, libgl1, libglu1-mesa, libopengl0,
     libx11-6, libx11-xcb1, libxext6, libxi6, libxcb1, libxcb-glx0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1,
     libxcb-randr0, libxcb-render0, libxcb-render-util0, libxcb-shape0, libxcb-shm0, libxcb-sync1,
-    libxcb-xfixes0, libxcb-xinerama0, libxcb-xkb1, libxkbcommon0, libxkbcommon-x11-0,
+    libxcb-xfixes0, libxcb-xinerama0, libxcb-xinput0, libxcb-xkb1, libxkbcommon0, libxkbcommon-x11-0,
     libwayland-client0, libwayland-cursor0, libwayland-egl1, libwayland-server0,
     libfontconfig1, libfreetype6, libharfbuzz0b, libmd4c0, libpng16-16,
     libglib2.0-0, libdbus-1-3, libdouble-conversion3, libpcre2-8-0, libb2-1, libzstd1, liblzma5,
     libgssapi-krb5-2, libssl3, zlib1g, libsqlite3-0,
     libgtk-3-0, libkf5threadweaver5, libxt6")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Starviewer Team <support@starviewer.udg.edu>")
+# CPack would otherwise use the project version, which is not the real one.
+# Debian sorts ~ before the empty string, so 2.0.0~devel comes before 2.0.0.
+string(REPLACE "-" "~" CPACK_DEBIAN_PACKAGE_VERSION ${STARVIEWER_VERSION})
 
 include(CPack)
