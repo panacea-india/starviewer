@@ -67,6 +67,7 @@ target_link_vtk(starviewer
 
 target_link_dcmtk(starviewer
     dcmjpeg
+    dcmjpls
 )
 
 

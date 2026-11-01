@@ -87,6 +87,7 @@ set(SOURCES
     test_volumepixeldataiterator.cpp
     test_volumepixeldatareaderfactory.cpp
     test_voxel.cpp
+    test_vtkdcmtkimagereader.cpp
     test_vtkimagedatacreator.cpp
     test_windowlevel.cpp
 )

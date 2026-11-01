@@ -27,6 +27,8 @@ INITIALIZE_EASYLOGGINGPP
 // Necessaris per suportar la decodificació de jpeg i RLE
 #include <djdecode.h>
 #include <dcrledrg.h>
+// Has the same file name as dcmjpeg's header, so it needs the module in the path
+#include <dcmjpls/djdecode.h>
 #include "applicationtranslationsloader.h"
 
 #include "coresettings.h"
@@ -199,8 +201,9 @@ int main(int argc, char *argv[])
     // TODO aixo es necessari per, entre d'altres coses, poder crear thumbnails,
     // dicomdirs, etc de dicoms comprimits i tractar-los correctament amb dcmtk
     // aixo esta temporalment aqui, a la llarga anira a una classe de setup
-    // registrem els codecs decompressors JPEG i RLE
+    // registrem els codecs decompressors JPEG, JPEG-LS i RLE
     DJDecoderRegistration::registerCodecs();
+    DJLSDecoderRegistration::registerCodecs();
     DcmRLEDecoderRegistration::registerCodecs();
 
     // Seguint les recomanacions de la documentació de Qt, guardem la llista d'arguments en una variable, ja que aquesta operació és costosa
