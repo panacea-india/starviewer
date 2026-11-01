@@ -163,6 +163,9 @@ jobs:
       - name: Package AppImage
         run: .github/scripts/make-appimage.sh build
 
+      - name: Generate software bill of materials
+        run: python3 quality/generate_sbom.py --platform linux --commit "$GITHUB_SHA" --out build/starviewer-linux.cdx.json
+
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
@@ -171,4 +174,5 @@ jobs:
             build/*.deb
             build/*.AppImage
             build/*.sha256
+            build/*.cdx.json
           if-no-files-found: error

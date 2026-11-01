@@ -212,6 +212,10 @@ jobs:
           cd build
           cpack -G NSIS
 
+      - name: Generate software bill of materials
+        shell: pwsh
+        run: python quality/generate_sbom.py --platform windows --commit "${{ github.sha }}" --out build/starviewer-windows.cdx.json
+
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
@@ -219,4 +223,5 @@ jobs:
           path: |
             build/*~*.exe
             build/*.sha256
+            build/*.cdx.json
           if-no-files-found: error
