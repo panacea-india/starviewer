@@ -48,7 +48,7 @@ GPU and tester for each run.
 | Run | Date | Platform | Commit | CI run | Steps passed | Steps failed | New anomalies |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 2026-10-31 | Linux, clean `ubuntu:24.04` container, Xvfb, Mesa software rendering | `f9cc1c38c` | 41260260302 | See below | TP-01, TP-03, TP-04 | A-17, A-19 to A-23 |
-| 2 | 2026-11-01 | Windows 11 Home 10.0.22621, local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes | None (local build) | TP-02, TP-04, TP-06, TP-08. The rest are partial; see [Run 2](#run-2) | None | A-25 |
+| 2 | 2026-11-01 | Windows 11 Home 10.0.22621, local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes | None (local build) | TP-02, TP-04, TP-06, TP-08. The rest are partial; see [Run 2](#run-2) | None | A-25 to A-27 |
 
 Run 1 used the `.deb` with SHA-256 starting `7a3163e6`, tested by Claude driving the interface
 with scripted input. Software rendering says nothing about performance. A person still has to
@@ -101,8 +101,19 @@ rather than missing. The requirements stay *Not verified*, because this is not a
 
 After the run, `cpack -G NSIS` on the same tree gave an installer with SHA-256 starting
 `359245db`. Its staged files started and closed cleanly with Qt and the SDK off PATH, with all
-Qt and Visual C++ runtime modules loaded from the package folder. Qt is still installed on this
-machine, and the installer itself was not run, so this does not replace TP-01.
+Qt and Visual C++ runtime modules loaded from the package folder.
+
+That installer was then run silently on this machine, into `C:\Program Files\Starviewer`. It
+exited with 0 and added the Start menu shortcuts, the uninstall entry and the URL handler. The
+installed application started with Qt and the SDK off PATH, loaded its modules from the install
+folder and closed with exit code 0. The uninstaller removed the folder, shortcuts and uninstall
+entry (A-26, A-27). The installer's interactive pages were not seen, and Qt is still installed on
+this machine, so this does not replace TP-01.
+
+Run 2's executable found no default hanging protocols, because a build-tree executable looks for
+them in a folder that does not exist there. The installed application does load them. Run 2's
+layouts, including anything in TP-07 and TP-09 that depends on a hanging protocol, may therefore
+differ from what users get, and should be repeated on an installed package.
 
 ### Baseline timings
 
