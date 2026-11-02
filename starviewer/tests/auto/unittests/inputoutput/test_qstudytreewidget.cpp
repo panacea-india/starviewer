@@ -52,6 +52,9 @@ private slots:
     void removeSeries_ShouldRemoveStudy_data();
     void removeSeries_ShouldRemoveStudy();
 
+    void insertPatient_ShouldMarkOnlyPartiallyRetrievedStudies_data();
+    void insertPatient_ShouldMarkOnlyPartiallyRetrievedStudies();
+
     void init();
     void cleanupTestCase();
 
@@ -349,6 +352,37 @@ void test_QStudyTreeWidget::removeSeries_ShouldRemoveStudy()
     m_qstudyTreeWidget->removeSeries(parentStudySeries->getInstanceUID(), inputSeries->getInstanceUID(), inputSeries->getDICOMSource());
     QCOMPARE(m_qstudyTreeWidget->getSeries(parentStudySeries->getInstanceUID(), inputSeries->getInstanceUID(), inputSeries->getDICOMSource()) == NULL, true);
     QCOMPARE(m_qstudyTreeWidget->getStudy(parentStudySeries->getInstanceUID(), parentStudySeries->getDICOMSource()) == NULL, true);
+}
+
+void test_QStudyTreeWidget::insertPatient_ShouldMarkOnlyPartiallyRetrievedStudies_data()
+{
+    QTest::addColumn<QString>("description");
+    QTest::addColumn<bool>("partiallyRetrieved");
+    QTest::addColumn<QString>("expectedDescription");
+
+    QTest::newRow("complete") << "CT chest" << false << "CT chest";
+    QTest::newRow("partial") << "CT chest" << true << "INCOMPLETE - CT chest";
+    QTest::newRow("partial without description") << "" << true << "INCOMPLETE";
+}
+
+void test_QStudyTreeWidget::insertPatient_ShouldMarkOnlyPartiallyRetrievedStudies()
+{
+    QFETCH(QString, description);
+    QFETCH(bool, partiallyRetrieved);
+    QFETCH(QString, expectedDescription);
+
+    Patient *patient = new Patient();
+    Study *study = new Study();
+    study->setInstanceUID("1");
+    study->setDescription(description);
+    study->setPartiallyRetrieved(partiallyRetrieved);
+    patient->addStudy(study);
+
+    m_qstudyTreeWidget->insertPatient(patient);
+
+    QTreeWidgetItem *item = m_qstudyTreeWidget->getQTreeWidget()->topLevelItem(0);
+    QCOMPARE(item->text(QStudyTreeWidget::Description), expectedDescription);
+    QCOMPARE(item->toolTip(QStudyTreeWidget::Description).isEmpty(), !partiallyRetrieved);
 }
 
 DECLARE_TEST(test_QStudyTreeWidget)

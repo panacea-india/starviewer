@@ -287,6 +287,12 @@ void ExtensionHandler::processInput(QList<Patient*> patientsList, bool loadOnly)
     // Check if the list contains the same patient as the current one in this ExtensionsHandler's window;
     // if that's the case, it will be moved to the beginning of the list so it gets assigned to this window
     bool merge = false;
+    bool partiallyRetrievedStudy = false;
+
+    foreach (const Patient *patient, patientsList)
+    {
+        partiallyRetrievedStudy = partiallyRetrievedStudy || patient->hasPartiallyRetrievedStudy();
+    }
 
     for (int i = 0; i < patientsList.size(); i++)
     {
@@ -309,6 +315,7 @@ void ExtensionHandler::processInput(QList<Patient*> patientsList, bool loadOnly)
             {
                 mergeIntoCurrentPatient(patient, loadOnly);
                 delete patient; // the studies are now under the current patient, we can delete this one
+                m_mainApp->updateWindowTitle();
             }
             else
             {
@@ -327,6 +334,13 @@ void ExtensionHandler::processInput(QList<Patient*> patientsList, bool loadOnly)
         {
             m_mainApp->setPatientInNewWindow(patient);
         }
+    }
+
+    if (partiallyRetrievedStudy)
+    {
+        QMessageBox::warning(m_mainApp, ApplicationNameString,
+                             tr("Only part of this study was retrieved, so some images are missing. 3D reconstructions may not be accurate and measurements on "
+                                "reconstructed planes may be wrong. Retrieve the study again to complete it."));
     }
 }
 

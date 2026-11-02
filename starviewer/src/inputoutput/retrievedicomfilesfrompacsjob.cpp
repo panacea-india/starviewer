@@ -189,6 +189,17 @@ void RetrieveDICOMFilesFromPACSJob::run(ThreadWeaver::JobPointer self, ThreadWea
                     m_retrieveRequestStatus = PACSRequestStatus::RetrieveDatabaseError;
                 }
             }
+            else
+            {
+                localDatabaseManager.recordRetrieveOutcome(m_studyToRetrieveDICOMFiles->getInstanceUID(),
+                                                           m_seriesInstanceUIDToRetrieve.isEmpty() && m_SOPInstanceUIDToRetrieve.isEmpty(),
+                                                           m_retrieveRequestStatus == PACSRequestStatus::RetrieveSomeDICOMFilesFailed);
+
+                if (localDatabaseManager.getLastError() != LocalDatabaseManager::Ok)
+                {
+                    m_retrieveRequestStatus = PACSRequestStatus::RetrieveDatabaseError;
+                }
+            }
         }
         else
         {
@@ -376,6 +387,7 @@ QString RetrieveDICOMFilesFromPACSJob::getStatusDescription()
             message += tr("<p><b>Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements on reconstructed "
                           "planes may be wrong. Check the number of images in each series before using it for such purposes. Refer to the user guide for more "
                           "information.</b>");
+            message += tr("<p>The study is marked as incomplete in the study lists. Retrieve it again to complete it.");
             message += errorDetails.replace('\n', "<br>");
 
             break;

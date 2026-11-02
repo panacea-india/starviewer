@@ -73,6 +73,10 @@ public:
     /// Returns true if a study with the given UID exists in the database and false otherwise.
     bool studyExists(const QString &studyInstanceUID);
 
+    /// Records the outcome of a retrieve in the study with the given UID, so that a study with missing images is shown as incomplete.
+    /// See LocalDatabaseStudyDAL::recordRetrieveOutcome().
+    void recordRetrieveOutcome(const QString &studyInstanceUID, bool wholeStudyRequested, bool someImagesMissing);
+
     /// Deletes the study with the given UID from the database and the disk.
     void deleteStudy(const QString &studyInstanceUID);
     /// Deletes the series with the given SeriesInstanceUID from the study with the given StudyInstanceUID. If the study becomes empty, it's also deleted.

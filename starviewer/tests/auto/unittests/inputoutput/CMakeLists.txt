@@ -8,6 +8,7 @@ set(SOURCES
     test_echotopacstest.cpp
     test_firewallaccesstest.cpp
     test_localdatabasebasedal.cpp
+    test_localdatabasestudydal.cpp
     test_pacsdevice.cpp
     test_pacsdevicemanager.cpp
     test_portinuse.cpp

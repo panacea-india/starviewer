@@ -717,6 +717,14 @@ bool LocalDatabaseManager::studyExists(const QString &studyInstanceUID)
     return exists;
 }
 
+void LocalDatabaseManager::recordRetrieveOutcome(const QString &studyInstanceUID, bool wholeStudyRequested, bool someImagesMissing)
+{
+    DatabaseConnection databaseConnection;
+    LocalDatabaseStudyDAL studyDAL(databaseConnection);
+    studyDAL.recordRetrieveOutcome(studyInstanceUID, wholeStudyRequested, someImagesMissing);
+    setLastError(studyDAL.getLastError());
+}
+
 void LocalDatabaseManager::deleteStudy(const QString &studyInstanceUID)
 {
     if (studyInstanceUID.isEmpty())

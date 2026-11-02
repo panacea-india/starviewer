@@ -436,6 +436,20 @@ QList<QTreeWidgetItem*> QStudyTreeWidget::fillPatient(Patient *patient)
         item->setText(PatientAge, formatAge(studyToInsert->getPatientAge()));
         item->setText(Modality, studyToInsert->getModalitiesAsSingleString());
         item->setText(Description, studyToInsert->getDescription());
+
+        if (studyToInsert->isPartiallyRetrieved())
+        {
+            QString description = tr("INCOMPLETE");
+
+            if (!studyToInsert->getDescription().isEmpty())
+            {
+                description += " - " + studyToInsert->getDescription();
+            }
+
+            item->setText(Description, description);
+            item->setToolTip(Description, tr("Only part of this study was retrieved, so some images are missing. Retrieve it again to complete it."));
+        }
+
         // TODO:No hauria de ser l'estudi que tornés la data formatada? Problema necessitem que la data estigui en format yyyy/mm/dd per poder ordenar per data
         item->setText(Date, formatDateTime(studyToInsert->getDate(), studyToInsert->getTime()));
         item->setText(StudyID, tr("Study %1").arg(studyToInsert->getID()));

@@ -67,6 +67,9 @@ public:
     /// Retorna fals si existeix un estudi ja amb el mateix uid o l'uid és buit.
     bool addStudy(Study *study);
 
+    /// Returns true if a retrieve of any study of this patient left images missing.
+    bool hasPartiallyRetrievedStudy() const;
+
     /// Li treu al pacient l'estudi amb l'UID donat
     void removeStudy(const QString &uid);
 

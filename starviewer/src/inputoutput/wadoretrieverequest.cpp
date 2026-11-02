@@ -23,6 +23,28 @@
 
 namespace udg {
 
+namespace {
+
+// Returns true if the given error means that the connection to the server failed, rather than that the server answered with an error.
+bool isConnectionError(QNetworkReply::NetworkError error)
+{
+    switch (error)
+    {
+        case QNetworkReply::ConnectionRefusedError:
+        case QNetworkReply::RemoteHostClosedError:
+        case QNetworkReply::HostNotFoundError:
+        case QNetworkReply::TimeoutError:
+        case QNetworkReply::TemporaryNetworkFailureError:
+        case QNetworkReply::NetworkSessionFailedError:
+        case QNetworkReply::UnknownNetworkError:
+            return true;
+        default:
+            return false;
+    }
+}
+
+}
+
 WadoRetrieveRequest::WadoRetrieveRequest(const PacsDevice &pacs, const QString &studyInstanceUid, const QString &seriesInstanceUid,
                                          const QString &sopInstanceUid, QObject *parent)
     : WadoRequest(pacs, parent), m_studyInstanceUid(studyInstanceUid), m_seriesInstanceUid(seriesInstanceUid), m_sopInstanceUid(sopInstanceUid),
@@ -328,6 +350,7 @@ void WadoRetrieveRequest::onReadyRead()
 void WadoRetrieveRequest::onReplyFinished()
 {
     bool errors = false;
+    bool connectionLost = false;
 
     if (m_reply->error() == QNetworkReply::OperationCanceledError)
     {
@@ -354,6 +377,7 @@ void WadoRetrieveRequest::onReplyFinished()
     else if (m_reply->error() != QNetworkReply::NoError)
     {
         errors = true;
+        connectionLost = isConnectionError(m_reply->error());
         m_errorsDescription = m_reply->errorString();
         WARN_LOG(QString("QNetworkReply::NetworkError %1: %2. (HTTP %3: %4) [URL: %5]")
                   .arg(m_reply->error()).arg(m_reply->errorString())
@@ -365,8 +389,17 @@ void WadoRetrieveRequest::onReplyFinished()
     {
         if (m_readingState != ReadingState::Finished)
         {
+            // The reply ended without the closing boundary of the multipart response, so the server went away before sending everything.
             errors = true;
-            m_errorsDescription = tr("Download ended prematurely for an unknown reason.");
+            connectionLost = true;
+            m_errorsDescription = tr("The connection to the PACS closed before the whole response arrived.");
+            WARN_LOG(m_errorsDescription);
+        }
+        else if (m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 206)
+        {
+            // DICOMweb uses 206 Partial Content when the server can only return some of the requested instances.
+            errors = true;
+            m_errorsDescription = tr("The PACS returned only some of the requested images (HTTP 206).");
             WARN_LOG(m_errorsDescription);
         }
     }
@@ -375,18 +408,22 @@ void WadoRetrieveRequest::onReplyFinished()
     {
         INFO_LOG(QString("Finished retrieve of study %1 (series %2, instance %3). %4 instance(s) downloaded.")
                  .arg(m_studyInstanceUid).arg(m_seriesInstanceUid).arg(m_sopInstanceUid).arg(m_numberOfInstancesDownloaded));
-        LocalDatabaseManager::LastError error = m_downloadedFilesProcessor->finishDownloadStudy();
+        LocalDatabaseManager::LastError error = m_downloadedFilesProcessor->finishDownloadStudy(m_seriesInstanceUid.isEmpty() && m_sopInstanceUid.isEmpty(),
+                                                                                                errors);
 
         if (error == LocalDatabaseManager::Ok)
         {
             if (errors)
             {
                 m_status = Status::Warnings;
-                m_errorsDescription = tr("<p>Some images have been downloaded. However there have been some errors. Maybe those images are missing or "
-                                         "corrupted in PACS.")
+                m_errorsDescription = (connectionLost
+                                       ? tr("<p>Only some of the images have been downloaded, because the connection to the PACS was lost.")
+                                       : tr("<p>Some images have been downloaded. However there have been some errors. Maybe those images are missing or "
+                                            "corrupted in PACS."))
                                       + tr("<p><b>Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements "
                                            "on reconstructed planes may be wrong. Check the number of images in each series before using it for such "
                                            "purposes. Refer to the user guide for more information.</b>")
+                                      + tr("<p>The study is marked as incomplete in the study lists. Retrieve it again to complete it.")
                                       + tr("<p>Details:")
                                       + m_errorsDescription.replace('\n', "<br>");
             }

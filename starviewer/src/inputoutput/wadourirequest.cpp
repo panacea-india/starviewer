@@ -322,7 +322,8 @@ void WadoUriRequest::onReplyFinished(QNetworkReply *reply)
         {
             INFO_LOG(QString("Finished retrieve of study %1 (series %2, instance %3). %4 instance(s) downloaded.")
                      .arg(m_studyInstanceUid, m_seriesInstanceUid, m_sopInstanceUid).arg(m_numberOfInstancesDownloaded));
-            LocalDatabaseManager::LastError error = m_downloadedFilesProcessor->finishDownloadStudy();
+            LocalDatabaseManager::LastError error = m_downloadedFilesProcessor->finishDownloadStudy(m_seriesInstanceUid.isEmpty() && m_sopInstanceUid.isEmpty(),
+                                                                                                    m_status == Status::Warnings);
 
             if (error != LocalDatabaseManager::Ok)
             {
@@ -348,6 +349,7 @@ void WadoUriRequest::onReplyFinished(QNetworkReply *reply)
                                         + tr("<p><b>Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements "
                                              "on reconstructed planes may be wrong. Check the number of images in each series before using it for such "
                                              "purposes. Refer to the user guide for more information.</b>")
+                                        + tr("<p>The study is marked as incomplete in the study lists. Retrieve it again to complete it.")
                                         + tr("<p>Details:")
                                         + m_errorsDescription.replace('\n', "<br>");
                     // TODO unify error messages with WADO-RS and DIMSE

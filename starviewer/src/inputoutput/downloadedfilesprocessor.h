@@ -47,8 +47,9 @@ public slots:
     /// Processes the DICOM file open on the given DICOMTagReader, running it through the PatientFiller.
     void processFile(const DICOMTagReader *dicomTagReader);
     /// Notifies to this that the downloaded study has finished downloading. The PatientFiller is told to finish processing and the study is saved (inserted or
-    /// updated) in the database. The study is marked as not downloading. The last error of the database operation is returned.
-    LocalDatabaseManager::LastError finishDownloadStudy();
+    /// updated) in the database, with the outcome of the retrieve recorded in it. The study is marked as not downloading. The last error of the database
+    /// operation is returned.
+    LocalDatabaseManager::LastError finishDownloadStudy(bool wholeStudyRequested, bool someImagesMissing);
     /// Stops all processing, marks the downloading study as not downloading and removes its files if it's not in the database.
     void cancelDownloadStudy();
 

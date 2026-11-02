@@ -920,6 +920,11 @@ void QApplicationMainWindow::updateWindowTitle()
         title = m_patient->getID() + " : " + m_patient->getFullName();
     }
 
+    if (m_patient && m_patient->hasPartiallyRetrievedStudy())
+    {
+        title += " - " + tr("INCOMPLETE STUDY");
+    }
+
 #ifndef STARVIEWER_CE
     // Requirement SR-LBL-01: uncertified builds say so on every main window.
     title += " - " + tr("Not for diagnostic use");

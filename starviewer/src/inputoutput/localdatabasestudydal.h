@@ -39,6 +39,11 @@ public:
     /// Updates in the database the given study and sets the given date as the last access date. Returns true if successful and false otherwise.
     bool update(const Study *study, const QDate &lastAccessDate);
 
+    /// Records the outcome of a retrieve in the study with the given UID. Missing images mark the study as partially retrieved. A clean retrieve of the whole
+    /// study removes the mark. A clean retrieve of only a series or an instance says nothing about the rest of the study, so it leaves the mark as it is.
+    /// Returns true if successful and false otherwise.
+    bool recordRetrieveOutcome(const QString &studyInstanceUID, bool wholeStudyRequested, bool someImagesMissing);
+
     /// Deletes from the database the studies that match the given mask (only StudyUID is considered). Returns true if successful and false otherwise.
     bool del(const DicomMask &mask);
 

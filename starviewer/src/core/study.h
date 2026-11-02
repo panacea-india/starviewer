@@ -112,6 +112,10 @@ public:
     QDate getRetrievedDate() const;
     QTime getRetrievedTime() const;
 
+    /// True if a retrieve of this study into the local database left images missing.
+    void setPartiallyRetrieved(bool partiallyRetrieved);
+    bool isPartiallyRetrieved() const;
+
     /// Assigna/Obté la institució de la qual s'ha obtingut l'estudi
     void setInstitutionName(const QString &institution);
     QString getInstitutionName() const;
@@ -213,6 +217,9 @@ private:
     /// Data en que l'estudi s'ha descarregat a la base de dades local
     QDate m_retrievedDate;
     QTime m_retrieveTime;
+
+    /// True if a retrieve of this study into the local database left images missing.
+    bool m_partiallyRetrieved;
 
     /// Insitutició de la que s'ha obtingut l'estudi
     QString m_institutionName;

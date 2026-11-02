@@ -201,6 +201,19 @@ bool Patient::addStudy(Study *study)
     }
 }
 
+bool Patient::hasPartiallyRetrievedStudy() const
+{
+    foreach (const Study *study, m_studiesList)
+    {
+        if (study->isPartiallyRetrieved())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Patient::removeStudy(const QString &uid)
 {
     int index = this->findStudyIndex(uid);

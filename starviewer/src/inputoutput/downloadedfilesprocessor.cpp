@@ -64,10 +64,16 @@ void DownloadedFilesProcessor::processFile(const DICOMTagReader *dicomTagReader)
     emit processFileCalled(dicomTagReader);
 }
 
-LocalDatabaseManager::LastError DownloadedFilesProcessor::finishDownloadStudy()
+LocalDatabaseManager::LastError DownloadedFilesProcessor::finishDownloadStudy(bool wholeStudyRequested, bool someImagesMissing)
 {
     emit finishDownloadStudyCalled();
     m_thread.wait();
+
+    if (m_localDatabaseManager.getLastError() == LocalDatabaseManager::Ok)
+    {
+        m_localDatabaseManager.recordRetrieveOutcome(m_studyInstanceUid, wholeStudyRequested, someImagesMissing);
+    }
+
     StudyOperationsService::instance()->setStudyNotBeingRetrieved(m_studyInstanceUid);
 
     return m_localDatabaseManager.getLastError();

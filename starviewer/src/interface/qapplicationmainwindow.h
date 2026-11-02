@@ -86,6 +86,10 @@ public:
     /// patient than the current one.
     void loadStudy(const QString &studyInstanceUid);
 
+    /// Shows or hides patient identifying information in the window title according to m_showPatientIdentificationInWindowTitleAction state.
+    /// The title also says when the patient has a study with missing images.
+    void updateWindowTitle();
+
 #ifdef STARVIEWER_CE
     /// Shows the information regarding the use of the application as a medical device (if not disabled by the user).
     void showMedicalDeviceInformationDialog();
@@ -195,9 +199,6 @@ private slots:
 
     /// Mostra el diàleg que executa els diagnosis test
     void showDiagnosisTestDialog();
-
-    /// Shows or hides patient identifying information in the window title according to m_showPatientIdentificationInWindowTitleAction state.
-    void updateWindowTitle();
 
     /// @brief External applications submenu with the defined external applications.
     ///

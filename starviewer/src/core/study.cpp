@@ -21,7 +21,7 @@
 namespace udg {
 
 Study::Study(Patient *parentPatient, QObject *parent)
- : QObject(parent), m_height(0), m_weight(0), m_parentPatient(parentPatient)
+ : QObject(parent), m_height(0), m_weight(0), m_partiallyRetrieved(false), m_parentPatient(parentPatient)
 {
 }
 
@@ -312,6 +312,16 @@ void Study::setRetrievedDate(QDate retrievedDate)
 void Study::setRetrievedTime(QTime retrievedTime)
 {
     m_retrieveTime = retrievedTime;
+}
+
+void Study::setPartiallyRetrieved(bool partiallyRetrieved)
+{
+    m_partiallyRetrieved = partiallyRetrieved;
+}
+
+bool Study::isPartiallyRetrieved() const
+{
+    return m_partiallyRetrieved;
 }
 
 QDate Study::getRetrievedDate() const

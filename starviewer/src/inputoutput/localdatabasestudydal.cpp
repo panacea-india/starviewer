@@ -23,6 +23,9 @@
 
 namespace udg {
 
+// Values of the State column of the Study table.
+enum StudyState { StudyStateComplete = 0, StudyStatePartiallyRetrieved = 1 };
+
 namespace {
 
 // Binds the necessary values of the given query with the information of the given study.
@@ -43,7 +46,6 @@ void bindValues(QSqlQuery &query, const Study *study, const QDate &lastAccessDat
     query.bindValue(":lastAccessDate", lastAccessDate.toString("yyyyMMdd"));
     query.bindValue(":retrievedDate", study->getRetrievedDate().toString("yyyyMMdd"));
     query.bindValue(":retrievedTime", study->getRetrievedTime().toString("hhmmss"));
-    query.bindValue(":state", 0);
 }
 
 // Prepares the given query to query studies according to the given mask and access dates and ordered according to orderBy.
@@ -189,6 +191,7 @@ bool LocalDatabaseStudyDAL::insert(const Study *study, const QDate &lastAccessDa
                   "VALUES (:instanceUID, :patientId, :id, :patientAge, :patientWeight, :patientHeight, :modalities, :date, :time, :accessionNumber, "
                           ":description, :referringPhysicianName, :lastAccessDate, :retrievedDate, :retrievedTime, :state)");
     bindValues(query, study, lastAccessDate);
+    query.bindValue(":state", study->isPartiallyRetrieved() ? StudyStatePartiallyRetrieved : StudyStateComplete);
     return executeQueryAndLogError(query);
 }
 
@@ -198,9 +201,23 @@ bool LocalDatabaseStudyDAL::update(const Study *study, const QDate &lastAccessDa
     query.prepare("UPDATE Study SET ID = :id, PatientAge = :patientAge, PatientWeigth = :patientWeight, PatientHeigth = :patientHeight, "
                                    "Modalities = :modalities, Date = :date, Time = :time, AccessionNumber = :accessionNumber, Description = :description, "
                                    "ReferringPhysicianName = :referringPhysicianName, LastAccessDate = :lastAccessDate, RetrievedDate = :retrievedDate, "
-                                   "RetrievedTime = :retrievedTime, State = :state "
+                                   "RetrievedTime = :retrievedTime "
                   "WHERE InstanceUid = :instanceUID");
     bindValues(query, study, lastAccessDate);
+    return executeQueryAndLogError(query);
+}
+
+bool LocalDatabaseStudyDAL::recordRetrieveOutcome(const QString &studyInstanceUID, bool wholeStudyRequested, bool someImagesMissing)
+{
+    if (!wholeStudyRequested && !someImagesMissing)
+    {
+        return true;
+    }
+
+    QSqlQuery query = getNewQuery();
+    query.prepare("UPDATE Study SET State = :state WHERE InstanceUID = :instanceUID");
+    query.bindValue(":state", someImagesMissing ? StudyStatePartiallyRetrieved : StudyStateComplete);
+    query.bindValue(":instanceUID", studyInstanceUID);
     return executeQueryAndLogError(query);
 }
 
@@ -292,6 +309,7 @@ Study* LocalDatabaseStudyDAL::getStudy(const QSqlQuery &query)
     study->setReferringPhysiciansName(convertToQString(query.value("ReferringPhysicianName")));
     study->setRetrievedDate(QDate::fromString(query.value("RetrievedDate").toString(), "yyyyMMdd"));
     study->setRetrievedTime(QTime::fromString(query.value("RetrievedTime").toString(), "hhmmss"));
+    study->setPartiallyRetrieved(query.value("State").toInt() == StudyStatePartiallyRetrieved);
 
     // Add modalities, which are separated by "/"
     // TODO This knowledge should be somewhere else
