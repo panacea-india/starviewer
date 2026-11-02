@@ -139,7 +139,7 @@ void WadoStoreRequest::sendNextBatchOfFiles()
         QString urlString = getPacsDevice().getBaseUri().toString(QUrl::StripTrailingSlash);
         urlString += "/studies/" + m_seriesList.first()->getParentStudy()->getInstanceUID();
 
-        QNetworkRequest request(urlString);
+        QNetworkRequest request = createNetworkRequest(QUrl(urlString));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/related; type=\"application/dicom\"; boundary=" + boundary);
         m_reply = m_networkAccessManager->post(request, multipart);
         multipart->setParent(m_reply);  // multipart will be deleted with m_reply

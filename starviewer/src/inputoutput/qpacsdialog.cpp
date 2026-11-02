@@ -17,6 +17,7 @@
 #include "echotopacs.h"
 #include "echotowadopacs.h"
 #include "logging.h"
+#include "pacscredentialstore.h"
 #include "pacsdevicemanager.h"
 #include "starviewerapplication.h"
 
@@ -86,6 +87,7 @@ void QPacsDialog::setupDimse()
     m_sendServicePortSpinBox->show();
     m_baseUriLabel->hide();
     m_baseUriLineEdit->hide();
+    setLoginFieldsVisible(false);
 }
 
 void QPacsDialog::setupWado()
@@ -104,6 +106,7 @@ void QPacsDialog::setupWado()
     m_sendServicePortSpinBox->hide();
     m_baseUriLabel->show();
     m_baseUriLineEdit->show();
+    setLoginFieldsVisible(true);
 }
 
 void QPacsDialog::setupWadoUriDimse()
@@ -124,6 +127,16 @@ void QPacsDialog::setupWadoUriDimse()
     m_sendServicePortSpinBox->show();
     m_baseUriLabel->show();
     m_baseUriLineEdit->show();
+    setLoginFieldsVisible(true);
+}
+
+void QPacsDialog::setLoginFieldsVisible(bool visible)
+{
+    m_usernameLabel->setVisible(visible);
+    m_usernameLineEdit->setVisible(visible);
+    m_passwordLabel->setVisible(visible);
+    m_passwordLineEdit->setVisible(visible);
+    updateLoginWarning();
 }
 
 void QPacsDialog::createConnections()
@@ -144,13 +157,79 @@ void QPacsDialog::createConnections()
     });
     connect(m_sendServiceEnabledCheckBox, &QCheckBox::toggled, m_sendServicePortSpinBox, &QWidget::setEnabled);
 
+    connect(m_baseUriLineEdit, &QLineEdit::editingFinished, this, &QPacsDialog::moveLoginFromBaseUriToFields);
+    connect(m_baseUriLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateLoginWarning);
+    connect(m_usernameLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateLoginWarning);
+
     connect(m_testPushButton, &QPushButton::clicked, this, &QPacsDialog::test);
     connect(m_buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &QPacsDialog::save);
     connect(m_buttonBox->button(QDialogButtonBox::Reset), &QPushButton::clicked, this, &QPacsDialog::reset);
 }
 
+void QPacsDialog::moveLoginFromBaseUriToFields()
+{
+    QUrl baseUri(m_baseUriLineEdit->text());
+
+    if (!baseUri.userInfo().isEmpty())
+    {
+        m_usernameLineEdit->setText(baseUri.userName(QUrl::FullyDecoded));
+        m_passwordLineEdit->setText(baseUri.password(QUrl::FullyDecoded));
+        baseUri.setUserInfo(QString());
+        m_baseUriLineEdit->setText(baseUri.toString());
+    }
+}
+
+bool QPacsDialog::isLoginValid()
+{
+    if (m_usernameLineEdit->text().contains(':'))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("User name cannot contain a colon."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (m_usernameLineEdit->text().isEmpty() && !m_passwordLineEdit->text().isEmpty())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("A password needs a user name."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (!m_usernameLineEdit->text().isEmpty() && m_passwordLineEdit->text().isEmpty() && !keepsStoredPassword())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("A user name needs a password."), QMessageBox::Ok);
+        return false;
+    }
+
+    return true;
+}
+
+bool QPacsDialog::keepsStoredPassword() const
+{
+    return m_passwordLineEdit->text().isEmpty()
+        && !m_storedUsername.isEmpty()
+        && m_usernameLineEdit->text() == m_storedUsername
+        && PacsCredentialStore::getKey(QUrl(m_baseUriLineEdit->text())) == PacsCredentialStore::getKey(m_storedLoginBaseUri);
+}
+
+void QPacsDialog::loadStoredLogin()
+{
+    m_storedLoginBaseUri = QUrl(m_baseUriLineEdit->text());
+    m_storedUsername = PacsCredentialStore::load(m_storedLoginBaseUri).username;
+    m_usernameLineEdit->setText(m_storedUsername);
+    m_passwordLineEdit->clear();
+    m_passwordLineEdit->setPlaceholderText(m_storedUsername.isEmpty() ? QString() : tr("Saved. Leave blank to keep it."));
+}
+
+void QPacsDialog::updateLoginWarning()
+{
+    m_loginWarningLabel->setVisible(m_pacsType != PacsDevice::Type::Dimse
+                                    && !m_usernameLineEdit->text().isEmpty()
+                                    && QUrl(m_baseUriLineEdit->text()).scheme() == "http");
+}
+
 bool QPacsDialog::arePacsSettingsValid()
 {
+    moveLoginFromBaseUriToFields();
+
     if (m_pacsType == PacsDevice::Type::Dimse)
     {
         if (!m_aeTitleLineEdit->hasAcceptableInput() || m_aeTitleLineEdit->text().trimmed().isEmpty())
@@ -184,6 +263,11 @@ bool QPacsDialog::arePacsSettingsValid()
             QMessageBox::warning(this, ApplicationNameString, tr("Base URI is not a valid URI."), QMessageBox::Ok);
             return false;
         }
+
+        if (!isLoginValid())
+        {
+            return false;
+        }
     }
     else if (m_pacsType == PacsDevice::Type::WadoUriDimse)
     {
@@ -210,6 +294,11 @@ bool QPacsDialog::arePacsSettingsValid()
             QMessageBox::warning(this, ApplicationNameString, tr("Base URI is not a valid URI."), QMessageBox::Ok);
             return false;
         }
+
+        if (!isLoginValid())
+        {
+            return false;
+        }
     }
 
     return true;
@@ -227,6 +316,12 @@ PacsDevice QPacsDialog::getPacsDevice() const
     pacsDevice.setStoreServiceEnabled(m_sendServiceEnabledCheckBox->isChecked());
     pacsDevice.setStoreServicePort(m_sendServicePortSpinBox->value());
     pacsDevice.setBaseUri(m_baseUriLineEdit->text());
+
+    if (m_pacsType != PacsDevice::Type::Dimse && !keepsStoredPassword())
+    {
+        pacsDevice.setLogin(m_usernameLineEdit->text(), m_passwordLineEdit->text());
+    }
+
     pacsDevice.setInstitution(m_institutionLineEdit->text());
     pacsDevice.setLocation(m_locationLineEdit->text());
     pacsDevice.setDescription(m_descriptionLineEdit->text());
@@ -339,6 +434,7 @@ bool QPacsDialog::save()
         if (PacsDeviceManager::addPacs(pacsDevice))
         {
             m_pacsId = pacsDevice.getID();
+            finishSavingLogin(pacsDevice);
             return true;
         }
         else
@@ -351,8 +447,25 @@ bool QPacsDialog::save()
     {
         INFO_LOG(QString("Updating PACS with ID %1.").arg(pacsDevice.getID()));
         PacsDeviceManager::updatePacs(pacsDevice);
+        finishSavingLogin(pacsDevice);
         return true;
     }
+}
+
+void QPacsDialog::finishSavingLogin(const PacsDevice &pacsDevice)
+{
+    if (pacsDevice.getType() == PacsDevice::Type::Dimse)
+    {
+        return;
+    }
+
+    if (PacsCredentialStore::isKeptOnlyForThisRun(pacsDevice.getBaseUri()))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The login could not be saved securely on this computer. It will be kept only until you close %1.")
+                                                          .arg(ApplicationNameString), QMessageBox::Ok);
+    }
+
+    loadStoredLogin();
 }
 
 void QPacsDialog::reset()
@@ -366,6 +479,11 @@ void QPacsDialog::reset()
         m_sendServiceEnabledCheckBox->setChecked(true);
         m_sendServicePortSpinBox->setValue(11112);
         m_baseUriLineEdit->clear();
+        m_usernameLineEdit->clear();
+        m_passwordLineEdit->clear();
+        m_passwordLineEdit->setPlaceholderText(QString());
+        m_storedUsername.clear();
+        m_storedLoginBaseUri.clear();
         m_institutionLineEdit->clear();
         m_locationLineEdit->clear();
         m_descriptionLineEdit->clear();
@@ -382,6 +500,7 @@ void QPacsDialog::reset()
         m_sendServiceEnabledCheckBox->setChecked(pacsDevice.isStoreServiceEnabled());
         m_sendServicePortSpinBox->setValue(pacsDevice.getStoreServicePort());
         m_baseUriLineEdit->setText(pacsDevice.getBaseUri().toString());
+        loadStoredLogin();
         m_institutionLineEdit->setText(pacsDevice.getInstitution());
         m_locationLineEdit->setText(pacsDevice.getLocation());
         m_descriptionLineEdit->setText(pacsDevice.getDescription());

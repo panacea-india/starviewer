@@ -94,7 +94,7 @@ void WadoRetrieveRequest::startInternal()
     INFO_LOG(QString("Starting retrieve from WADO PACS with URI %1.").arg(urlString));
 
     QUrl url(urlString);
-    QNetworkRequest request(url);
+    QNetworkRequest request = createNetworkRequest(url);
     m_reply = m_networkAccessManager->get(request);
 
     connect(m_reply, &QNetworkReply::readyRead, this, &WadoRetrieveRequest::onReadyRead, Qt::DirectConnection);

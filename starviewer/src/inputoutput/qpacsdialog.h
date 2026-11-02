@@ -50,13 +50,35 @@ private:
     /// Creates the needed connections.
     void createConnections();
 
+    /// Shows or hides the login fields.
+    void setLoginFieldsVisible(bool visible);
+
+    /// Returns true if the current values in the login fields are valid and false otherwise, in which case it shows a warning.
+    bool isLoginValid();
+
+    /// Returns true if the current values mean that the stored password must be kept: the base URI and the user name are the stored ones and no password has been
+    /// entered. A changed base URI needs the password to be entered again, so that the stored one is not sent to another server.
+    bool keepsStoredPassword() const;
+
+    /// Reads the stored user name for the current base URI into the login fields. The stored password is never put in the dialog.
+    void loadStoredLogin();
+
     /// Returns true if the current values in all fields are valid and false otherwise.
     bool arePacsSettingsValid();
 
     /// Creates and returns a PacsDevice with the current values in the dialog.
     PacsDevice getPacsDevice() const;
 
+    /// To be called after saving the given PACS. Warns if its login could not be kept across runs and leaves the login fields as they are now stored.
+    void finishSavingLogin(const PacsDevice &pacsDevice);
+
 private slots:
+    /// Shows the warning about sending a password without encryption if it applies to the current values.
+    void updateLoginWarning();
+
+    /// If the base URI field has a login, moves it to the login fields, so that it's never saved or shown in the base URI.
+    void moveLoginFromBaseUriToFields();
+
     /// Tests the PACS defined by the current values in the dialog with a C-ECHO.
     void test();
 
@@ -74,6 +96,10 @@ private:
     PacsDevice::Type m_pacsType;
     /// Id of the edited PACS, if any.
     QString m_pacsId;
+    /// Base URI whose stored login is the one read into the dialog.
+    QUrl m_storedLoginBaseUri;
+    /// Stored user name read into the dialog, if any.
+    QString m_storedUsername;
 };
 
 } // namespace udg

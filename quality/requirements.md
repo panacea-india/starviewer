@@ -66,6 +66,7 @@ treatment decisions. See the open decision in the
 | SR-PAC-02 | Queries and retrieves through DICOMweb, with every instance arriving. | H-04 | TP-10 | Not verified |
 | SR-PAC-03 | Sends a study by C-STORE. | H-04 | TP-10 | Not verified |
 | SR-PAC-04 | Reports a failed or partial transfer to the user. | H-04 | TP-10 | Not verified |
+| SR-PAC-05 | Logs in to a DICOMweb PACS with a user name and password, sends them only to that PACS, and does not write the password in plain text to settings, the database or logs, or show it on screen. | H-09 | TP-10 | Not verified |
 
 ## Export
 

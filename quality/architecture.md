@@ -31,7 +31,7 @@ starviewer (src/main)            program entry, DCMTK decoder registration, cras
 | Choosing a decoder | `core/volumepixeldatareaderfactory.cpp`, `main/main.cpp` | See A-01 |
 | Image geometry | `core/imageplane.cpp` | Gantry tilt has a workaround, not a correction |
 | Measurement, SUV | `core/` | Not all separated from UI code. Check when changing them |
-| PACS | `inputoutput/` | No TLS or DICOMweb authentication yet |
+| PACS | `inputoutput/` | No TLS yet. DICOMweb has basic authentication; `PacsCredentialStore` keeps logins in Windows Credential Manager, and only in memory on other platforms (A-35) |
 | Settings | `*settings.cpp` in each module | Includes PACS defaults and the local AE title |
 
 ## Build variants

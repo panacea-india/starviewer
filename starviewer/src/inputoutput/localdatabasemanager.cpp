@@ -27,6 +27,7 @@
 #include "localdatabasepatientdal.h"
 #include "localdatabaseseriesdal.h"
 #include "localdatabasestudydal.h"
+#include "localdatabasepacsretrievedimagesdal.h"
 #include "localdatabaseutildal.h"
 #include "localdatabasevoilutdal.h"
 #include "messagebus.h"
@@ -723,6 +724,34 @@ void LocalDatabaseManager::recordRetrieveOutcome(const QString &studyInstanceUID
     LocalDatabaseStudyDAL studyDAL(databaseConnection);
     studyDAL.recordRetrieveOutcome(studyInstanceUID, wholeStudyRequested, someImagesMissing);
     setLastError(studyDAL.getLastError());
+}
+
+void LocalDatabaseManager::removeLoginsFromPacsAddresses()
+{
+    int changedRows;
+
+    {
+        DatabaseConnection databaseConnection;
+        databaseConnection.beginTransaction();
+        LocalDatabasePACSRetrievedImagesDAL pacsDAL(databaseConnection);
+        changedRows = pacsDAL.removeLoginsFromBaseUris();
+        setLastError(pacsDAL.getLastError());
+
+        if (changedRows < 0)
+        {
+            databaseConnection.rollbackTransaction();
+            ERROR_LOG("Could not remove the logins from the PACS addresses in the database.");
+            return;
+        }
+
+        databaseConnection.commitTransaction();
+    }
+
+    if (changedRows > 0)
+    {
+        INFO_LOG(QString("Removed the login from %1 PACS addresses in the database.").arg(changedRows));
+        compact();
+    }
 }
 
 void LocalDatabaseManager::deleteStudy(const QString &studyInstanceUID)

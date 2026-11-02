@@ -14,8 +14,10 @@
 
 #include "pacsdevicemanager.h"
 
+#include "coresettings.h"
 #include "inputoutputsettings.h"
 #include "logging.h"
+#include "pacscredentialstore.h"
 #include "pacsdevice.h"
 
 namespace udg {
@@ -36,6 +38,29 @@ bool isPacsConfigured(const PacsDevice &pacs)
     }
 
     return false;
+}
+
+// Returns true if a configured PACS has the given base URI and false otherwise.
+bool isBaseUriConfigured(const QUrl &baseUri)
+{
+    for (const PacsDevice &pacs : PacsDeviceManager::getPacsList())
+    {
+        if (!pacs.getBaseUri().isEmpty() && PacsCredentialStore::getKey(pacs.getBaseUri()) == PacsCredentialStore::getKey(baseUri))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// Removes the stored login for the given base URI unless a configured PACS still uses it.
+void removeLoginIfUnused(const QUrl &baseUri)
+{
+    if (!isBaseUriConfigured(baseUri))
+    {
+        PacsCredentialStore::remove(baseUri);
+    }
 }
 
 // Converts a PacsDevice instance to a Settings::SettingsListItemType instance.
@@ -166,6 +191,18 @@ bool PacsDeviceManager::addPacs(PacsDevice &pacs)
 
     Settings().addListItem(InputOutputSettings::PacsListConfigurationSectionName, pacsDeviceToSettingsListItem(pacs));
 
+    if (pacs.isLoginSpecified())
+    {
+        if (pacs.getUsername().isEmpty())
+        {
+            PacsCredentialStore::remove(pacs.getBaseUri());
+        }
+        else
+        {
+            PacsCredentialStore::save(pacs.getBaseUri(), PacsLogin{pacs.getUsername(), pacs.getPassword()});
+        }
+    }
+
     return true;
 }
 
@@ -194,6 +231,48 @@ void PacsDeviceManager::updatePacs(PacsDevice &pacsToUpdate)
             addPacs(device);
         }
     }
+
+    if (PacsCredentialStore::getKey(oldPacs.getBaseUri()) != PacsCredentialStore::getKey(pacsToUpdate.getBaseUri()))
+    {
+        removeLoginIfUnused(oldPacs.getBaseUri());
+    }
+}
+
+void PacsDeviceManager::moveLoginsToCredentialStore()
+{
+    Settings settings;
+    Settings::SettingListType pacsList = settings.getList(InputOutputSettings::PacsListConfigurationSectionName);
+    QString defaultPacsList = settings.getValue(CoreSettings::DefaultPACSListToQuery2).toString();
+    QString oldDefaultPacsList = settings.getValue(CoreSettings::DefaultPACSListToQuery).toString();
+    bool changed = false;
+
+    for (Settings::SettingsListItemType &item : pacsList)
+    {
+        QUrl baseUri = item.value("BaseUri").toUrl();
+
+        if (baseUri.userInfo().isEmpty())
+        {
+            continue;
+        }
+
+        QUrl baseUriWithoutLogin = baseUri.adjusted(QUrl::RemoveUserInfo);
+
+        if (PacsCredentialStore::save(baseUriWithoutLogin, PacsLogin{baseUri.userName(QUrl::FullyDecoded), baseUri.password(QUrl::FullyDecoded)}))
+        {
+            item["BaseUri"] = baseUriWithoutLogin;
+            defaultPacsList.replace(baseUri.toString(), baseUriWithoutLogin.toString());
+            oldDefaultPacsList.replace(baseUri.toString(), baseUriWithoutLogin.toString());
+            changed = true;
+            INFO_LOG(QString("Moved the login of PACS %1 to the secure store.").arg(baseUriWithoutLogin.toString()));
+        }
+    }
+
+    if (changed)
+    {
+        settings.setList(InputOutputSettings::PacsListConfigurationSectionName, pacsList);
+        settings.setValue(CoreSettings::DefaultPACSListToQuery2, defaultPacsList);
+        settings.setValue(CoreSettings::DefaultPACSListToQuery, oldDefaultPacsList);
+    }
 }
 
 void PacsDeviceManager::deletePacs(const QString &pacsID)
@@ -217,6 +296,8 @@ void PacsDeviceManager::deletePacs(const QString &pacsID)
             addPacs(device);
         }
     }
+
+    removeLoginIfUnused(pacsToDelete.getBaseUri());
 }
 
 QList<PacsDevice> PacsDeviceManager::getPacsList(PacsFilter filter)

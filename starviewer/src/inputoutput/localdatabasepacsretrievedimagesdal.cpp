@@ -17,7 +17,9 @@
 #include "logging.h"
 #include "pacsdevice.h"
 
+#include <QList>
 #include <QSqlQuery>
+#include <QUrl>
 #include <QVariant>
 
 namespace udg {
@@ -141,6 +143,97 @@ QVariant LocalDatabasePACSRetrievedImagesDAL::queryId(const PacsDevice &pacsDevi
     {
         return QVariant(QVariant::LongLong);
     }
+}
+
+int LocalDatabasePACSRetrievedImagesDAL::removeLoginsFromBaseUris()
+{
+    struct Row
+    {
+        qlonglong id;
+        QString type;
+        QUrl baseUri;
+    };
+
+    QList<Row> rows;
+
+    // Rows are read in full first because the table can't be changed while a query on it is active
+    {
+        QSqlQuery query = getNewQuery();
+        query.prepare("SELECT ID, Type, BaseUri FROM PACSRetrievedImages WHERE BaseUri LIKE '%@%'");
+
+        if (!executeQueryAndLogError(query))
+        {
+            return -1;
+        }
+
+        while (query.next())
+        {
+            QUrl baseUri = query.value("BaseUri").toUrl();
+
+            if (!baseUri.userInfo().isEmpty())
+            {
+                rows.append({query.value("ID").toLongLong(), query.value("Type").toString(), baseUri.adjusted(QUrl::RemoveUserInfo)});
+            }
+        }
+    }
+
+    for (const Row &row : rows)
+    {
+        QSqlQuery existing = getNewQuery();
+        existing.prepare("SELECT ID FROM PACSRetrievedImages WHERE BaseUri = :baseUri AND Type = :type");
+        existing.bindValue(":baseUri", row.baseUri);
+        existing.bindValue(":type", row.type);
+
+        if (!executeQueryAndLogError(existing))
+        {
+            return -1;
+        }
+
+        if (existing.next())
+        {
+            const qlonglong existingId = existing.value("ID").toLongLong();
+            existing.finish();
+
+            for (const QString &statement : {QString("UPDATE Image SET RetrievedPACSID = :newId WHERE RetrievedPACSID = :oldId"),
+                                             QString("UPDATE EncapsulatedDocument SET RetrievedPacsID = :newId WHERE RetrievedPacsID = :oldId")})
+            {
+                QSqlQuery move = getNewQuery();
+                move.prepare(statement);
+                move.bindValue(":newId", existingId);
+                move.bindValue(":oldId", row.id);
+
+                if (!executeQueryAndLogError(move))
+                {
+                    return -1;
+                }
+            }
+
+            QSqlQuery remove = getNewQuery();
+            remove.prepare("DELETE FROM PACSRetrievedImages WHERE ID = :id");
+            remove.bindValue(":id", row.id);
+
+            if (!executeQueryAndLogError(remove))
+            {
+                return -1;
+            }
+        }
+        else
+        {
+            existing.finish();
+
+            QSqlQuery update = getNewQuery();
+            update.prepare("UPDATE PACSRetrievedImages SET BaseUri = :baseUri WHERE ID = :id");
+            update.bindValue(":baseUri", row.baseUri);
+            update.bindValue(":id", row.id);
+
+            if (!executeQueryAndLogError(update))
+            {
+                return -1;
+            }
+        }
+    }
+
+    return rows.size();
 }
 
 }

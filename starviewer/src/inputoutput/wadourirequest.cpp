@@ -162,8 +162,10 @@ void WadoUriRequest::downloadInstances()
         QUrl url(baseUri);
         url.setQuery(specificQuery);
 
-        QNetworkRequest request(url);
-        request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+        QNetworkRequest request = createNetworkRequest(url);
+        // Qt keeps the Authorization header when following a redirect, so with a login redirects must stay on the same server
+        request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, request.hasRawHeader("Authorization") ? QNetworkRequest::SameOriginRedirectPolicy
+                                                                                                             : QNetworkRequest::NoLessSafeRedirectPolicy);
 
         QNetworkReply *reply = m_networkAccessManager->get(request);
         m_pendingReplies.insert(reply);

@@ -6,7 +6,9 @@
 #include "autotest.h"
 #include "pacsdevicemanager.h"
 
+#include "coresettings.h"
 #include "inputoutputsettings.h"
+#include "pacscredentialstore.h"
 #include "pacsdevice.h"
 #include "pacsdevicetesthelper.h"
 #include "testingsettings.h"
@@ -14,10 +16,74 @@
 using namespace udg;
 using namespace testing;
 
+namespace {
+
+// Keeps logins in memory, so that tests don't touch the secure store of the machine. It can refuse them, like a machine where the store is not available.
+class FakeCredentialBackend : public PacsCredentialBackend {
+public:
+    bool refuse = false;
+    QHash<QString, PacsLogin> logins;
+
+    bool save(const QString &key, const PacsLogin &login) override
+    {
+        if (!refuse)
+        {
+            logins.insert(key, login);
+        }
+        return !refuse;
+    }
+
+    bool load(const QString &key, PacsLogin &login) override
+    {
+        login = logins.value(key);
+        return logins.contains(key);
+    }
+
+    void remove(const QString &key) override
+    {
+        logins.remove(key);
+    }
+};
+
+const QUrl LoginBaseUri("https://example.com/dicom-web/");
+
+PacsDevice createWadoPacsWithLogin(const QString &baseUri)
+{
+    PacsDevice pacs;
+    pacs.setType(PacsDevice::Type::Wado);
+    pacs.setBaseUri(QUrl(baseUri));
+    pacs.setLogin("user", "secret");
+    return pacs;
+}
+
+Settings::SettingsListItemType createWadoSettingsItem(const QString &id, const QUrl &baseUri)
+{
+    Settings::SettingsListItemType item;
+    item["ID"] = id;
+    item["Type"] = "WADO";
+    item["BaseUri"] = baseUri;
+    return item;
+}
+
+}
+
 class test_PacsDeviceManager : public QObject {
 Q_OBJECT
 
 private slots:
+    void init();
+    void cleanup();
+
+    void addPacs_ShouldStoreTheLoginOutsideTheSettings();
+    void updatePacs_ShouldRemoveTheLogin_WhenLoginIsSetToNone();
+    void updatePacs_ShouldKeepTheLogin_WhenPacsDoesNotSpecifyOne();
+    void updatePacs_ShouldRemoveTheLoginOfTheOldUri_WhenTheUriChanges();
+    void deletePacs_ShouldRemoveTheLogin();
+    void deletePacs_ShouldKeepTheLogin_WhenAnotherPacsUsesTheSameUri();
+    void moveLoginsToCredentialStore_ShouldMoveTheLoginOutOfTheSettings();
+    void moveLoginsToCredentialStore_ShouldLeaveTheLogin_WhenTheStoreRefusesIt();
+    void moveLoginsToCredentialStore_ShouldNotChangeUrisWithoutLogin();
+
     void addPacs_ShouldAddThePacs_data();
     void addPacs_ShouldAddThePacs();
 
@@ -49,6 +115,10 @@ private slots:
     void isAddedSamePacsDeviceInList_ShouldReturnIsSamePacsDeviceIsAddedToList();
 
     void cleanupTestCase();
+
+private:
+    FakeCredentialBackend m_backend;
+    std::unique_ptr<TestingSettings> m_settings;    // pointer because it crashes in constructor
 };
 
 Q_DECLARE_METATYPE(PacsDevice)
@@ -893,6 +963,135 @@ void test_PacsDeviceManager::isAddedSamePacsDeviceInList_ShouldReturnIsSamePacsD
     QFETCH(bool, result);
 
     QCOMPARE(PacsDeviceManager::isAddedSamePacsDeviceInList(inputPacsDeviceList, inputPacsDevice), result);
+}
+
+void test_PacsDeviceManager::init()
+{
+    m_backend.logins.clear();
+    m_backend.refuse = false;
+    PacsCredentialStore::setStaticTestingBackend(&m_backend);
+    m_settings = std::make_unique<TestingSettings>();
+    Settings::setStaticTestingSettings(m_settings.get());
+}
+
+void test_PacsDeviceManager::cleanup()
+{
+    Settings::setStaticTestingSettings(nullptr);
+    PacsCredentialStore::setStaticTestingBackend(nullptr);
+}
+
+void test_PacsDeviceManager::addPacs_ShouldStoreTheLoginOutsideTheSettings()
+{
+    PacsDevice pacs = createWadoPacsWithLogin("https://example.com/dicom-web/");
+    QVERIFY(PacsDeviceManager::addPacs(pacs));
+
+    QCOMPARE(PacsCredentialStore::load(LoginBaseUri).username, QString("user"));
+    QCOMPARE(PacsCredentialStore::load(LoginBaseUri).password, QString("secret"));
+
+    Settings::SettingsListItemType item = Settings().getList(InputOutputSettings::PacsListConfigurationSectionName).first();
+    for (const QVariant &value : item.values())
+    {
+        QVERIFY(!value.toString().contains("secret"));
+        QVERIFY(!value.toString().contains("user"));
+    }
+}
+
+void test_PacsDeviceManager::updatePacs_ShouldRemoveTheLogin_WhenLoginIsSetToNone()
+{
+    PacsDevice pacs = createWadoPacsWithLogin("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    pacs.setLogin(QString(), QString());
+    PacsDeviceManager::updatePacs(pacs);
+
+    QVERIFY(PacsCredentialStore::load(LoginBaseUri).isEmpty());
+}
+
+void test_PacsDeviceManager::updatePacs_ShouldKeepTheLogin_WhenPacsDoesNotSpecifyOne()
+{
+    PacsDevice pacs = createWadoPacsWithLogin("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    PacsDevice sameUriNoLogin = PacsDeviceManager::getPacsDeviceById(pacs.getID());
+    sameUriNoLogin.setDescription("Changed");
+    PacsDeviceManager::updatePacs(sameUriNoLogin);
+
+    QCOMPARE(PacsCredentialStore::load(LoginBaseUri).password, QString("secret"));
+}
+
+void test_PacsDeviceManager::updatePacs_ShouldRemoveTheLoginOfTheOldUri_WhenTheUriChanges()
+{
+    PacsDevice pacs = createWadoPacsWithLogin("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    pacs.setBaseUri(QUrl("https://other.example.com/dicom-web/"));
+    PacsDeviceManager::updatePacs(pacs);
+
+    QVERIFY(PacsCredentialStore::load(LoginBaseUri).isEmpty());
+    QCOMPARE(PacsCredentialStore::load(QUrl("https://other.example.com/dicom-web/")).username, QString("user"));
+}
+
+void test_PacsDeviceManager::deletePacs_ShouldRemoveTheLogin()
+{
+    PacsDevice pacs = createWadoPacsWithLogin("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    PacsDeviceManager::deletePacs(pacs.getID());
+
+    QVERIFY(PacsCredentialStore::load(LoginBaseUri).isEmpty());
+}
+
+void test_PacsDeviceManager::deletePacs_ShouldKeepTheLogin_WhenAnotherPacsUsesTheSameUri()
+{
+    PacsDevice wado = createWadoPacsWithLogin("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(wado);
+    PacsDevice hybrid = PACSDeviceTestHelper::createWadoUriDimsePacsDevice("", "AE", "example.com", 104, "https://example.com/dicom-web");
+    PacsDeviceManager::addPacs(hybrid);
+
+    PacsDeviceManager::deletePacs(wado.getID());
+
+    QCOMPARE(PacsCredentialStore::load(LoginBaseUri).username, QString("user"));
+}
+
+void test_PacsDeviceManager::moveLoginsToCredentialStore_ShouldMoveTheLoginOutOfTheSettings()
+{
+    QUrl uriWithLogin("https://user:secret@example.com/dicom-web/");
+    Settings().addListItem(InputOutputSettings::PacsListConfigurationSectionName, createWadoSettingsItem("0", uriWithLogin));
+    Settings().setValue(CoreSettings::DefaultPACSListToQuery2, uriWithLogin.toString() + "\\\\");
+
+    PacsDeviceManager::moveLoginsToCredentialStore();
+
+    QCOMPARE(PacsCredentialStore::load(LoginBaseUri).username, QString("user"));
+    QCOMPARE(PacsCredentialStore::load(LoginBaseUri).password, QString("secret"));
+    QVERIFY(!PacsCredentialStore::isKeptOnlyForThisRun(LoginBaseUri));
+    QCOMPARE(Settings().getList(InputOutputSettings::PacsListConfigurationSectionName).first().value("BaseUri").toUrl(), LoginBaseUri);
+
+    // The PACS must stay in the default list, which is by key name, and the secret must be gone from it
+    QCOMPARE(Settings().getValue(CoreSettings::DefaultPACSListToQuery2).toString(), LoginBaseUri.toString() + "\\\\");
+    QVERIFY(PacsDeviceManager::getPacsDeviceById("0").isDefault());
+}
+
+void test_PacsDeviceManager::moveLoginsToCredentialStore_ShouldLeaveTheLogin_WhenTheStoreRefusesIt()
+{
+    QUrl uriWithLogin("https://user:secret@example.com/dicom-web/");
+    Settings().addListItem(InputOutputSettings::PacsListConfigurationSectionName, createWadoSettingsItem("0", uriWithLogin));
+    m_backend.refuse = true;
+
+    PacsDeviceManager::moveLoginsToCredentialStore();
+
+    QCOMPARE(Settings().getList(InputOutputSettings::PacsListConfigurationSectionName).first().value("BaseUri").toUrl(), uriWithLogin);
+    QCOMPARE(PacsCredentialStore::load(LoginBaseUri).password, QString("secret"));
+    QVERIFY(PacsCredentialStore::isKeptOnlyForThisRun(LoginBaseUri));
+}
+
+void test_PacsDeviceManager::moveLoginsToCredentialStore_ShouldNotChangeUrisWithoutLogin()
+{
+    Settings().addListItem(InputOutputSettings::PacsListConfigurationSectionName, createWadoSettingsItem("0", LoginBaseUri));
+
+    PacsDeviceManager::moveLoginsToCredentialStore();
+
+    QCOMPARE(Settings().getList(InputOutputSettings::PacsListConfigurationSectionName).first().value("BaseUri").toUrl(), LoginBaseUri);
+    QVERIFY(m_backend.logins.isEmpty());
 }
 
 void test_PacsDeviceManager::cleanupTestCase()

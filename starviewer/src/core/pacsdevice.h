@@ -82,8 +82,18 @@ public:
 
     /// Returns the base URI. Not applicable to DIMSE PACS.
     const QUrl& getBaseUri() const;
-    /// Sets the base URI. Not applicable to DIMSE PACS.
+    /// Sets the base URI. Not applicable to DIMSE PACS. A login in the given URI is taken out of it and set with setLogin(), because the base URI is written to
+    /// settings, the database, logs and the screen.
     void setBaseUri(QUrl baseUri);
+
+    /// Returns true if this instance specifies which login to use. If it doesn't, the stored login for its base URI is used. See PacsCredentialStore.
+    bool isLoginSpecified() const;
+    /// Returns the specified user name.
+    const QString& getUsername() const;
+    /// Returns the specified password.
+    const QString& getPassword() const;
+    /// Specifies which login to use. An empty user name means that no login must be used. The login stays in memory: this class doesn't save it anywhere.
+    void setLogin(QString username, QString password);
 
     /// Returns the institution that owns or manages this PACS.
     const QString& getInstitution() const;
@@ -138,8 +148,14 @@ private:
     bool m_isStoreServiceEnabled;
     /// Port for the store service. Only applicable to DIMSE and hybrid PACS.
     int m_storeServicePort;
-    /// Base URI. Only applicable to WADO and hybrid PACS.
+    /// Base URI, always without a login. Only applicable to WADO and hybrid PACS.
     QUrl m_baseUri;
+    /// True if this instance specifies which login to use. Only applicable to WADO and hybrid PACS.
+    bool m_isLoginSpecified;
+    /// Specified user name. Only applicable to WADO and hybrid PACS.
+    QString m_username;
+    /// Specified password. Only applicable to WADO and hybrid PACS.
+    QString m_password;
     /// Institution that owns or manages this PACS.
     QString m_institution;
     /// Location of this PACS.

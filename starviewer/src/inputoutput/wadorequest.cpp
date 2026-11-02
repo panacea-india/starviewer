@@ -14,8 +14,11 @@
 
 #include "wadorequest.h"
 
+#include "pacscredentialstore.h"
+
 #include <QApplication>
 #include <QNetworkReply>
+#include <QNetworkRequest>
 
 namespace udg {
 
@@ -35,6 +38,19 @@ WadoRequest::~WadoRequest()
 const PacsDevice& WadoRequest::getPacsDevice() const
 {
     return m_pacs;
+}
+
+QNetworkRequest WadoRequest::createNetworkRequest(const QUrl &url) const
+{
+    QNetworkRequest request(url);
+    QByteArray authorization = PacsCredentialStore::getAuthorizationHeader(m_pacs, url);
+
+    if (!authorization.isEmpty())
+    {
+        request.setRawHeader("Authorization", authorization);
+    }
+
+    return request;
 }
 
 // This is run in the WADO thread.

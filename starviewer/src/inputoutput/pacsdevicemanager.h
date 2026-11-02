@@ -53,6 +53,10 @@ public:
     /// \warning The ID of other PACS will probably change.
     static void deletePacs(const QString &pacsID);
 
+    /// Moves any login that is still in the base URI of a PACS in settings to PacsCredentialStore, leaving the base URI without it, also in the list of default
+    /// PACS. A login that the store can't keep across runs is left where it is, so that it's not lost.
+    static void moveLoginsToCredentialStore();
+
     /// Returns a list of PACS stored in settings, filtered by the given flags.
     /// \param[in] filter Combination of flags to filter the returned PACS.
     /// \return Filtered list of PACS.

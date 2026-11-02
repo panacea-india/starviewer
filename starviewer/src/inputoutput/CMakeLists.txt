@@ -41,6 +41,7 @@ set(SOURCES
     localdatabaseutildal.cpp
     localdatabasevoilutdal.cpp
     pacsconnection.cpp
+    pacscredentialstore.cpp
     pacsdevicemanager.cpp
     pacsdevicemodel.cpp
     pacsjob.cpp
@@ -171,3 +172,7 @@ target_link_libraries(inputoutput gdcmCommon gdcmDICT gdcmDSED gdcmIOD gdcmMSFF)
 
 find_package(KF5ThreadWeaver REQUIRED)
 target_link_libraries(inputoutput KF5::ThreadWeaver)
+
+if(WIN32)
+    target_link_libraries(inputoutput advapi32.lib)
+endif()

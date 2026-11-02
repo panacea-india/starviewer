@@ -23,6 +23,8 @@
 
 class QNetworkAccessManager;
 class QNetworkReply;
+class QNetworkRequest;
+class QUrl;
 
 namespace udg {
 
@@ -67,6 +69,9 @@ signals:
     void cancelled();
 
 protected:
+    /// Returns a request for the given URL that carries the login of the PACS, if it has one. All network requests to the PACS must be created with this method.
+    QNetworkRequest createNetworkRequest(const QUrl &url) const;
+
     /// QNetworkAccessManager instance that will be used to perform WADO (HTTP) communications.
     QNetworkAccessManager *m_networkAccessManager;
     /// The QNetworkReply returned by QNetworkAccessManager can be stored here.

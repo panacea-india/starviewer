@@ -77,6 +77,9 @@ public:
     /// See LocalDatabaseStudyDAL::recordRetrieveOutcome().
     void recordRetrieveOutcome(const QString &studyInstanceUID, bool wholeStudyRequested, bool someImagesMissing);
 
+    /// Removes any login from the PACS addresses stored in the database and compacts the database if there was one, so that it doesn't stay in the freed space.
+    void removeLoginsFromPacsAddresses();
+
     /// Deletes the study with the given UID from the database and the disk.
     void deleteStudy(const QString &studyInstanceUID);
     /// Deletes the series with the given SeriesInstanceUID from the study with the given StudyInstanceUID. If the study becomes empty, it's also deleted.

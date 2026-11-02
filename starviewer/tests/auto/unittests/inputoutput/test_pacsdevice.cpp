@@ -25,6 +25,10 @@ private slots:
     void isSamePacsDevice_ShouldCheckIfIsSamePacs_data();
     void isSamePacsDevice_ShouldCheckIfIsSamePacs();
 
+    void setBaseUri_ShouldTakeTheLoginOutOfTheUri();
+    void setBaseUri_ShouldNotSpecifyALogin_WhenTheUriHasNone();
+    void setBaseUri_ShouldDecodeTheLogin();
+
     void cleanupTestCase();
 
 private:
@@ -204,6 +208,42 @@ void test_PacsDevice::isSamePacsDevice_ShouldCheckIfIsSamePacs()
     QFETCH(bool, result);
 
     QCOMPARE(inputPacsDeviceA.isSamePacsDevice(inputPacsDeviceB), result);
+}
+
+void test_PacsDevice::setBaseUri_ShouldTakeTheLoginOutOfTheUri()
+{
+    PacsDevice pacs;
+    pacs.setType(PacsDevice::Type::Wado);
+    pacs.setBaseUri(QUrl("http://user:secret@example.com:8042/dicom-web/"));
+
+    QCOMPARE(pacs.getBaseUri(), QUrl("http://example.com:8042/dicom-web/"));
+    QVERIFY(pacs.isLoginSpecified());
+    QCOMPARE(pacs.getUsername(), QString("user"));
+    QCOMPARE(pacs.getPassword(), QString("secret"));
+    QVERIFY(!pacs.getKeyName().contains("secret"));
+    QVERIFY(!pacs.getBaseUri().toString().contains("secret"));
+
+    PacsDevice withoutLogin;
+    withoutLogin.setType(PacsDevice::Type::Wado);
+    withoutLogin.setBaseUri(QUrl("http://example.com:8042/dicom-web/"));
+    QVERIFY(pacs.isSamePacsDevice(withoutLogin));
+}
+
+void test_PacsDevice::setBaseUri_ShouldNotSpecifyALogin_WhenTheUriHasNone()
+{
+    PacsDevice pacs;
+    pacs.setBaseUri(QUrl("http://example.com/"));
+
+    QVERIFY(!pacs.isLoginSpecified());
+}
+
+void test_PacsDevice::setBaseUri_ShouldDecodeTheLogin()
+{
+    PacsDevice pacs;
+    pacs.setBaseUri(QUrl("http://us%40er:p%3Ass%2Fword@example.com/"));
+
+    QCOMPARE(pacs.getUsername(), QString("us@er"));
+    QCOMPARE(pacs.getPassword(), QString("p:ss/word"));
 }
 
 void test_PacsDevice::cleanupTestCase()

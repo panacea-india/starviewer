@@ -222,9 +222,10 @@ work runs in the order below. DICOMweb has never been tested from the applicatio
   transfers, and fix what fails.
 - **Windows OpenSSL:** build it into the SDK, restoring WADO over HTTPS and
   enabling DICOM TLS support in DCMTK.
-- **DICOMweb authentication:** add basic authentication, which Orthanc has built
-  in, then OAuth 2 bearer tokens, with credentials in the operating system's
-  secure store. None was found in the WADO request classes.
+- **DICOMweb authentication:** basic authentication, which Orthanc has built in,
+  is in place with logins in Windows Credential Manager, awaiting its on-screen
+  test (A-28, A-29). OAuth 2 bearer tokens are next, and a secure store on Linux
+  (A-35) comes with Linux support.
 - **DICOM TLS:** add it to PACS configuration and all DIMSE operations, on
   Windows and Linux. The SDK enables OpenSSL on Linux, but the application never
   uses it.

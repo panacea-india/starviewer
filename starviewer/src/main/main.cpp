@@ -35,6 +35,8 @@ INITIALIZE_EASYLOGGINGPP
 #include "externalstudyrequestmanager.h"
 #include "inputoutputsettings.h"
 #include "interfacesettings.h"
+#include "localdatabasemanager.h"
+#include "pacsdevicemanager.h"
 #include "shortcuts.h"
 #include "starviewerapplicationcommandline.h"
 #include "loggingoutputwindow.h"
@@ -252,6 +254,11 @@ int main(int argc, char *argv[])
         try
         {
             udg::QApplicationMainWindow *mainWin = new udg::QApplicationMainWindow;
+
+            // Here and not in the window because creating a window must not change stored logins, for example when tests do it. The window checks the database.
+            udg::PacsDeviceManager::moveLoginsToCredentialStore();
+            udg::LocalDatabaseManager().removeLoginsFromPacsAddresses();
+
             // Fem el connect per rebre els arguments de les altres instàncies
             QObject::connect(&app, SIGNAL(messageReceived(QString)), StarviewerSingleApplicationCommandLineSingleton::instance(), SLOT(parseAndRun(QString)));
 

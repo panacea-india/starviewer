@@ -220,7 +220,7 @@ void WadoSearchRequest::startInternal()
     QUrl fullUrl(urlString);
     fullUrl.setQuery(buildQueryString(m_mask));
 
-    QNetworkRequest request(fullUrl);
+    QNetworkRequest request = createNetworkRequest(fullUrl);
     m_reply = m_networkAccessManager->get(request);
 
     emit started();

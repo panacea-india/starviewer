@@ -37,6 +37,10 @@ public:
 
     /// Returns the id of the given PACS in the database. If this PACS is not in the database, returns a null QVariant.
     QVariant queryId(const PacsDevice &pacsDevice);
+
+    /// Removes any login from the stored base URIs. If that makes a row the same as another row, the images and documents of the first one are moved to the second
+    /// one and the first one is deleted. Returns the number of changed rows, or -1 if there has been an error.
+    int removeLoginsFromBaseUris();
 };
 
 }

@@ -24,7 +24,8 @@ namespace udg {
 const QString PacsDevice::DefaultPacsListSeparator("\\\\");
 
 PacsDevice::PacsDevice()
-    : m_type(Type::Dimse), m_isQueryRetrieveServiceEnabled(false), m_queryRetrieveServicePort(-1), m_isStoreServiceEnabled(false), m_storeServicePort(-1)
+    : m_type(Type::Dimse), m_isQueryRetrieveServiceEnabled(false), m_queryRetrieveServicePort(-1), m_isStoreServiceEnabled(false), m_storeServicePort(-1),
+      m_isLoginSpecified(false)
 {
 }
 
@@ -115,7 +116,35 @@ const QUrl& PacsDevice::getBaseUri() const
 
 void PacsDevice::setBaseUri(QUrl baseUri)
 {
+    if (!baseUri.userInfo().isEmpty())
+    {
+        setLogin(baseUri.userName(QUrl::FullyDecoded), baseUri.password(QUrl::FullyDecoded));
+        baseUri.setUserInfo(QString());
+    }
+
     m_baseUri = std::move(baseUri);
+}
+
+bool PacsDevice::isLoginSpecified() const
+{
+    return m_isLoginSpecified;
+}
+
+const QString& PacsDevice::getUsername() const
+{
+    return m_username;
+}
+
+const QString& PacsDevice::getPassword() const
+{
+    return m_password;
+}
+
+void PacsDevice::setLogin(QString username, QString password)
+{
+    m_isLoginSpecified = true;
+    m_username = std::move(username);
+    m_password = std::move(password);
 }
 
 const QString& PacsDevice::getInstitution() const
@@ -215,6 +244,9 @@ bool PacsDevice::operator==(const PacsDevice &pacsDevice) const
         && m_isStoreServiceEnabled == pacsDevice.m_isStoreServiceEnabled
         && m_storeServicePort == pacsDevice.m_storeServicePort
         && m_baseUri == pacsDevice.m_baseUri
+        && m_isLoginSpecified == pacsDevice.m_isLoginSpecified
+        && m_username == pacsDevice.m_username
+        && m_password == pacsDevice.m_password
         && m_location == pacsDevice.m_location
         && m_institution == pacsDevice.m_institution
         && m_description == pacsDevice.m_description;
