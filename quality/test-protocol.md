@@ -51,6 +51,7 @@ GPU and tester for each run.
 | 2 | 2026-11-01 | Windows 11 Home 10.0.22621, local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes | None (local build) | TP-02, TP-04, TP-06, TP-08. The rest are partial; see [Run 2](#run-2) | None | A-25 to A-27 |
 | 3 | 2026-11-01 | Windows 11 Home 10.0.22621, installed local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes (the installer built after run 2) | None (local build) | TP-03, TP-09 (`petct-suv`). TP-05, TP-07 and TP-10 are partial; see [Run 3](#run-3) | None | A-28 to A-33 |
 | 4 | 2026-11-01 | Windows 11 Home 10.0.22621, local build-tree executable, not a clean machine | `1821c890a` plus uncommitted `phase1` changes | None (local build) | The DICOMweb part of TP-10 (interrupted retrieve and re-retrieve). The rest of TP-10 is untested; see [Run 4](#run-4) | None | One finding, A-34; see [Run 4](#run-4) |
+| 5 | 2026-11-01 | Windows 11 Home 10.0.22621, local build-tree executable, not a clean machine | `d48940883` plus uncommitted `phase1` changes, then `6d50df4b2` for the startup check | None (local build) | The DICOMweb login part of TP-10. The rest of TP-10 is untested; see [Run 5](#run-5) | None | Four findings, A-36 to A-39; see [Run 5](#run-5) |
 
 Run 1 used the `.deb` with SHA-256 starting `7a3163e6`, tested by Claude driving the interface
 with scripted input. Software rendering says nothing about performance. A person still has to
@@ -254,6 +255,54 @@ Not done in run 4: the DIMSE path, the Operation List text for the interrupted j
 status and file count, whether the missing 127 images (1,049 less 922) were at the end or spread
 through the series, the Linux and installed-package builds, and the CI package. The test Orthanc and
 Starviewer were left running.
+
+### Run 5
+
+Run 5 tests the DICOMweb login (A-28, A-29) against the test Orthanc at
+`http://127.0.0.1:18042/dicom-web/`. Steps 1 to 10 used `C:\sdk\sv-build\bin\starviewer.exe` built
+at 17:42 on 2026-11-01 from `d48940883` plus the uncommitted `phase1` changes. It is not a CI package,
+the machine is not clean, and the requirements stay *Not verified*. Claude drove the interface in
+Claude Desktop by screenshots, clicks and typing. I (Claude Code) then reviewed that report against the log and
+registry, and ran the startup check below myself. That build differs from `6d50df4b2` in one thing:
+the startup move of logins was then moved from the main window constructor to `main()`.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Login moved at startup | Passed, see below | A generic credential `Starviewer/PACS/http://127.0.0.1:18042/dicom-web` exists with user `qa`. Its password was not read |
+| 2. Node lists | Passed | The settings dialog and Query Studies both show `http://127.0.0.1:18042/dicom-web/`, with no login |
+| 3. Editing the entry | Passed | User name `qa`; empty Password with "Saved. Leave blank to keep it."; "This address uses http, so the password is sent without encryption."; Test gave "Test is correct." |
+| 4. Wrong password | Passed | "Host requires authentication" (A-37). Reset restored the placeholder |
+| 5. No login | Passed | "Host requires authentication" with User name cleared. Without saving, the reopened entry still shows `qa`, so an explicit "no login" did not fall back on the saved one |
+| 6. Query and retrieve | Passed | 22 studies listed. `QA-TS-implicit-le` shows RETRIEVED, 1 series, 10 files in the Operation List; Orthanc has 10 instances |
+| 7. Send | Passed | The same study (Series 880, 10 images) shows SENT, 1 series, 10 files, with no error. It already existed in Orthanc |
+| 8. Delete and re-add with a login in the URI | Passed | The credential went with the entry, with no confirmation question (A-38). After tabbing out, the URI lost the login, User name became `qa` and Password was masked. After OK the list had no login, the credential was back, and Test was correct |
+| 9. Changed address | Passed | With the URI changed to `http://localhost:18042/dicom-web/` and Password blank, Test gave "A user name needs a password." The placeholder still said the password was saved (A-36) |
+| 10. Plain text search | Passed, see below | No `qa-only` in the registry `PacsList` or `dicom.sdb`, and no new lines in the log |
+
+**Corrections and additions from my review:**
+
+- **The migration had already run.** The report found the login already gone at its setup step and could not
+  say why. The log shows why: my own test run moved it, at 17:42:27 ("Moved the login of PACS
+  http://127.0.0.1:18042/dicom-web/ to the secure store", then "Removed the login from 1 PACS addresses
+  in the database"). `test_QApplicationMainWindow` creates real main windows, and the move was in their
+  constructor, so a test run changed the real settings, database and Credential Manager (A-39).
+  The before state is still known: earlier on the same day, before the change, I found the login in
+  the registry `BaseUri` value and in `dicom.sdb`, and 11 lines of the log.
+- **Log count.** The report counts 22 for `starviewer.log`. My count is 11 lines and 11 occurrences,
+  the last at 17:19:27, before the 17:42 build. I did not find out why the report's count is double. Both
+  counts stayed the same through the run, and both show that this build added none.
+- **Startup check after moving the call to `main()`.** I wrote the login back into the registry value,
+  rebuilt, and ran all tests: 117 suites, 4,822 passed, none failed or skipped. `test_PacsDevice` is covered
+  only by `ctest`'s exit code, as its name is part of another suite's. The login was still in the
+  registry afterwards, so tests no longer move it. Starting the executable once, without touching its
+  interface, then logged the move at 20:08:52 and left the registry value without it, the credential with user
+  `qa`, and the log at 11 lines. The database step could not be repeated, as there is no SQLite tool
+  on this machine to put a login back; its code did not change, and `dicom.sdb` still has none.
+
+Not done in run 5: steps 1 to 10 on the final build, WADO-URI and WADO-URI + DIMSE with a login, the
+same-server redirect limit, HTTPS (A-03), DIMSE, the Linux and installed-package builds, and the CI package.
+The DICOMweb entry is left configured with its login in Credential Manager, and the local
+database now also holds `QA-TS-implicit-le`.
 
 ### Baseline timings
 
