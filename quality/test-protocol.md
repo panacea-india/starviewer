@@ -50,6 +50,7 @@ GPU and tester for each run.
 | 1 | 2026-10-31 | Linux, clean `ubuntu:24.04` container, Xvfb, Mesa software rendering | `f9cc1c38c` | 41260260302 | See below | TP-01, TP-03, TP-04 | A-17, A-19 to A-23 |
 | 2 | 2026-11-01 | Windows 11 Home 10.0.22621, local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes | None (local build) | TP-02, TP-04, TP-06, TP-08. The rest are partial; see [Run 2](#run-2) | None | A-25 to A-27 |
 | 3 | 2026-11-01 | Windows 11 Home 10.0.22621, installed local build, not a clean machine | `3842fbcca` plus uncommitted phase0 fixes (the installer built after run 2) | None (local build) | TP-03, TP-09 (`petct-suv`). TP-05, TP-07 and TP-10 are partial; see [Run 3](#run-3) | None | A-28 to A-33 |
+| 4 | 2026-11-01 | Windows 11 Home 10.0.22621, local build-tree executable, not a clean machine | `1821c890a` plus uncommitted `phase1` changes | None (local build) | The DICOMweb part of TP-10 (interrupted retrieve and re-retrieve). The rest of TP-10 is untested; see [Run 4](#run-4) | None | One finding, A-34; see [Run 4](#run-4) |
 
 Run 1 used the `.deb` with SHA-256 starting `7a3163e6`, tested by Claude driving the interface
 with scripted input. Software rendering says nothing about performance. A person still has to
@@ -158,6 +159,101 @@ reloaded. Orthanc's authentication and configuration were not changed.
 `cool_wozniak` was not in Docker's container list at any point, and port 8042 was still held by process 16316, which I did not touch.
 
 Not done in run 3: TP-01 on a clean machine, the installer's pages, the DIMSE path (C-MOVE and C-STORE), reading Acrobat's view of the PDF, the Operation List after the interrupted retrieve, `benchmark-ct-1000` (not generated), and RadiAnt (not requested). After Docker Desktop started, Starviewer's viewer was empty for a while, and I do not know why.
+
+### Run 4
+
+Run 4 repeats the interrupted DICOMweb retrieve of run 3 (A-30) on a build that has the fix for it.
+It used `C:\sdk\sv-build\bin\starviewer.exe`, started with `C:\sdk\sdk-install\bin` and
+`C:\Qt\5.15.2\msvc2019_64\bin` first on PATH. The executable was built at 15:55:22 on 2026-11-01,
+after the last source edit (15:54:37), from `1821c890a` plus the uncommitted `phase1` changes
+(`git status` listed 19 modified files and `test_localdatabasestudydal.cpp`). It is not a CI
+package, the machine is not clean, and the requirements stay *Not verified*. The corpus checksum
+was not recorded. Claude drove the interface by screenshots, clicks and typing.
+
+Setup: Docker Desktop was not running, so I started it, and its engine answered at once.
+`docker compose up -d` from `quality\testlab` started `starviewer-testlab-orthanc-1`, which
+still held 22 studies and 1,527 instances, with `rider-large-ct` at 1,049 instances. The DICOMweb
+PACS entry was already in the settings (the login is in its URL, see A-28 and A-29).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| TP-10 (DICOMweb, interrupted retrieve) | Passed | The partial retrieve was reported, marked in the study list and the window title, and warned about again on opening. A second, clean retrieve of the whole study removed every mark. Details below. DIMSE, the internal PACS and the other TP-10 retrieves were not repeated |
+
+1. **Before the test.** The Local Database still held run 3's `rider-large-ct` (patient
+   `RIDER-1006487867`, study 157631) as "Series 3, 876 Images", with a plain description and no
+   mark. It was stored before the fix, so this shows that old partial studies stay unmarked, as
+   A-30 says. I deleted it with Delete in the study's context menu and confirmed the question; the
+   list then held only `ct-reference` and `petct-suv`. A search of the DICOMweb PACS (all fields
+   empty, after confirming the long-query question) listed 22 studies, with `rider-large-ct` last.
+2. **The interrupted retrieve.** I started a background script that counted the files under
+   `C:\Users\ayush\.starviewer\pacs\dicom` (baseline 250, from the two other studies) and ran
+   `docker compose stop -t 0 orthanc` once 150 new files had arrived, then selected the study and
+   clicked Retrieve. The log shows the retrieve starting at 17:18:11. The script reached its
+   threshold at 17:18:14.781, with 156 new files, and `docker` returned at 17:18:16.058 with 266
+   new files. The container exited with code 137. As in run 3, files kept arriving after the stop:
+   799 new files 5 s later, and 922 at 10 s and again at 20 s, where it stayed. Starviewer
+   logged "The connection to the PACS closed before the whole response arrived." at 17:18:22.378,
+   about 6 s after the stop, and "922 instance(s) downloaded".
+3. **Warning (text as shown).** A warning box titled "Starviewer", with the warning icon:
+   > Only some of the images have been downloaded, because the connection to the PACS was lost.
+   >
+   > **Be aware that if a series is missing some images, 3D reconstructions may not be accurate and measurements on reconstructed planes may be wrong. Check the number of images in each series before using it for such purposes. Refer to the user guide for more information.**
+   >
+   > The study is marked as incomplete in the study lists. Retrieve it again to complete it.
+   >
+   > Details:The connection to the PACS closed before the whole response arrived.
+
+   The bold paragraph is as run 3 showed it. The reason is now the real one, where run 3 said
+   "unknown". There is no space after "Details:". The warning appeared about 11 s after Retrieve.
+4. **List text.** In the Local Database list the patient row shows the description
+   **"INCOMPLETE - Unspecified CT"** (the study's own description is "Unspecified CT"). The study
+   holds one series, "Series 3", of **922 images**. The expected 1,049 are not shown anywhere,
+   as the source says (A-30). The study row below the patient row has an empty description
+   column, as it did before the test.
+5. **Window title when the study is open.** Opened with View in the Local Database list:
+   **"RIDER-1006487867 : 157631 - INCOMPLETE STUDY - Not for diagnostic use"**, with the slice
+   counter at 1 of 922.
+6. **Warning on opening.** A warning box titled "Starviewer", over the first image:
+   > Only part of this study was retrieved, so some images are missing. 3D reconstructions may not be accurate and measurements on reconstructed planes may be wrong. Retrieve the study again to complete it.
+7. **Operation List.** The interrupted job is listed as **ERROR**, direction Local, 1 series,
+   **922 files**. (Run 3 did not read this entry.) The warning appeared before I opened the list.
+8. **The second retrieve.** `docker compose start orthanc` brought Orthanc back with 22 studies
+   and 1,527 instances, so its data survived the hard stop. I selected the study in the
+   PACS results again and clicked Retrieve for the whole study. The log shows it from 17:19:27
+   to 17:19:40, about 13 s, with "1049 instance(s) downloaded". There was no warning. On disk the
+   study folder holds 1,049 files with 1,049 different names, plus 2 thumbnail PNGs. The
+   Operation List now has a second line, **RETRIEVED**, with 1 series and **1,049 files**,
+   under the ERROR line.
+9. **Marks after the second retrieve.** The Local Database list shows the description as plain
+   **"Unspecified CT"**, with "Series 3, **1049 Images**". Opened from a new, empty window (Ctrl+N,
+   then Ctrl+L and View), the title is **"RIDER-1006487867 : 157631 - Not for diagnostic use"**,
+   there is no warning, and the slice counter reads 1 of 1,049. So the list text, the title and
+   the opening warning are all gone, and all 1,049 images arrived. I did not read the `State`
+   column in the database itself, because no SQLite tool is installed here; the three marks
+   shown to the user are the evidence.
+
+**Finding (A-34).** I first opened the study with View in the window that was still showing the
+partial study. The viewer did not reload it. The title stayed **"INCOMPLETE STUDY"**, the first
+pane still read slice 1 of 922, and no warning was shown. The log shows "Merging equal patients"
+at 17:20:06. It errs on the safe side, because the user still sees INCOMPLETE, but after a complete
+retrieve a user who opens it in the same window sees the partial study and a warning title. Opening
+in a new window gave the correct result. This is separate from the interrupted retrieve itself.
+
+Review of this finding, from the source and not observed in the run: `Patient::operator +=` adds
+only series whose UID is not already open. The new 1,049-image series has the same UID as the open
+one, so it is dropped, and the window keeps the 922-image series and the old study's mark. The
+panes were not scrolled to confirm this on screen.
+
+Mistakes in the run, none of which touched the test data: asking the computer-use tool to open
+"Starviewer" started the installed copy in `C:\Program Files\Starviewer` as a second instance,
+because the first access grant named that path. I closed it within seconds. Its log lines show it
+ran the cache cleanup ("No studies to delete") and could not bind the RIS port (11110) that the
+test instance already held. The test instance's database and files were not changed by it.
+
+Not done in run 4: the DIMSE path, the Operation List text for the interrupted job beyond its
+status and file count, whether the missing 127 images (1,049 less 922) were at the end or spread
+through the series, the Linux and installed-package builds, and the CI package. The test Orthanc and
+Starviewer were left running.
 
 ### Baseline timings
 
