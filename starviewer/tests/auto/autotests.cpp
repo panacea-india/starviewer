@@ -11,7 +11,7 @@ INITIALIZE_EASYLOGGINGPP
 /// A part dels paràmetres que QTest defineix de cada test, se n'han afegint més:
 ///     -saveOutputToDir <dirPath>: guarda l'output de cada testsuite a un fitxer del format <nomDelTest>.txt.
 ///                                 Requeriments: el directori NO ha d'existir o ha d'estar buit.
-///     -testsToExecute string1 [string2 ... stringN]: executarà només els testos que el seu nom contingui algun dels strings especificats. És case insensitive.
+///     -testsToExecute string1 [string2 ... stringN]: executarà només els testos que el seu nom contingui algun dels strings especificats. És case insensitive. A string that is the whole name of a test selects only that test.
 ///                                                    D'aquesta manera es permet executar un test concret o tots aquells que continguin una certa paraula, per exemple, "pacs".
 
 namespace AutoTest
@@ -23,6 +23,13 @@ inline TestList selectTestsToExecute(const QStringList& options)
         return testList();
     }
 
+    // An option that is the whole name of a test selects only that test, so that, for example, test_Image does not also run test_ImagePlane
+    QStringList testNames;
+    foreach (QObject *test, testList())
+    {
+        testNames << test->objectName();
+    }
+
     TestList selectedTests;
     foreach (QObject *test, testList())
     {
@@ -30,7 +37,10 @@ inline TestList selectTestsToExecute(const QStringList& options)
         QStringListIterator iterator(options);
         while (!found && iterator.hasNext())
         {
-            if (test->objectName().contains(iterator.next(), Qt::CaseInsensitive))
+            const QString &option = iterator.next();
+            bool isTestName = testNames.contains(option, Qt::CaseInsensitive);
+
+            if (isTestName ? test->objectName().compare(option, Qt::CaseInsensitive) == 0 : test->objectName().contains(option, Qt::CaseInsensitive))
             {
                 found = true;
                 selectedTests << test;
