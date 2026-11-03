@@ -221,17 +221,15 @@ endif()
 # plus ThreadWeaver on Windows) are bundled with globs, so that the rules do
 # not need updating when a library version changes.
 if(WIN32)
-    # All shared libraries the SDK installs (GDCM, vtkgdcm, ThreadWeaver,
-    # and OpenSSL if DCMTK was ever built with it). DCMTK's command line
-    # tools are .exe files and are not bundled.
+    # All shared libraries the SDK installs (GDCM, vtkgdcm, ThreadWeaver
+    # and OpenSSL). DCMTK's command line tools are .exe files and are not
+    # bundled.
     file(GLOB SDK_RUNTIME_FILES "${SDK_INSTALL_DIR}/bin/*.dll")
     install(FILES ${SDK_RUNTIME_FILES} DESTINATION .)
 
-    # QtNetwork uses OpenSSL for HTTPS (WADO). DCMTK is built without
-    # OpenSSL on Windows, so the SDK install directory does not have the
-    # DLLs, and Qt does not ship them either: the OpenSSL 1.1.1 tools
-    # component has been removed from Qt's repository. The package is
-    # built without them, which only means WADO over HTTPS does not work.
+    # QtNetwork loads OpenSSL by these names for HTTPS (WADO), and DCMTK links
+    # to it for DICOM TLS. Qt does not ship them: the SDK builds them. Without
+    # them, neither works.
     set(OPENSSL_LIBS
         libcrypto-1_1-x64
         libssl-1_1-x64
@@ -243,7 +241,7 @@ if(WIN32)
         elseif(EXISTS "${QT_LIB_DIR}/${FILENAME}")
             install(FILES "${QT_LIB_DIR}/${FILENAME}" DESTINATION .)
         else()
-            message(WARNING "OpenSSL runtime library ${FILENAME} not found in ${SDK_INSTALL_DIR}/bin or ${QT_LIB_DIR}; the package will not support HTTPS (WADO)")
+            message(FATAL_ERROR "OpenSSL runtime library ${FILENAME} not found in ${SDK_INSTALL_DIR}/bin or ${QT_LIB_DIR}; build the openssl SDK library, which HTTPS and DICOM TLS need")
         endif()
     endforeach()
 else()

@@ -150,7 +150,7 @@ VARS_TO_EXPORT+=("QTPLUGINSDIR")
 VARS_TO_EXPORT+=("QTQMLDIR")
 VARS_TO_EXPORT+=("QTTRANSLATIONSDIR")
 
-# List of libs to build. Possible values: qt, dcmtk, vtk, gdcm, itk, ecm, threadweaver.
+# List of libs to build. Possible values: qt, openssl, dcmtk, vtk, gdcm, itk, ecm, threadweaver. openssl is only for Windows.
 LIBS=${LIBS:-"qt dcmtk vtk gdcm itk ecm threadweaver"}
 
 # CMake and make

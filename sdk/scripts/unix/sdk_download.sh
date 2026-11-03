@@ -25,6 +25,18 @@ do
                                     'https://download.qt.io/archive/qt/5.12/5.12.6/qt-opensource-windows-x86-5.12.6.exe'
             fi
             ;;
+        openssl)
+            # Only Windows builds it. Perl and NASM are build tools, and are used only for this library.
+            download_and_verify cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8 \
+                                'openssl-1.1.1w.tar.gz' \
+                                'https://github.com/openssl/openssl/releases/download/OpenSSL_1_1_1w/openssl-1.1.1w.tar.gz'
+            download_and_verify 754f3e2a8e473dc68d1540c7802fb166a025f35ef18960c4564a31f8b5933907 \
+                                'strawberry-perl-5.40.0.1-64bit-portable.zip' \
+                                'https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54001_64bit_UCRT/strawberry-perl-5.40.0.1-64bit-portable.zip'
+            download_and_verify 3ee4782247bcb874378d02f7eab4e294a84d3d15f3f6ee2de2f47a46aa7226e6 \
+                                'nasm-2.16.03-win64.zip' \
+                                'https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/win64/nasm-2.16.03-win64.zip'
+            ;;
         dcmtk)
             if [[ $(uname) == 'MSYS_NT'* ]]
             then

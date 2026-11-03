@@ -21,7 +21,10 @@ then
 
     ICONV=TRUE
     STDLIBC_ICONV=FALSE
-    CMAKE_EXTRA_OPTIONS="-DWITH_ZLIBINC:PATH=$SUPPORT_LIBS_PATH/zlib-1.2.12 \
+    # OpenSSL is the one that the openssl SDK library leaves there and not the package's 1.1.1n,
+    # because Qt must load the same libraries, and it looks for other names.
+    CMAKE_EXTRA_OPTIONS="-DWITH_OPENSSLINC:PATH=$SUPPORT_LIBS_PATH/openssl-1.1.1w \
+                         -DWITH_ZLIBINC:PATH=$SUPPORT_LIBS_PATH/zlib-1.2.12 \
                          -DWITH_LIBICONVINC:PATH=$SUPPORT_LIBS_PATH/libiconv-1.16"
 fi
 

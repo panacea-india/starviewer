@@ -25,6 +25,12 @@ do
                 "${DOWNLOAD_PREFIX}/qt-opensource-windows-x86-5.12.6.exe" --no-force-installations TargetDir="${INSTALL_QTDIR}"
             fi
             ;;
+        openssl)
+            tar -C $SDK_SOURCE_DIR_BASE -xvf "${DOWNLOAD_PREFIX}/openssl-1.1.1w.tar.gz"
+            mkdir -p $SDK_SOURCE_DIR_BASE/openssl-tools/perl
+            unzip -q -o "${DOWNLOAD_PREFIX}/strawberry-perl-5.40.0.1-64bit-portable.zip" -d $SDK_SOURCE_DIR_BASE/openssl-tools/perl
+            unzip -q -o "${DOWNLOAD_PREFIX}/nasm-2.16.03-win64.zip" -d $SDK_SOURCE_DIR_BASE/openssl-tools
+            ;;
         dcmtk)
             if [[ $(uname) == 'MSYS_NT'* ]]
             then

@@ -24,10 +24,11 @@ SDK_SCRIPTS=sdk/scripts/unix
 # The libraries each library is built against, directly or indirectly.
 # Changing any of them rebuilds the library.
 declare -A DEPENDENCIES=(
-    [dcmtk]=""
+    [openssl]=""
+    [dcmtk]="openssl"
     [vtk]=""
     [gdcm]="vtk"
-    [itk]="dcmtk vtk gdcm"
+    [itk]="openssl dcmtk vtk gdcm"
     [threadweaver]=""
 )
 

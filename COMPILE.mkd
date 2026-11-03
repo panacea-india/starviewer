@@ -112,11 +112,10 @@ cpack -G NSIS                                      # starviewer~<version>~<arch>
 ```
 
 The `*-winnt` installer bundles the MSVC runtime libraries. It registers the
-`starviewer://` URL protocol. It does not bundle OpenSSL 1.1.1: Qt's
-repository no longer ships the DLLs, so WADO over HTTPS does not work unless
-`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll` are placed in the SDK
-install directory before configuring (the install rules pick them up from
-there).
+`starviewer://` URL protocol. It bundles OpenSSL 1.1.1's
+`libcrypto-1_1-x64.dll` and `libssl-1_1-x64.dll` from the SDK install directory,
+where the `openssl` SDK library puts them. Configuring stops with an error
+without them, because HTTPS and DICOM TLS need them.
 
 The PDF manuals are not part of the packages unless they were built
 (`BUILD_PDF_MANUALS=ON`, which needs LibreOffice); when they are built, the

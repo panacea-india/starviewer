@@ -68,7 +68,24 @@ jobs:
       # does not discard it. Libraries are listed in dependency order.
       - name: SDK cache keys
         id: sdk-keys
-        run: .github/scripts/sdk-library.sh keys sdk-windows-2022-${{ env.SDK_BUILD_TYPE }} dcmtk vtk gdcm itk threadweaver
+        run: .github/scripts/sdk-library.sh keys sdk-windows-2022-${{ env.SDK_BUILD_TYPE }} openssl dcmtk vtk gdcm itk threadweaver
+
+      - name: Restore SDK library openssl
+        id: cache-openssl
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/openssl
+          key: ${{ steps.sdk-keys.outputs.openssl }}
+
+      - name: Build or install SDK library openssl
+        run: .github/scripts/sdk-library.sh install openssl
+
+      - name: Save SDK library openssl
+        if: steps.cache-openssl.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.SDK_BASE_PREFIX }}/sdk-stage/openssl
+          key: ${{ steps.sdk-keys.outputs.openssl }}
 
       - name: Restore SDK library dcmtk
         id: cache-dcmtk
