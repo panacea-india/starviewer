@@ -56,6 +56,7 @@ set(SOURCES
     test_patientcomparer.cpp
     test_patientfillerinput.cpp
     test_patientorientation.cpp
+    test_pixeldatalengthcheck.cpp
     test_pixelspacing2d.cpp
     test_pixelspacingamenderpostprocessor.cpp
     test_preferredpixelspacingselector.cpp

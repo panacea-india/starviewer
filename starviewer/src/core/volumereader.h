@@ -82,6 +82,9 @@ private:
     /// Creates and sets up the pixel data reader for the given volume. The second parameter shows progress.
     void setUpReader(Volume *volume);
 
+    /// Returns true, and logs the problem, if a file has less uncompressed pixel data than its image attributes declare.
+    bool hasShortPixelData(const QStringList &fileList) const;
+
     /// Treu i executa en ordre els postprocessadors de la cua sobre el volum passat.
     void runPostprocessors(Volume *volume);
 

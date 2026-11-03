@@ -21,6 +21,7 @@
 #include "logging.h"
 #include "mathtools.h"
 #include "photometricinterpretation.h"
+#include "pixeldatalengthcheck.h"
 #include "imageorientation.h"
 
 #include <QSharedPointer>
@@ -36,10 +37,8 @@
 #include <vtkStreamingDemandDrivenPipeline.h>
 #include <vtkStringArray.h>
 
-#include <dcdeftag.h>   // DCM_PixelData
 #include <dcfilefo.h>   // DcmFileFormat
 #include <dcmimage.h>   // DicomImage
-#include <dcxfer.h>     // DcmXfer
 
 namespace udg {
 
@@ -248,45 +247,11 @@ QSharedPointer<DcmDataset> getDataset(const char *filename)
 // DicomImage accepts such a file, and the part with no data would be displayed as if it were part of the image.
 void checkPixelDataLength(DcmDataset &dataset)
 {
-    DcmElement *pixelData = nullptr;
+    QString problem = PixelDataLengthCheck::check(dataset);
 
-    if (DcmXfer(dataset.getOriginalXfer()).isEncapsulated() || dataset.findAndGetElement(DCM_PixelData, pixelData).bad())
+    if (!problem.isEmpty())
     {
-        return;
-    }
-
-    OFString photometricInterpretation;
-    dataset.findAndGetOFString(DCM_PhotometricInterpretation, photometricInterpretation);
-
-    // Chroma subsampling makes these smaller than rows x columns x samples
-    if (photometricInterpretation == "YBR_FULL_422" || photometricInterpretation == "YBR_PARTIAL_422" || photometricInterpretation == "YBR_PARTIAL_420")
-    {
-        return;
-    }
-
-    Uint16 rows = 0, columns = 0, bitsAllocated = 0, samplesPerPixel = 1;
-    Sint32 numberOfFrames = 1;
-    dataset.findAndGetUint16(DCM_Rows, rows);
-    dataset.findAndGetUint16(DCM_Columns, columns);
-    dataset.findAndGetUint16(DCM_BitsAllocated, bitsAllocated);
-
-    if (dataset.findAndGetUint16(DCM_SamplesPerPixel, samplesPerPixel).bad())
-    {
-        samplesPerPixel = 1;
-    }
-
-    if (dataset.findAndGetSint32(DCM_NumberOfFrames, numberOfFrames).bad() || numberOfFrames < 1)
-    {
-        numberOfFrames = 1;
-    }
-
-    quint64 expectedBits = static_cast<quint64>(rows) * columns * samplesPerPixel * numberOfFrames * bitsAllocated;
-    quint64 expectedLength = (expectedBits + 7) / 8;
-
-    if (pixelData->getLength() < expectedLength)
-    {
-        throw VtkDcmtkImageReader::CantReadImageException(QString("Pixel data has %1 bytes, but the image attributes declare %2.")
-                                                          .arg(pixelData->getLength()).arg(expectedLength).toStdString());
+        throw VtkDcmtkImageReader::CantReadImageException(problem.toStdString());
     }
 }
 

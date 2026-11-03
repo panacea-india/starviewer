@@ -16,6 +16,7 @@
 
 #include "image.h"
 #include "logging.h"
+#include "pixeldatalengthcheck.h"
 #include "postprocessor.h"
 #include "starviewerapplication.h"
 #include "volume.h"
@@ -87,6 +88,12 @@ void VolumeReader::executePixelDataReader(Volume *volume)
         if (m_abortRequested)
         {
             m_lastError = VolumePixelDataReader::ReadAborted;
+        }
+        else if (!m_volumePixelDataReader->checksPixelDataLength() && hasShortPixelData(fileList))
+        {
+            m_lastError = VolumePixelDataReader::CannotReadFile;
+            volume->convertToNeutralVolume();
+            this->logWarningLastError(fileList);
         }
         else
         {
@@ -235,6 +242,22 @@ QStringList VolumeReader::getFilesToRead(Volume *volume) const
     }
 
     return fileList;
+}
+
+bool VolumeReader::hasShortPixelData(const QStringList &fileList) const
+{
+    for (const QString &filename : fileList)
+    {
+        QString problem = PixelDataLengthCheck::checkFile(filename);
+
+        if (!problem.isEmpty())
+        {
+            ERROR_LOG(problem);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void VolumeReader::setUpReader(Volume *volume)

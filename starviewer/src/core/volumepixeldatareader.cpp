@@ -31,6 +31,11 @@ void VolumePixelDataReader::setFrameNumbers(const QList<int> &frameNumbers)
     m_frameNumbers = frameNumbers;
 }
 
+bool VolumePixelDataReader::checksPixelDataLength() const
+{
+    return false;
+}
+
 VolumePixelData* VolumePixelDataReader::getVolumePixelData()
 {
     return m_volumePixelData;

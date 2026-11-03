@@ -183,6 +183,7 @@ set(SOURCES
     phasesignaltosyncactionmapper.cpp
     phasesyncaction.cpp
     photometricinterpretation.cpp
+    pixeldatalengthcheck.cpp
     pixelspacing2d.cpp
     pixelspacingamenderpostprocessor.cpp
     pixelspacingschemepropertyselector.cpp

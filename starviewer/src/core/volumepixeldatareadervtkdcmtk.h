@@ -41,6 +41,9 @@ public:
     /// Requests abortion of the current read operation.
     virtual void requestAbort();
 
+    /// Returns true, because VtkDcmtkImageReader checks the length of the pixel data of each file it reads.
+    bool checksPixelDataLength() const override;
+
 private slots:
 
     /// Receives the VTK progress event from the reader and emits the Qt progress signal.

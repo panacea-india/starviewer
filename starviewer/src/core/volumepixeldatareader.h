@@ -51,6 +51,10 @@ public:
     /// En el cas que estigui en mig d'una operació de lectura, caldrà retornar com a resultat un error ReadAborted.
     virtual void requestAbort() = 0;
 
+    /// Returns true if read() itself rejects uncompressed pixel data shorter than the image attributes declare. Otherwise VolumeReader checks
+    /// the files before reading them.
+    virtual bool checksPixelDataLength() const;
+
     /// Ens retorna les dades llegides
     VolumePixelData* getVolumePixelData();
 

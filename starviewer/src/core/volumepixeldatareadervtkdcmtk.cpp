@@ -115,6 +115,11 @@ int VolumePixelDataReaderVTKDCMTK::read(const QStringList &filenames)
     return errorCode;
 }
 
+bool VolumePixelDataReaderVTKDCMTK::checksPixelDataLength() const
+{
+    return true;
+}
+
 void VolumePixelDataReaderVTKDCMTK::requestAbort()
 {
     m_abortRequested = true;
