@@ -96,18 +96,15 @@ if(WIN32)
     set(QT_LIB_DIR ${QT_DIR}/bin)
     set(QT_PLUGINS_DIR ${QT_DIR}/plugins)
     set(QT_QML_DIR ${QT_DIR}/qml)
-    set(QT_TRANSLATIONS_DIR ${QT_DIR}/translations)
 else()
     if(EXISTS "${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE}/qt5/plugins")
         set(QT_LIB_DIR ${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE})
         set(QT_PLUGINS_DIR ${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE}/qt5/plugins)
         set(QT_QML_DIR ${QT_DIR}/lib/${CMAKE_LIBRARY_ARCHITECTURE}/qt5/qml)
-        set(QT_TRANSLATIONS_DIR ${QT_DIR}/share/qt5/translations)
     else()
         set(QT_LIB_DIR ${QT_DIR}/lib)
         set(QT_PLUGINS_DIR ${QT_DIR}/plugins)
         set(QT_QML_DIR ${QT_DIR}/qml)
-        set(QT_TRANSLATIONS_DIR ${QT_DIR}/translations)
     endif()
 endif()
 
@@ -133,26 +130,6 @@ set(QMLS
 )
 foreach(QML ${QMLS})
     install(PROGRAMS "${QT_QML_DIR}/QtQuick.2/${QML}" DESTINATION qml/QtQuick.2)
-endforeach()
-
-# Qt only ships translations for the modules installed with it, so missing
-# files are skipped instead of failing the package.
-set(TRANSLATIONS
-    qt_ca.qm
-    qt_es.qm
-    qtbase_ca.qm
-    qtbase_es.qm
-    qtmultimedia_ca.qm
-    qtmultimedia_es.qm
-    qtscript_ca.qm
-    qtscript_es.qm
-    qtxmlpatterns_ca.qm
-    qtxmlpatterns_es.qm
-)
-foreach(TRANSLATION ${TRANSLATIONS})
-    if(EXISTS "${QT_TRANSLATIONS_DIR}/${TRANSLATION}")
-        install(FILES "${QT_TRANSLATIONS_DIR}/${TRANSLATION}" DESTINATION translations)
-    endif()
 endforeach()
 
 # Qt

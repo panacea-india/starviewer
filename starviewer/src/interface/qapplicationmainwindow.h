@@ -120,12 +120,6 @@ private:
     /// Crea els menús.
     void createMenus();
 
-    /// Crea el menú per escollir l'idioma de l'aplicació
-    void createLanguageMenu();
-
-    /// Crea una acció per canviar d'idioma passant l'idioma (ex. Catalan) i el locale al que s'ha de canviar (ex. ca_ES)
-    QAction* createLanguageAction(const QString &language, const QString &locale);
-
     /// Elimina totes les extensions que contingui el workspace i elimina els volums del pacient actual
     /// TODO: Cal que s'hi esborrin les dades de Patient, Study, Series, etc. també.
     void killBill();
@@ -160,9 +154,6 @@ private slots:
 
     /// Mostra el formulari d'about
     void about();
-
-    /// Canvia a l'idioma indicat
-    void switchToLanguage(QString locale);
 
     /// Launches the corresponding external application. (Where the number is
     /// the position on the list). If application launch has failed, shows an
@@ -221,7 +212,6 @@ private:
     QMenu *m_fileMenu;
     QMenu *m_visualizationMenu;
     QMenu *m_windowMenu;
-    QMenu *m_languageMenu;
     QMenu *m_externalApplicationsMenu;
     QMenu *m_helpMenu;
     QMenu *m_toolsMenu;

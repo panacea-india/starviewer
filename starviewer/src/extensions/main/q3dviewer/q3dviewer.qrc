@@ -20,8 +20,6 @@
         <file>renderingstyles/spine2.xml</file>
         <file>renderingstyles/thorax1.png</file>
         <file>renderingstyles/thorax1.xml</file>
-        <file>translations_ca_ES.qm</file>
         <file>translations_en_GB.qm</file>
-        <file>translations_es_ES.qm</file>
     </qresource>
 </RCC>

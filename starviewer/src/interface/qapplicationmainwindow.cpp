@@ -35,8 +35,6 @@
 #include "externalstudyrequestmediator.h"
 #include "queryscreen.h"
 
-// Pel LanguageLocale
-#include "coresettings.h"
 #include "inputoutputsettings.h"
 #include "applicationversionchecker.h"
 #include "screenmanager.h"
@@ -168,7 +166,6 @@ QApplicationMainWindow::QApplicationMainWindow(QWidget *parent)
     m_statsWatcher->addTriggerCounter(m_visualizationMenu);
     m_statsWatcher->addTriggerCounter(m_toolsMenu);
     m_statsWatcher->addTriggerCounter(m_helpMenu);
-    m_statsWatcher->addTriggerCounter(m_languageMenu);
     m_statsWatcher->addTriggerCounter(m_windowMenu);
 }
 
@@ -429,8 +426,6 @@ void QApplicationMainWindow::createMenus()
 
     // Menú tools
     m_toolsMenu = menuBar()->addMenu(tr("&Tools"));
-    m_languageMenu = m_toolsMenu->addMenu(tr("&Language"));
-    createLanguageMenu();
     m_toolsMenu->addAction(m_configurationAction);
     m_toolsMenu->addAction(m_runDiagnosisTestsAction);
     m_externalApplicationsMenu = 0;
@@ -466,29 +461,6 @@ void QApplicationMainWindow::createMenus()
     m_helpMenu->addAction(m_showLabelAction);
 #endif // STARVIEWER_CE
     m_helpMenu->addAction(m_aboutAction);
-}
-
-void QApplicationMainWindow::createLanguageMenu()
-{
-    QMap<QString, QString> languages;
-    languages.insert("ca_ES", tr("Catalan"));
-    languages.insert("es_ES", tr("Spanish"));
-    languages.insert("en_GB", tr("English"));
-
-    QActionGroup *actionGroup = new QActionGroup(this);
-
-    QMapIterator<QString, QString> i(languages);
-    while (i.hasNext())
-    {
-        i.next();
-
-        const QString &key = i.key();
-        QAction *action = createLanguageAction(i.value(), key);
-        connect(action, &QAction::triggered, [=] { switchToLanguage(key); });
-
-        actionGroup->addAction(action);
-        m_languageMenu->addAction(action);
-    }
 }
 
 void QApplicationMainWindow::createExternalApplicationsMenu()
@@ -536,20 +508,6 @@ void QApplicationMainWindow::createExternalApplicationsMenu()
     }
 }
 
-QAction* QApplicationMainWindow::createLanguageAction(const QString &language, const QString &locale)
-{
-    Settings settings;
-    QString defaultLocale = settings.getValue(CoreSettings::LanguageLocale).toString();
-
-    QAction *action = new QAction(this);
-    action->setText(language);
-    action->setStatusTip(tr("Switch to %1 language").arg(language));
-    action->setCheckable(true);
-    action->setChecked(defaultLocale == locale);
-
-    return action;
-}
-
 void QApplicationMainWindow::killBill()
 {
     // Eliminem totes les extensions
@@ -569,14 +527,6 @@ void QApplicationMainWindow::killBill()
             }
         }
     }
-}
-
-void QApplicationMainWindow::switchToLanguage(QString locale)
-{
-    Settings settings;
-    settings.setValue(CoreSettings::LanguageLocale, locale);
-
-    QMessageBox::information(this, tr("Language Switch"), tr("Changes will take effect the next time you start the application"));
 }
 
 void QApplicationMainWindow::launchExternalApplication(int i)

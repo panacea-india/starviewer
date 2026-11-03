@@ -32,7 +32,7 @@ public:
     ApplicationTranslationsLoader(QApplication *application);
     ~ApplicationTranslationsLoader();
 
-    /// Retorna el Local de l'aplicació. Aquest pot haver estat escollit per l'usuari o, si no, és el del sistema.
+    /// Returns the locale of the application, which is always British English, whatever the system locale. The application is English only.
     QLocale getDefaultLocale();
 
     /// Carrega una traducció de Qt (*.qm) que es trobi a translationFilePath. Aquest path pot ser d'un resource.

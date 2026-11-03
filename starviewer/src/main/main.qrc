@@ -1,17 +1,9 @@
 <RCC>
     <qresource prefix="/">
-        <file>main_ca_ES.qm</file>
-        <file>main_es_ES.qm</file>
         <file>main_en_GB.qm</file>
-        <file>../core/core_ca_ES.qm</file>
         <file>../core/core_en_GB.qm</file>
-        <file>../core/core_es_ES.qm</file>
-        <file>../inputoutput/inputoutput_ca_ES.qm</file>
         <file>../inputoutput/inputoutput_en_GB.qm</file>
-        <file>../inputoutput/inputoutput_es_ES.qm</file>
-        <file>../interface/interface_ca_ES.qm</file>
         <file>../interface/interface_en_GB.qm</file>
-        <file>../interface/interface_es_ES.qm</file>
         <file>xmlSchemes/DICOMDumpDefaultTags.xml</file>
         <file>xmlSchemes/CustomWindowLevels.xml</file>
         <file>cache/upgradeDatabase.xml</file>

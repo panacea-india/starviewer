@@ -2,7 +2,8 @@ find_package(Qt5 COMPONENTS Core LinguistTools)
 
 # Creates rules to call lupdate and lrelease for a folder. Additional directories can be given as optional parameters.
 function(add_translations OUT_VAR TARGET TRANSLATION_BASE_NAME)
-    set(LOCALES ca_ES en_GB es_ES)
+    # The application is English only. The ca_ES and es_ES translations stay in the repository, but are no longer built or maintained.
+    set(LOCALES en_GB)
 
     list(TRANSFORM LOCALES PREPEND "${TRANSLATION_BASE_NAME}_" OUTPUT_VARIABLE TS_FILES)
     list(TRANSFORM TS_FILES APPEND ".ts")

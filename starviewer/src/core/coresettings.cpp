@@ -45,7 +45,6 @@ const QString CoreSettings::RegisterStatLogs("LoggingPolicy/registerStatistics")
 const QString ToolsBase("Tools/");
 const QString CoreSettings::MagnifyingGlassZoomFactor(ToolsBase + "MagnifyingGlassZoomFactor");
 
-const QString CoreSettings::LanguageLocale("Starviewer-Language/languageLocale");
 
 const QString CoreSettings::ForcedImageReaderLibrary("Input/ForcedImageReaderLibrary");
 const QString CoreSettings::ForceITKImageReaderForSpecifiedModalities("Input/ForceITKImageReaderForSpecifiedModalities");
