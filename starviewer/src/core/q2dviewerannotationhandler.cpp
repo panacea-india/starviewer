@@ -323,6 +323,49 @@ QString getVariableThickness(const Q2DViewer *viewer)
     return thickness > 0.0 ? QString::number(thickness, 'f', 2) : QString();
 }
 
+// Returns the lossy compression marker for the current image of each input, or for any image of the input in reconstructions, or an empty
+// string if no shown image has undergone lossy compression. The ratio is added when there is only one lossy input and the image declares it.
+QString getLossyMarker(const Q2DViewer *viewer)
+{
+    QStringList ratios;
+    bool lossy = false;
+
+    for (int i = 0; i < viewer->getNumberOfInputs(); i++)
+    {
+        Image *image = viewer->getCurrentDisplayedImageOnInput(i);
+
+        if (!image && viewer->getInput(i))
+        {
+            for (Image *volumeImage : viewer->getInput(i)->getImages())
+            {
+                if (volumeImage->isLossy())
+                {
+                    image = volumeImage;
+                    break;
+                }
+            }
+        }
+
+        if (image && image->isLossy())
+        {
+            lossy = true;
+            ratios << image->getFormattedLossyImageCompressionRatio();
+        }
+    }
+
+    if (!lossy)
+    {
+        return QString();
+    }
+
+    if (ratios.size() == 1 && !ratios.first().isEmpty())
+    {
+        return QObject::tr("LOSSY") + " " + ratios.first();
+    }
+
+    return QObject::tr("LOSSY");
+}
+
 // Map from variable to getter function.
 const QHash<QString, decltype(&getDicomPatientID)> VariableGetters{
     {"PatientID", &getDicomPatientID},
@@ -548,6 +591,12 @@ void Q2DViewerAnnotationHandler::updateCornerAnnotation(CornerAnnotationIndexTyp
             }
 
             annotation.replace(matchedString, value);
+        }
+
+        // Always shown, whatever the template, so that a user cannot hide it by customising the annotations
+        if (corner == UpperLeftCornerIndex)
+        {
+            annotation += "\n" + getLossyMarker(m_2DViewer);
         }
 
         setCornerAnnotation(corner, annotation);

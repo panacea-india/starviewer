@@ -169,13 +169,15 @@ bool LocalDatabaseImageDAL::insert(const Image *image)
                                      "BitsStored, PixelRepresentation, RescaleSlope, WindowLevelWidth, WindowLevelCenter, WindowLevelExplanations, "
                                      "SliceLocation, RescaleIntercept, PhotometricInterpretation, ImageType, ViewPosition, ImageLaterality, ViewCodeMeaning, "
                                      "PhaseNumber, ImageTime, VolumeNumberInSeries, OrderNumberInVolume, RetrievedDate, RetrievedTime, State, "
-                                     "NumberOfOverlays, RetrievedPACSID, ImagerPixelSpacing, EstimatedRadiographicMagnificationFactor, TransferSyntaxUID) "
+                                     "NumberOfOverlays, RetrievedPACSID, ImagerPixelSpacing, EstimatedRadiographicMagnificationFactor, TransferSyntaxUID, "
+                                     "LossyImageCompression, LossyImageCompressionRatio) "
                   "VALUES (:sopInstanceUID, :frameNumber, :studyInstanceUID, :seriesInstanceUID, :instanceNumber, :imageOrientationPatient, "
                           ":patientOrientation, :pixelSpacing, :sliceThickness, :patientPosition, :samplesPerPixel, :rows, :columns, :bitsAllocated, "
                           ":bitsStored, :pixelRepresentation, :rescaleSlope, :windowLevelWidth, :windowLevelCenter, :windowLevelExplanations, "
                           ":sliceLocation, :rescaleIntercept, :photometricInterpretation, :imageType, :viewPosition, :imageLaterality, :viewCodeMeaning, "
                           ":phaseNumber, :imageTime, :volumeNumberInSeries, :orderNumberInVolume, :retrievedDate, :retrievedTime, :state, "
-                          ":numberOfOverlays, :retrievedPacsId, :imagerPixelSpacing, :estimatedRadiographicMagnificationFactor, :transferSyntaxUID)");
+                          ":numberOfOverlays, :retrievedPacsId, :imagerPixelSpacing, :estimatedRadiographicMagnificationFactor, :transferSyntaxUID, "
+                          ":lossyImageCompression, :lossyImageCompressionRatio)");
     bindValues(query, image);
     return executeQueryAndLogError(query);
 }
@@ -196,7 +198,8 @@ bool LocalDatabaseImageDAL::update(const Image *image)
                                    "RetrievedDate = :retrievedDate, RetrievedTime = :retrievedTime, State = :state, NumberOfOverlays = :numberOfOverlays, "
                                    "RetrievedPACSID = :retrievedPacsId, ImagerPixelSpacing = :imagerPixelSpacing, "
                                    "EstimatedRadiographicMagnificationFactor = :estimatedRadiographicMagnificationFactor, "
-                                   "TransferSyntaxUID = :transferSyntaxUID "
+                                   "TransferSyntaxUID = :transferSyntaxUID, LossyImageCompression = :lossyImageCompression, "
+                                   "LossyImageCompressionRatio = :lossyImageCompressionRatio "
                   "WHERE SOPInstanceUID = :sopInstanceUID AND FrameNumber = :frameNumber");
     bindValues(query, image);
     return executeQueryAndLogError(query);
@@ -217,7 +220,7 @@ QList<Image*> LocalDatabaseImageDAL::query(const DicomMask &mask)
                           "RescaleSlope, WindowLevelWidth, WindowLevelCenter, WindowLevelExplanations, SliceLocation, RescaleIntercept, "
                           "PhotometricInterpretation, ImageType, ViewPosition, ImageLaterality, ViewCodeMeaning, PhaseNumber, ImageTime, VolumeNumberInSeries, "
                           "OrderNumberInVolume, RetrievedDate, RetrievedTime, State, NumberOfOverlays, RetrievedPACSID, ImagerPixelSpacing, "
-                          "EstimatedRadiographicMagnificationFactor, TransferSyntaxUID "
+                          "EstimatedRadiographicMagnificationFactor, TransferSyntaxUID, LossyImageCompression, LossyImageCompressionRatio "
                    "FROM Image");
     QString orderBy(" ORDER BY VolumeNumberInSeries, OrderNumberInVolume");
     prepareQueryWithMask(query, mask, select, orderBy);
@@ -319,6 +322,8 @@ void LocalDatabaseImageDAL::bindValues(QSqlQuery &query, const Image *image)
     query.bindValue(":imagerPixelSpacing", pixelSpacingToDicomString(image->getImagerPixelSpacing()));
     query.bindValue(":estimatedRadiographicMagnificationFactor", QString::number(image->getEstimatedRadiographicMagnificationFactor()));
     query.bindValue(":transferSyntaxUID", image->getTransferSyntaxUID());
+    query.bindValue(":lossyImageCompression", image->getLossyImageCompression());
+    query.bindValue(":lossyImageCompressionRatio", image->getLossyImageCompressionRatio());
 }
 
 Image* LocalDatabaseImageDAL::getImage(const QSqlQuery &query)
@@ -371,6 +376,8 @@ Image* LocalDatabaseImageDAL::getImage(const QSqlQuery &query)
     image->setImagerPixelSpacing(pixelSpacingFromDicomString(query.value("ImagerPixelSpacing").toString()));
     image->setEstimatedRadiographicMagnificationFactor(query.value("EstimatedRadiographicMagnificationFactor").toString().toDouble());
     image->setTransferSyntaxUID(query.value("TransferSyntaxUID").toString());
+    image->setLossyImageCompression(query.value("LossyImageCompression").toString());
+    image->setLossyImageCompressionRatio(query.value("LossyImageCompressionRatio").toString());
 
     // TODO argghh!!! Això només hauria d'estar en un únic lloc, no aquí i en retrieveimages.cpp
     image->setPath(LocalDatabaseManager::getCachePath() + query.value("StudyInstanceUID").toString() + "/" + query.value("SeriesInstanceUID").toString() + "/" +

@@ -379,6 +379,8 @@ void ImageFillerStep::fillCommonImageInformation(Image *image, const DICOMTagRea
 
     // Transfer Syntax UID
     image->setTransferSyntaxUID(dicomReader->getValueAttributeAsQString(DICOMTransferSyntaxUID));
+    image->setLossyImageCompression(dicomReader->getValueAttributeAsQString(DICOMLossyImageCompression));
+    image->setLossyImageCompressionRatio(dicomReader->getValueAttributeAsQString(DICOMLossyImageCompressionRatio));
 }
 
 void ImageFillerStep::processImage(Image *image, const DICOMTagReader *dicomReader)

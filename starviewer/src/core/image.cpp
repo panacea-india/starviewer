@@ -25,6 +25,8 @@
 
 #include <vtkImageData.h>
 
+#include <dcxfer.h>     // DcmXfer
+
 namespace udg {
 
 Image::Image(QObject *parent)
@@ -455,6 +457,45 @@ void Image::setTransferSyntaxUID(const QString &transferSyntaxUID)
 const QString& Image::getTransferSyntaxUID() const
 {
     return m_transferSyntaxUID;
+}
+
+void Image::setLossyImageCompression(const QString &lossyImageCompression)
+{
+    m_lossyImageCompression = lossyImageCompression;
+}
+
+const QString& Image::getLossyImageCompression() const
+{
+    return m_lossyImageCompression;
+}
+
+void Image::setLossyImageCompressionRatio(const QString &lossyImageCompressionRatio)
+{
+    m_lossyImageCompressionRatio = lossyImageCompressionRatio;
+}
+
+const QString& Image::getLossyImageCompressionRatio() const
+{
+    return m_lossyImageCompressionRatio;
+}
+
+QString Image::getFormattedLossyImageCompressionRatio() const
+{
+    QStringList ratios;
+
+    for (const QString &value : m_lossyImageCompressionRatio.split("\\", QString::SkipEmptyParts))
+    {
+        bool ok;
+        double ratio = value.trimmed().toDouble(&ok);
+        ratios << (ok ? QString::number(qRound(ratio * 10) / 10.0) : value.trimmed()) + ":1";
+    }
+
+    return ratios.join(", ");
+}
+
+bool Image::isLossy() const
+{
+    return m_lossyImageCompression.trimmed() == "01" || (!m_transferSyntaxUID.isEmpty() && DcmXfer(qPrintable(m_transferSyntaxUID)).isLossy());
 }
 
 void Image::setStackId(QString stackId)

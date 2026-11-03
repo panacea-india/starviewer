@@ -48,6 +48,12 @@ private slots:
 
     void distance_ReturnsExpectedValues_data();
     void distance_ReturnsExpectedValues();
+
+    void isLossy_ReturnsExpectedValues_data();
+    void isLossy_ReturnsExpectedValues();
+
+    void getFormattedLossyImageCompressionRatio_ReturnsExpectedValues_data();
+    void getFormattedLossyImageCompressionRatio_ReturnsExpectedValues();
 };
 
 Q_DECLARE_METATYPE(QList<DisplayShutter>)
@@ -438,6 +444,65 @@ void test_Image::distance_ReturnsExpectedValues()
     QFETCH(double, expectedDistance);
 
     QVERIFY(FuzzyCompareTestHelper::fuzzyCompare(Image::distance(image), expectedDistance, 0.0001));
+}
+
+void test_Image::isLossy_ReturnsExpectedValues_data()
+{
+    QTest::addColumn<QString>("transferSyntaxUID");
+    QTest::addColumn<QString>("lossyImageCompression");
+    QTest::addColumn<bool>("expectedLossy");
+
+    QTest::newRow("nothing known") << "" << "" << false;
+    QTest::newRow("explicit little endian") << "1.2.840.10008.1.2.1" << "" << false;
+    QTest::newRow("JPEG lossless") << "1.2.840.10008.1.2.4.70" << "" << false;
+    QTest::newRow("JPEG 2000 lossless only") << "1.2.840.10008.1.2.4.90" << "" << false;
+    QTest::newRow("RLE") << "1.2.840.10008.1.2.5" << "" << false;
+    QTest::newRow("JPEG baseline") << "1.2.840.10008.1.2.4.50" << "" << true;
+    QTest::newRow("JPEG 2000") << "1.2.840.10008.1.2.4.91" << "" << true;
+    QTest::newRow("JPEG-LS near lossless") << "1.2.840.10008.1.2.4.81" << "" << true;
+    QTest::newRow("decompressed after lossy compression") << "1.2.840.10008.1.2.1" << "01" << true;
+    QTest::newRow("lossy compression with padding") << "1.2.840.10008.1.2.1" << "01 " << true;
+    QTest::newRow("declared not lossy") << "1.2.840.10008.1.2.1" << "00" << false;
+    QTest::newRow("lossy transfer syntax wins over 00") << "1.2.840.10008.1.2.4.50" << "00" << true;
+    QTest::newRow("unknown transfer syntax") << "1.2.3.4" << "" << false;
+}
+
+void test_Image::isLossy_ReturnsExpectedValues()
+{
+    QFETCH(QString, transferSyntaxUID);
+    QFETCH(QString, lossyImageCompression);
+    QFETCH(bool, expectedLossy);
+
+    Image image;
+    image.setTransferSyntaxUID(transferSyntaxUID);
+    image.setLossyImageCompression(lossyImageCompression);
+
+    QCOMPARE(image.isLossy(), expectedLossy);
+}
+
+void test_Image::getFormattedLossyImageCompressionRatio_ReturnsExpectedValues_data()
+{
+    QTest::addColumn<QString>("lossyImageCompressionRatio");
+    QTest::addColumn<QString>("expectedRatio");
+
+    QTest::newRow("none") << "" << "";
+    QTest::newRow("integer") << "500" << "500:1";
+    QTest::newRow("many decimals") << "10.0886699507389" << "10.1:1";
+    QTest::newRow("rounds up") << "6.6685" << "6.7:1";
+    QTest::newRow("padded") << " 52.701 " << "52.7:1";
+    QTest::newRow("two compressions") << "10\\5.25" << "10:1, 5.3:1";
+    QTest::newRow("not a number") << "abc" << "abc:1";
+}
+
+void test_Image::getFormattedLossyImageCompressionRatio_ReturnsExpectedValues()
+{
+    QFETCH(QString, lossyImageCompressionRatio);
+    QFETCH(QString, expectedRatio);
+
+    Image image;
+    image.setLossyImageCompressionRatio(lossyImageCompressionRatio);
+
+    QCOMPARE(image.getFormattedLossyImageCompressionRatio(), expectedRatio);
 }
 
 DECLARE_TEST(test_Image)

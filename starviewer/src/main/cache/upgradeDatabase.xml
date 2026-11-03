@@ -112,4 +112,8 @@
         <upgradeCommand>CREATE UNIQUE INDEX IndexPacsDevice_AETitleAddressQueryPortType ON PACSRetrievedImages(AETitle, Address, QueryPort, Type);</upgradeCommand>
         <upgradeCommand>CREATE UNIQUE INDEX IndexPacsDevice_BaseUriType ON PACSRetrievedImages(BaseUri, Type);</upgradeCommand>
     </upgradeDatabaseToRevision>
+    <upgradeDatabaseToRevision updateToRevision="9598">
+        <upgradeCommand>ALTER TABLE Image ADD COLUMN LossyImageCompression TEXT;</upgradeCommand>
+        <upgradeCommand>ALTER TABLE Image ADD COLUMN LossyImageCompressionRatio TEXT;</upgradeCommand>
+    </upgradeDatabaseToRevision>
 </upgradeDatabase>

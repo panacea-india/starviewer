@@ -207,6 +207,22 @@ public:
     /// Returns the transfer syntax UID.
     const QString& getTransferSyntaxUID() const;
 
+    /// Sets Lossy Image Compression (0028,2110): "01" if the image has undergone lossy compression at some point, "00" if not.
+    void setLossyImageCompression(const QString &lossyImageCompression);
+    /// Returns Lossy Image Compression (0028,2110).
+    const QString& getLossyImageCompression() const;
+
+    /// Sets Lossy Image Compression Ratio (0028,2112), as in DICOM, with one value for each lossy compression the image has undergone.
+    void setLossyImageCompressionRatio(const QString &lossyImageCompressionRatio);
+    /// Returns Lossy Image Compression Ratio (0028,2112).
+    const QString& getLossyImageCompressionRatio() const;
+    /// Returns Lossy Image Compression Ratio for display, with one decimal at most, as in "10.1:1, 5:1", or an empty string if there is none.
+    QString getFormattedLossyImageCompressionRatio() const;
+
+    /// Returns true if the image has undergone lossy compression, as Lossy Image Compression says or because its transfer syntax is lossy.
+    /// An image stays lossy after being decompressed, for example by a PACS, so the transfer syntax alone is not enough.
+    bool isLossy() const;
+
     /// Sets the stack id.
     void setStackId(QString stackId);
     /// Returns the stack id.
@@ -414,6 +430,11 @@ private:
     /// Transfer Syntax UID (0002,0010)
     /// Transfer syntax defines how DICOM objects are serialized.
     QString m_transferSyntaxUID;
+
+    /// Lossy Image Compression (0028,2110).
+    QString m_lossyImageCompression;
+    /// Lossy Image Compression Ratio (0028,2112).
+    QString m_lossyImageCompressionRatio;
 
     /// Stack ID (0020,9056).
     QString m_stackId;

@@ -14,7 +14,7 @@ CREATE TABLE DatabaseRevision
 -- IMPORTANT!!! Cal canviar el número de revisió per un de superior cada vegada que es faci un canvi a aquest fitxer i calgui
 -- que la BD s'actualitzi
 
-INSERT INTO DatabaseRevision (Revision) VALUES ('9597');
+INSERT INTO DatabaseRevision (Revision) VALUES ('9598');
 
 CREATE TABLE PACSRetrievedImages
 (
@@ -125,6 +125,8 @@ CREATE TABLE Image
   ImagerPixelSpacing            TEXT,
   EstimatedRadiographicMagnificationFactor    TEXT,
   TransferSyntaxUID             TEXT,
+  LossyImageCompression         TEXT,
+  LossyImageCompressionRatio    TEXT,
   PRIMARY KEY ('SOPInstanceUID', 'FrameNumber')
 );
 
