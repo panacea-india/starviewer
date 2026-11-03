@@ -29,6 +29,10 @@ private slots:
     void setBaseUri_ShouldNotSpecifyALogin_WhenTheUriHasNone();
     void setBaseUri_ShouldDecodeTheLogin();
 
+    void usesCGet_ShouldBeFalse_ByDefault();
+    void usesCGet_ShouldBeTrue_WhenChosen();
+    void usesCGet_ShouldBeTrue_WhenDicomTlsIsEnabled();
+
     void cleanupTestCase();
 
 private:
@@ -235,6 +239,28 @@ void test_PacsDevice::setBaseUri_ShouldNotSpecifyALogin_WhenTheUriHasNone()
     pacs.setBaseUri(QUrl("http://example.com/"));
 
     QVERIFY(!pacs.isLoginSpecified());
+}
+
+void test_PacsDevice::usesCGet_ShouldBeFalse_ByDefault()
+{
+    QVERIFY(!PacsDevice().usesCGet());
+}
+
+void test_PacsDevice::usesCGet_ShouldBeTrue_WhenChosen()
+{
+    PacsDevice pacs;
+    pacs.setCGetEnabled(true);
+
+    QVERIFY(pacs.usesCGet());
+}
+
+void test_PacsDevice::usesCGet_ShouldBeTrue_WhenDicomTlsIsEnabled()
+{
+    PacsDevice pacs;
+    pacs.setDicomTlsEnabled(true);
+
+    QVERIFY(pacs.usesCGet());
+    QVERIFY(!pacs.isCGetEnabled());
 }
 
 void test_PacsDevice::setBaseUri_ShouldDecodeTheLogin()

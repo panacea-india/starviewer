@@ -132,7 +132,8 @@ void RetrieveDICOMFilesFromPACSJob::run(ThreadWeaver::JobPointer self, ThreadWea
 
     int localPort = settings.getValue(InputOutputSettings::IncomingDICOMConnectionsPort).toInt();
 
-    if (PortInUse().isPortInUse(localPort))
+    // C-GET doesn't listen on the port.
+    if (!getPacsDevice().usesCGet() && PortInUse().isPortInUse(localPort))
     {
         m_retrieveRequestStatus = PACSRequestStatus::RetrieveIncomingDICOMConnectionsPortInUse;
         ERROR_LOG("El port " + QString::number(localPort) + " per a connexions entrants del PACS, esta en us, no es pot descarregar l'estudi");

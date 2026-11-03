@@ -1,0 +1,36 @@
+{
+  "Name": "Starviewer test lab with TLS",
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "IndexDirectory": "/var/lib/orthanc/db",
+  "Plugins": [
+    "/usr/local/share/orthanc/plugins/libOrthancDicomWeb.so",
+    "/usr/local/share/orthanc/plugins/libOrthancGdcm.so"
+  ],
+  "DicomAet": "ORTHANC",
+  "DicomPort": 4242,
+  "HttpPort": 8042,
+  "RemoteAccessAllowed": true,
+  "AuthenticationEnabled": true,
+  "RegisteredUsers": { "qa": "qa-only" },
+  "SslEnabled": true,
+  "SslCertificate": "/tls/server-combined.pem",
+  "DicomTlsEnabled": true,
+  "DicomTlsCertificate": "/tls/server.pem",
+  "DicomTlsPrivateKey": "/tls/server.key",
+  "DicomTlsTrustedCertificates": "/tls/ca.pem",
+  "DicomTlsRemoteCertificateRequired": true,
+  "UnknownSopClassAccepted": true,
+  "DicomCheckModalityHost": false,
+  "DicomAlwaysAllowEcho": true,
+  "DicomAlwaysAllowFind": true,
+  "DicomAlwaysAllowFindWorklist": true,
+  "DicomAlwaysAllowGet": true,
+  "DicomAlwaysAllowMove": true,
+  "DicomAlwaysAllowStore": true,
+  "DicomWeb": {
+    "Enable": true,
+    "Root": "/dicom-web/",
+    "EnableWado": true,
+    "WadoRoot": "/wado"
+  }
+}

@@ -17,7 +17,15 @@
 #include <dimse.h>
 #include <ofcond.h>
 #include <assoc.h>
+#include <tlslayer.h>
+#ifdef WITH_OPENSSL
+#include <openssl/ssl.h>
+#include <openssl/x509v3.h>
+#endif
+#include <QFile>
+#include <QHostAddress>
 #include <QHostInfo>
+#include <QScopedPointer>
 #include <QStringList>
 
 #include "logging.h"
@@ -39,6 +47,130 @@ PACSConnection::PACSConnection(PacsDevice pacsDevice)
 
 PACSConnection::~PACSConnection()
 {
+}
+
+bool PACSConnection::isDicomTlsAvailable()
+{
+#ifdef WITH_OPENSSL
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool PACSConnection::setUpDicomTls()
+{
+#ifdef WITH_OPENSSL
+    if (m_pacs.getCaCertificateFile().isEmpty())
+    {
+        ERROR_LOG("DICOM TLS needs a CA certificate file. AE Title: " + m_pacs.getAETitle());
+        return false;
+    }
+
+    QScopedPointer<DcmTLSTransportLayer> tlsLayer(new DcmTLSTransportLayer(NET_REQUESTOR, nullptr, OFTrue));
+
+    if (!*tlsLayer)
+    {
+        ERROR_LOG("The DICOM TLS layer could not be created. AE Title: " + m_pacs.getAETitle());
+        return false;
+    }
+
+    // Without this, OpenSSL would ask for the password of an encrypted private key on a console that nobody sees.
+    tlsLayer->setPrivateKeyPasswd("");
+
+    OFCondition condition = tlsLayer->setTLSProfile(TSP_Profile_BCP195);
+
+    if (condition.good())
+    {
+        condition = tlsLayer->activateCipherSuites();
+    }
+    if (condition.good())
+    {
+        condition = tlsLayer->addTrustedCertificateFile(QFile::encodeName(m_pacs.getCaCertificateFile()).constData(), DCF_Filetype_PEM);
+    }
+    if (condition.good() && !m_pacs.getClientCertificateFile().isEmpty())
+    {
+        condition = tlsLayer->setPrivateKeyFile(QFile::encodeName(m_pacs.getClientPrivateKeyFile()).constData(), DCF_Filetype_PEM);
+
+        if (condition.good())
+        {
+            condition = tlsLayer->setCertificateFile(QFile::encodeName(m_pacs.getClientCertificateFile()).constData(), DCF_Filetype_PEM);
+        }
+        if (condition.good() && !tlsLayer->checkPrivateKeyMatchesCertificate())
+        {
+            ERROR_LOG("The client private key does not match its certificate. AE Title: " + m_pacs.getAETitle());
+            return false;
+        }
+    }
+    if (condition.bad())
+    {
+        ERROR_LOG("DICOM TLS could not be configured. AE Title: " + m_pacs.getAETitle() + ". Error description: " + QString(condition.text()));
+        return false;
+    }
+
+    tlsLayer->setCertificateVerification(DCV_requireCertificate);
+
+    // DCMTK only checks that a trusted CA signed the certificate. This also makes OpenSSL check that the certificate is for this PACS.
+    X509_VERIFY_PARAM *verifyParameters = SSL_CTX_get0_param(tlsLayer->getNativeHandle());
+    QByteArray address = m_pacs.getAddress().toUtf8();
+    int isSet = QHostAddress().setAddress(m_pacs.getAddress()) ? X509_VERIFY_PARAM_set1_ip_asc(verifyParameters, address.constData())
+                                                               : X509_VERIFY_PARAM_set1_host(verifyParameters, address.constData(), 0);
+    if (isSet != 1)
+    {
+        ERROR_LOG("The name of the PACS could not be set for the check of its certificate. AE Title: " + m_pacs.getAETitle());
+        return false;
+    }
+
+    condition = ASC_setTransportLayer(m_associationNetwork, tlsLayer.data(), 1);
+
+    if (condition.bad())
+    {
+        ERROR_LOG("The DICOM TLS layer could not be set. AE Title: " + m_pacs.getAETitle() + ". Error description: " + QString(condition.text()));
+        return false;
+    }
+
+    tlsLayer.take();    // the association network owns it now
+    return true;
+#else
+    ERROR_LOG("This build of Starviewer cannot use DICOM TLS. AE Title: " + m_pacs.getAETitle());
+    return false;
+#endif
+}
+
+OFCondition PACSConnection::configureGet()
+{
+    const char *transferSyntaxes[] = { NULL, NULL, NULL };
+
+    getTransferSyntaxForFindOrMoveConnection(transferSyntaxes);
+
+    OFCondition condition = ASC_addPresentationContext(m_associationParameters, 1, UID_GETStudyRootQueryRetrieveInformationModel, transferSyntaxes,
+                                                       DIM_OF(transferSyntaxes));
+
+    // Uncompressed first, and lossy last, because a PACS may just take the first one and convert the images to it. The lossy ones are needed for images
+    // that are already stored that way.
+    QList<const char*> storageTransferSyntaxes;
+    storageTransferSyntaxes << UID_LittleEndianExplicitTransferSyntax << UID_LittleEndianImplicitTransferSyntax << UID_BigEndianExplicitTransferSyntax
+                            << UID_JPEGProcess14SV1TransferSyntax << UID_JPEGProcess14TransferSyntax << UID_JPEGLSLosslessTransferSyntax
+                            << UID_JPEG2000LosslessOnlyTransferSyntax << UID_RLELosslessTransferSyntax << UID_DeflatedExplicitVRLittleEndianTransferSyntax
+                            << UID_JPEGProcess1TransferSyntax << UID_JPEGProcess2_4TransferSyntax << UID_JPEGLSLossyTransferSyntax
+                            << UID_JPEG2000TransferSyntax;
+
+    // The short list leaves room for the presentation contexts: there can only be 128 in an association.
+    QStringList sopClasses;
+    int presentationContextID = 3;
+
+    for (int i = 0; i < numberOfDcmShortSCUStorageSOPClassUIDs && condition.good() && presentationContextID <= 255; i++)
+    {
+        if (!sopClasses.contains(QString(dcmShortSCUStorageSOPClassUIDs[i])))
+        {
+            sopClasses.append(QString(dcmShortSCUStorageSOPClassUIDs[i]));
+            condition = addPresentationContext(presentationContextID, sopClasses.last(), storageTransferSyntaxes, ASC_SC_ROLE_SCP);
+            // Only odd presentation context id's
+            presentationContextID += 2;
+        }
+    }
+
+    return condition;
 }
 
 OFCondition PACSConnection::configureEcho()
@@ -164,7 +296,8 @@ OFCondition PACSConnection::configureStore()
     return condition;
 }
 
-OFCondition PACSConnection::addPresentationContext(int presentationContextId, const QString &abstractSyntax, QList<const char*> transferSyntaxList)
+OFCondition PACSConnection::addPresentationContext(int presentationContextId, const QString &abstractSyntax, QList<const char*> transferSyntaxList,
+                                                   T_ASC_SC_ROLE role)
 {
     // Create an array of supported/possible transfer syntaxes
     const char **transferSyntaxes = new const char*[transferSyntaxList.size()];
@@ -176,7 +309,7 @@ OFCondition PACSConnection::addPresentationContext(int presentationContextId, co
     }
 
     OFCondition condition = ASC_addPresentationContext(m_associationParameters, presentationContextId, qPrintable(abstractSyntax), transferSyntaxes,
-        transferSyntaxCount, ASC_SC_ROLE_DEFAULT);
+        transferSyntaxCount, role);
 
     delete[] transferSyntaxes;
     return condition;
@@ -199,8 +332,7 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
     ASC_setAPTitles(m_associationParameters, qPrintable(settings.getValue(InputOutputSettings::LocalAETitle).toString()), qPrintable(m_pacs.getAETitle()),
                     NULL);
 
-    // Defineix el nivell de seguretat de la connexió en aquest cas diem que no utilitzem cap nivell de seguretat
-    ASC_setTransportLayerType(m_associationParameters, OFFalse);
+    ASC_setTransportLayerType(m_associationParameters, m_pacs.isDicomTlsEnabled() ? OFTrue : OFFalse);
 
     ASC_setPresentationAddresses(m_associationParameters, qPrintable(QHostInfo::localHostName()),
         qPrintable(constructPacsServerAddress(pacsServiceToRequest, m_pacs)));
@@ -217,7 +349,7 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
             condition = configureFind();
             break;
         case RetrieveDICOMFiles:
-            condition = configureMove();
+            condition = m_pacs.usesCGet() ? configureGet() : configureMove();
             break;
         case SendDICOMFiles:
             condition = configureStore();
@@ -238,6 +370,12 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
     {
         ERROR_LOG("S'ha produit un error inicialitzant els parametres de la connexio. AE Title: " + m_pacs.getAETitle() + ", adreca: " +
             constructPacsServerAddress(pacsServiceToRequest, m_pacs));
+        return false;
+    }
+
+    if (m_pacs.isDicomTlsEnabled() && !setUpDicomTls())
+    {
+        ASC_dropNetwork(&m_associationNetwork);
         return false;
     }
 
@@ -334,10 +472,12 @@ QString PACSConnection::constructPacsServerAddress(PACSServiceToRequest pacsServ
 T_ASC_Network* PACSConnection::initializeAssociationNetwork(PACSServiceToRequest pacsServiceToRequest)
 {
     Settings settings;
+    // C-GET receives the images on the association that it opens, so only C-MOVE listens on a port.
+    bool listens = pacsServiceToRequest == RetrieveDICOMFiles && !m_pacs.usesCGet();
     // Si no es tracta d'una descarrega indiquem port 0
-    int networkPort = pacsServiceToRequest == RetrieveDICOMFiles ? settings.getValue(InputOutputSettings::IncomingDICOMConnectionsPort).toInt() : 0;
+    int networkPort = listens ? settings.getValue(InputOutputSettings::IncomingDICOMConnectionsPort).toInt() : 0;
     int timeout = settings.getValue(InputOutputSettings::PACSConnectionTimeout).toInt();
-    T_ASC_NetworkRole networkRole = pacsServiceToRequest == RetrieveDICOMFiles ? NET_ACCEPTORREQUESTOR : NET_REQUESTOR;
+    T_ASC_NetworkRole networkRole = listens ? NET_ACCEPTORREQUESTOR : NET_REQUESTOR;
     T_ASC_Network *associationNetwork;
 
     OFCondition condition = ASC_initializeNetwork(networkRole, networkPort, timeout, &associationNetwork);

@@ -142,6 +142,7 @@ void WadoStoreRequest::sendNextBatchOfFiles()
         QNetworkRequest request = createNetworkRequest(QUrl(urlString));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/related; type=\"application/dicom\"; boundary=" + boundary);
         m_reply = m_networkAccessManager->post(request, multipart);
+        keepSslErrors(m_reply);
         multipart->setParent(m_reply);  // multipart will be deleted with m_reply
 
         emit started();
@@ -173,7 +174,7 @@ void WadoStoreRequest::onReplyFinished()
         ERROR_LOG(QString("Error during store of study %1 to WADO PACS with base URI %2.").arg(m_seriesList.first()->getParentStudy()->getInstanceUID())
                  .arg(getPacsDevice().getBaseUri().toString()));
         m_status = Status::Errored;
-        m_errorsDescription = m_reply->errorString();
+        m_errorsDescription = getErrorString(m_reply);
         ERROR_LOG(m_errorsDescription);
 
         QVariant httpStatusCodeVariant = m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);

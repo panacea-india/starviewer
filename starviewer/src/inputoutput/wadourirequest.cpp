@@ -168,6 +168,7 @@ void WadoUriRequest::downloadInstances()
                                                                                                              : QNetworkRequest::NoLessSafeRedirectPolicy);
 
         QNetworkReply *reply = m_networkAccessManager->get(request);
+        keepSslErrors(reply);
         m_pendingReplies.insert(reply);
 
         connect(this, &WadoUriRequest::cancelRequested, reply, &QNetworkReply::abort);
@@ -289,20 +290,20 @@ void WadoUriRequest::onReplyFinished(QNetworkReply *reply)
     {
         m_status = Status::Warnings;
 
-        QString key = reply->errorString().replace(HttpUrlRegExp, "\\1");
+        QString key = getErrorString(reply).replace(HttpUrlRegExp, "\\1");
 
         if (m_errors.contains(key))
         {
             m_errors[key].first++;
-            m_errors[key].second = Utils::findCommonPattern(m_errors[key].second, reply->errorString());
+            m_errors[key].second = Utils::findCommonPattern(m_errors[key].second, getErrorString(reply));
         }
         else
         {
-            m_errors[key] = {1, reply->errorString()};
+            m_errors[key] = {1, getErrorString(reply)};
         }
 
         ERROR_LOG(QString("QNetworkReply::NetworkError %1: %2. (HTTP %3: %4) [URL: %5]")
-                  .arg(reply->error()).arg(reply->errorString())
+                  .arg(reply->error()).arg(getErrorString(reply))
                   .arg(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt())
                   .arg(reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString())
                   .arg(reply->url().toString()));

@@ -25,6 +25,7 @@
 #include <dcdeftag.h>
 
 #include <QDir>
+#include <QElapsedTimer>
 #include <QString>
 
 #include "localdatabasemanager.h"
@@ -38,6 +39,10 @@ namespace udg {
 
 // Constant que contindrà quin Abanstract Syntax de Move utilitzem entre els diversos que hi ha utilitzem
 static const char *MoveAbstractSyntax = UID_MOVEStudyRootQueryRetrieveInformationModel;
+static const char *GetAbstractSyntax = UID_GETStudyRootQueryRetrieveInformationModel;
+
+// How long a C-GET waits with no message from the PACS. It is long because a PACS may need time to bring a study back from an archive.
+static const qint64 MaximumCGetIdleMilliseconds = 5 * 60 * 1000;
 
 RetrieveDICOMFilesFromPACS::RetrieveDICOMFilesFromPACS(PacsDevice pacs)
  : DIMSECService()
@@ -45,7 +50,14 @@ RetrieveDICOMFilesFromPACS::RetrieveDICOMFilesFromPACS(PacsDevice pacs)
     m_pacs = pacs;
     m_abortIsRequested = false;
 
-    this->setUpAsCMove();
+    if (m_pacs.usesCGet())
+    {
+        this->setUpAsCGet();
+    }
+    else
+    {
+        this->setUpAsCMove();
+    }
 }
 
 OFCondition RetrieveDICOMFilesFromPACS::acceptSubAssociation(T_ASC_Network *associationNetwork, T_ASC_Association **association)
@@ -335,6 +347,107 @@ OFCondition RetrieveDICOMFilesFromPACS::subOperationSCP(T_ASC_Association **subA
     return condition;
 }
 
+OFCondition RetrieveDICOMFilesFromPACS::retrieveWithCGet(T_ASC_Association *association, T_ASC_PresentationContextID presentationContextID,
+                                                         DcmDataset *identifiers, unsigned int *dimseStatus, DcmDataset **statusDetail)
+{
+    *dimseStatus = STATUS_GET_Failed_UnableToProcess;
+
+    T_DIMSE_Message request;
+    request.CommandField = DIMSE_C_GET_RQ;
+    request.msg.CGetRQ.MessageID = association->nextMsgID++;
+    OFStandard::strlcpy(request.msg.CGetRQ.AffectedSOPClassUID, GetAbstractSyntax, sizeof(request.msg.CGetRQ.AffectedSOPClassUID));
+    request.msg.CGetRQ.Priority = DIMSE_PRIORITY_MEDIUM;
+    request.msg.CGetRQ.DataSetType = DIMSE_DATASET_PRESENT;
+
+    OFCondition condition = DIMSE_sendMessageUsingMemoryData(association, presentationContextID, &request, NULL, identifiers, NULL, NULL);
+
+    if (condition.bad())
+    {
+        return condition;
+    }
+
+    QElapsedTimer idleTimer;
+    idleTimer.start();
+
+    while (true)
+    {
+        // Like C-MOVE, it cancels by aborting, because not all PACS support a cancel request.
+        if (m_abortIsRequested)
+        {
+            INFO_LOG("Abortarem la connexio amb el PACS, perque han sol.licitant cancel.lar la descarrega");
+            *dimseStatus = STATUS_GET_Cancel_SubOperationsTerminatedDueToCancelIndication;
+            return ASC_abortAssociation(association);
+        }
+
+        // Waiting a second at a time so that a PACS that is not sending anything doesn't stop the cancel.
+        if (!ASC_dataWaiting(association, 1))
+        {
+            if (idleTimer.hasExpired(MaximumCGetIdleMilliseconds))
+            {
+                ERROR_LOG("El PACS ha deixat d'enviar durant un C-GET");
+                return DIMSE_NODATAAVAILABLE;
+            }
+
+            continue;
+        }
+
+        T_DIMSE_Message message;
+        T_ASC_PresentationContextID messagePresentationContextID;
+        DcmDataset *messageStatusDetail = NULL;
+
+        condition = DIMSE_receiveCommand(association, DIMSE_BLOCKING, 0, &messagePresentationContextID, &message, &messageStatusDetail);
+
+        if (condition.bad())
+        {
+            return condition;
+        }
+
+        idleTimer.restart();
+
+        if (message.CommandField == DIMSE_C_STORE_RQ)
+        {
+            delete messageStatusDetail;
+            condition = storeSCP(association, &message, messagePresentationContextID);
+
+            if (condition.bad())
+            {
+                return condition;
+            }
+        }
+        else if (message.CommandField == DIMSE_C_GET_RSP)
+        {
+            // The list of images that failed may come with the response. The status says all that's needed.
+            if (message.msg.CGetRSP.DataSetType != DIMSE_DATASET_NULL)
+            {
+                DcmDataset *responseIdentifiers = NULL;
+                condition = DIMSE_receiveDataSetInMemory(association, DIMSE_BLOCKING, 0, &messagePresentationContextID, &responseIdentifiers, NULL, NULL);
+                delete responseIdentifiers;
+
+                if (condition.bad())
+                {
+                    delete messageStatusDetail;
+                    return condition;
+                }
+            }
+
+            if (!DICOM_PENDING_STATUS(message.msg.CGetRSP.DimseStatus))
+            {
+                *dimseStatus = message.msg.CGetRSP.DimseStatus;
+                *statusDetail = messageStatusDetail;
+                return EC_Normal;
+            }
+
+            delete messageStatusDetail;
+        }
+        else
+        {
+            delete messageStatusDetail;
+            ERROR_LOG("El PACS ens ha sol.licitat un tipus d'operacio invalida");
+            return DIMSE_BADCOMMANDTYPE;
+        }
+    }
+}
+
 void RetrieveDICOMFilesFromPACS::subOperationCallback(void *subOperationCallbackData, T_ASC_Network *associationNetwork, T_ASC_Association **subAssociation)
 {
     RetrieveDICOMFilesFromPACS *retrieveDICOMFilesFromPACS = (RetrieveDICOMFilesFromPACS*)subOperationCallbackData;
@@ -382,24 +495,38 @@ PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACS::retrieve(co
 
     // Which presentation context should be used, It's important that the connection has MoveStudyRoot level
     T_ASC_Association *association = m_pacsConnection->getConnection();
-    presentationContextID = ASC_findAcceptedPresentationContextID(association, MoveAbstractSyntax);
+    presentationContextID = ASC_findAcceptedPresentationContextID(association, m_pacs.usesCGet() ? GetAbstractSyntax : MoveAbstractSyntax);
     if (presentationContextID == 0)
     {
         ERROR_LOG("No s'ha trobat cap presentation context valid");
         return PACSRequestStatus::RetrieveFailureOrRefused;
     }
 
-    moveSCPCallbackData.association = association;
-    moveSCPCallbackData.presentationContextId = presentationContextID;
-    moveSCPCallbackData.retrieveDICOMFilesFromPACS = this;
+    OFCondition condition;
+    unsigned int dimseStatus;
 
-    // Set the destination of the images to us
-    T_DIMSE_C_MoveRQ moveRequest = getConfiguredMoveRequest(association);
-    ASC_getAPTitles(association->params, moveRequest.MoveDestination, sizeof(moveRequest.MoveDestination), NULL, 0, NULL, 0);
+    if (m_pacs.usesCGet())
+    {
+        condition = retrieveWithCGet(association, presentationContextID, dcmDatasetToRetrieve, &dimseStatus, &statusDetail);
+    }
+    else
+    {
+        moveSCPCallbackData.association = association;
+        moveSCPCallbackData.presentationContextId = presentationContextID;
+        moveSCPCallbackData.retrieveDICOMFilesFromPACS = this;
 
-    OFCondition condition = DIMSE_moveUser(association, presentationContextID, &moveRequest, dcmDatasetToRetrieve, moveCallback, &moveSCPCallbackData,
-                                           DIMSE_BLOCKING, 0, m_pacsConnection->getNetwork(), subOperationCallback, this, &moveResponse, &statusDetail,
-                                           NULL /*responseIdentifiers*/);
+        // Set the destination of the images to us
+        T_DIMSE_C_MoveRQ moveRequest = getConfiguredMoveRequest(association);
+        ASC_getAPTitles(association->params, moveRequest.MoveDestination, sizeof(moveRequest.MoveDestination), NULL, 0, NULL, 0);
+
+        // DIMSE_moveUser doesn't set the response if it fails before receiving one.
+        moveResponse.DimseStatus = STATUS_MOVE_Failed_UnableToProcess;
+
+        condition = DIMSE_moveUser(association, presentationContextID, &moveRequest, dcmDatasetToRetrieve, moveCallback, &moveSCPCallbackData,
+                                   DIMSE_BLOCKING, 0, m_pacsConnection->getNetwork(), subOperationCallback, this, &moveResponse, &statusDetail,
+                                   NULL /*responseIdentifiers*/);
+        dimseStatus = moveResponse.DimseStatus;
+    }
 
     if (condition.bad())
     {
@@ -409,8 +536,8 @@ PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACS::retrieve(co
 
     m_pacsConnection->disconnect();
 
-    retrieveRequestStatus = getDIMSEStatusCodeAsRetrieveRequestStatus(moveResponse.DimseStatus);
-    processServiceClassProviderResponseStatus(moveResponse.DimseStatus, statusDetail);
+    retrieveRequestStatus = getDIMSEStatusCodeAsRetrieveRequestStatus(dimseStatus);
+    processServiceClassProviderResponseStatus(dimseStatus, statusDetail);
     
     // Dump status detail information if there is some
     if (statusDetail != NULL)
@@ -496,6 +623,8 @@ PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACS::getDIMSESta
     //      Success: Totes les imatges s'han descarregat correctament
 
     // Per a detalls sobre els "related fields" consultar PS 3.7, Annex C - Status Type Enconding
+
+    // C-GET has the same status codes as C-MOVE for all of these.
 
     if (dimseStatusCode == STATUS_Success)
     {

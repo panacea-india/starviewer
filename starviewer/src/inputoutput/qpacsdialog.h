@@ -53,6 +53,15 @@ private:
     /// Shows or hides the login fields.
     void setLoginFieldsVisible(bool visible);
 
+    /// Shows or hides the fields for DICOM TLS and C-GET, and shows the CA certificate field, which all types have.
+    void setTransportFieldsVisible(bool dicomTls, bool cGet);
+
+    /// Returns true if the current values in the certificate fields are valid and false otherwise, in which case it shows a warning.
+    bool areCertificatesValid();
+
+    /// Asks for a file and puts it in the given field.
+    void chooseFile(QLineEdit *lineEdit);
+
     /// Returns true if the current values in the login fields are valid and false otherwise, in which case it shows a warning.
     bool isLoginValid();
 
@@ -73,6 +82,9 @@ private:
     void finishSavingLogin(const PacsDevice &pacsDevice);
 
 private slots:
+    /// Enables the fields for certificates and C-GET according to whether DICOM TLS is on.
+    void updateTransportFields();
+
     /// Shows the warning about sending a password without encryption if it applies to the current values.
     void updateLoginWarning();
 
@@ -100,6 +112,8 @@ private:
     QUrl m_storedLoginBaseUri;
     /// Stored user name read into the dialog, if any.
     QString m_storedUsername;
+    /// Whether C-GET is chosen, apart from DICOM TLS, which always uses it. The C-GET box shows this while DICOM TLS is off.
+    bool m_cGetChosen;
 };
 
 } // namespace udg

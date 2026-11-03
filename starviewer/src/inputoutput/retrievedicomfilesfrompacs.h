@@ -72,6 +72,10 @@ private:
     /// Responem a una petició per guardar una imatge
     OFCondition storeSCP(T_ASC_Association *association, T_DIMSE_Message *messagge, T_ASC_PresentationContextID presentationContextID);
 
+    /// Retrieves with C-GET: asks for the images and receives them on this same association, until the final response. Sets the status of that response.
+    OFCondition retrieveWithCGet(T_ASC_Association *association, T_ASC_PresentationContextID presentationContextID, DcmDataset *identifiers,
+                                 unsigned int *dimseStatus, DcmDataset **statusDetail);
+
     /// Accepta la connexió que ens fa el PACS, per convertir-nos en un scp
     OFCondition subOperationSCP(T_ASC_Association **subAssociation);
 

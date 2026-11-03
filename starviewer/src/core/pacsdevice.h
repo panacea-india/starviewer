@@ -26,7 +26,7 @@ namespace udg {
  * This data includes connexion data and other descriptive data (institution, location and description).
  *
  * There are three types of PACS according to the protocols they use to search, download and upload studies:
- * - DIMSE: C-FIND + C-MOVE + C-STORE
+ * - DIMSE: C-FIND + C-MOVE or C-GET + C-STORE
  * - WADO: QIDO-RS + WADO-RS + STOW-RS
  * - Hybrid WADO-URI + DIMSE: C-FIND + WADO-URI + C-STORE
  */
@@ -95,6 +95,31 @@ public:
     /// Specifies which login to use. An empty user name means that no login must be used. The login stays in memory: this class doesn't save it anywhere.
     void setLogin(QString username, QString password);
 
+    /// Returns the file of CA certificates, in PEM format, that identify this PACS. DICOM TLS needs one. HTTPS trusts it as well as the system's.
+    const QString& getCaCertificateFile() const;
+    /// Sets the file of CA certificates that identify this PACS.
+    void setCaCertificateFile(QString caCertificateFile);
+
+    /// Returns true if DIMSE operations with this PACS use DICOM TLS. Not applicable to WADO PACS.
+    bool isDicomTlsEnabled() const;
+    /// Sets whether DIMSE operations with this PACS use DICOM TLS. Not applicable to WADO PACS.
+    void setDicomTlsEnabled(bool enabled);
+
+    /// Returns the file with the certificate that identifies this computer to the PACS in DICOM TLS, if the PACS asks for one. Not applicable to WADO PACS.
+    const QString& getClientCertificateFile() const;
+    /// Returns the file with the private key of the client certificate, which cannot be encrypted. Not applicable to WADO PACS.
+    const QString& getClientPrivateKeyFile() const;
+    /// Sets the files with the client certificate and its private key. Not applicable to WADO PACS.
+    void setClientCertificate(QString certificateFile, QString privateKeyFile);
+
+    /// Returns true if C-GET has been chosen to retrieve from this PACS. Only applicable to DIMSE PACS.
+    bool isCGetEnabled() const;
+    /// Sets whether to retrieve from this PACS with C-GET. Only applicable to DIMSE PACS.
+    void setCGetEnabled(bool enabled);
+    /// Returns true if retrieving from this PACS uses C-GET. DICOM TLS always does, because with C-MOVE the images would come back on another connection,
+    /// which Starviewer does not protect.
+    bool usesCGet() const;
+
     /// Returns the institution that owns or manages this PACS.
     const QString& getInstitution() const;
     /// Sets the institution that owns or manages this PACS.
@@ -156,6 +181,16 @@ private:
     QString m_username;
     /// Specified password. Only applicable to WADO and hybrid PACS.
     QString m_password;
+    /// File of CA certificates that identify this PACS.
+    QString m_caCertificateFile;
+    /// Whether DIMSE operations use DICOM TLS. Only applicable to DIMSE and hybrid PACS.
+    bool m_isDicomTlsEnabled;
+    /// File with the client certificate for DICOM TLS. Only applicable to DIMSE and hybrid PACS.
+    QString m_clientCertificateFile;
+    /// File with the private key of the client certificate. Only applicable to DIMSE and hybrid PACS.
+    QString m_clientPrivateKeyFile;
+    /// Whether C-GET has been chosen to retrieve. Only applicable to DIMSE PACS.
+    bool m_isCGetEnabled;
     /// Institution that owns or manages this PACS.
     QString m_institution;
     /// Location of this PACS.

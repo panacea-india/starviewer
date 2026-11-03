@@ -25,7 +25,7 @@ const QString PacsDevice::DefaultPacsListSeparator("\\\\");
 
 PacsDevice::PacsDevice()
     : m_type(Type::Dimse), m_isQueryRetrieveServiceEnabled(false), m_queryRetrieveServicePort(-1), m_isStoreServiceEnabled(false), m_storeServicePort(-1),
-      m_isLoginSpecified(false)
+      m_isLoginSpecified(false), m_isDicomTlsEnabled(false), m_isCGetEnabled(false)
 {
 }
 
@@ -147,6 +147,57 @@ void PacsDevice::setLogin(QString username, QString password)
     m_password = std::move(password);
 }
 
+const QString& PacsDevice::getCaCertificateFile() const
+{
+    return m_caCertificateFile;
+}
+
+void PacsDevice::setCaCertificateFile(QString caCertificateFile)
+{
+    m_caCertificateFile = std::move(caCertificateFile);
+}
+
+bool PacsDevice::isDicomTlsEnabled() const
+{
+    return m_isDicomTlsEnabled;
+}
+
+void PacsDevice::setDicomTlsEnabled(bool enabled)
+{
+    m_isDicomTlsEnabled = enabled;
+}
+
+const QString& PacsDevice::getClientCertificateFile() const
+{
+    return m_clientCertificateFile;
+}
+
+const QString& PacsDevice::getClientPrivateKeyFile() const
+{
+    return m_clientPrivateKeyFile;
+}
+
+void PacsDevice::setClientCertificate(QString certificateFile, QString privateKeyFile)
+{
+    m_clientCertificateFile = std::move(certificateFile);
+    m_clientPrivateKeyFile = std::move(privateKeyFile);
+}
+
+bool PacsDevice::isCGetEnabled() const
+{
+    return m_isCGetEnabled;
+}
+
+void PacsDevice::setCGetEnabled(bool enabled)
+{
+    m_isCGetEnabled = enabled;
+}
+
+bool PacsDevice::usesCGet() const
+{
+    return m_isCGetEnabled || m_isDicomTlsEnabled;
+}
+
 const QString& PacsDevice::getInstitution() const
 {
     return m_institution;
@@ -247,6 +298,11 @@ bool PacsDevice::operator==(const PacsDevice &pacsDevice) const
         && m_isLoginSpecified == pacsDevice.m_isLoginSpecified
         && m_username == pacsDevice.m_username
         && m_password == pacsDevice.m_password
+        && m_caCertificateFile == pacsDevice.m_caCertificateFile
+        && m_isDicomTlsEnabled == pacsDevice.m_isDicomTlsEnabled
+        && m_clientCertificateFile == pacsDevice.m_clientCertificateFile
+        && m_clientPrivateKeyFile == pacsDevice.m_clientPrivateKeyFile
+        && m_isCGetEnabled == pacsDevice.m_isCGetEnabled
         && m_location == pacsDevice.m_location
         && m_institution == pacsDevice.m_institution
         && m_description == pacsDevice.m_description;

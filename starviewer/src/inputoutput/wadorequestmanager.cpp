@@ -21,7 +21,7 @@
 namespace udg {
 
 WadoRequestManager::WadoRequestManager(QObject *parent)
-    : QObject(parent), m_networkAccessManager(nullptr)
+    : QObject(parent)
 {
     connect(this, &WadoRequestManager::startCalled, this, &WadoRequestManager::startInternal);
 }
@@ -33,13 +33,17 @@ void WadoRequestManager::start(WadoRequest *request)
 
 void WadoRequestManager::startInternal(WadoRequest *request)
 {
-    if (!m_networkAccessManager)
+    QString caCertificateFile = request->getPacsDevice().getCaCertificateFile();
+    QNetworkAccessManager *networkAccessManager = m_networkAccessManagers.value(caCertificateFile);
+
+    if (!networkAccessManager)
     {
         // Instantiated here so that it lives in the WADO thread
-        m_networkAccessManager = new QNetworkAccessManager(this);
+        networkAccessManager = new QNetworkAccessManager(this);
+        m_networkAccessManagers.insert(caCertificateFile, networkAccessManager);
     }
 
-    request->start(m_networkAccessManager);
+    request->start(networkAccessManager);
 }
 
 } // namespace udg

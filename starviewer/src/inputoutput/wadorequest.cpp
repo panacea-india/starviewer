@@ -14,17 +14,40 @@
 
 #include "wadorequest.h"
 
+#include "logging.h"
 #include "pacscredentialstore.h"
 
 #include <QApplication>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QSslCertificate>
+#include <QSslError>
 
 namespace udg {
+
+namespace {
+
+// Dynamic property of a QNetworkReply that holds its TLS errors.
+const char *SslErrorsProperty = "starviewerSslErrors";
+
+}
 
 WadoRequest::WadoRequest(const PacsDevice &pacs, QObject *parent)
     : QObject(parent), m_networkAccessManager(nullptr), m_reply(nullptr), m_status(Status::Clean), m_pacs(pacs)
 {
+    if (!m_pacs.getCaCertificateFile().isEmpty())
+    {
+        QList<QSslCertificate> certificates = QSslCertificate::fromPath(m_pacs.getCaCertificateFile(), QSsl::Pem, QSslCertificate::PatternSyntax::FixedString);
+
+        if (certificates.isEmpty())
+        {
+            ERROR_LOG("No certificates could be read from the CA certificate file " + m_pacs.getCaCertificateFile());
+        }
+
+        // Added to the system's, because setting a list replaces the loading of system certificates when they are needed.
+        m_sslConfiguration = QSslConfiguration::defaultConfiguration();
+        m_sslConfiguration.setCaCertificates(QSslConfiguration::systemCaCertificates() + certificates);
+    }
 }
 
 WadoRequest::~WadoRequest()
@@ -50,7 +73,38 @@ QNetworkRequest WadoRequest::createNetworkRequest(const QUrl &url) const
         request.setRawHeader("Authorization", authorization);
     }
 
+    if (!m_sslConfiguration.isNull())
+    {
+        request.setSslConfiguration(m_sslConfiguration);
+    }
+
     return request;
+}
+
+void WadoRequest::keepSslErrors(QNetworkReply *reply)
+{
+    connect(reply, &QNetworkReply::sslErrors, reply, [reply](const QList<QSslError> &errors) {
+        QStringList descriptions;
+
+        for (const QSslError &error : errors)
+        {
+            descriptions << error.errorString();
+        }
+
+        reply->setProperty(SslErrorsProperty, descriptions.join("; "));
+    });
+}
+
+QString WadoRequest::getErrorString(const QNetworkReply *reply)
+{
+    QString sslErrors = reply->property(SslErrorsProperty).toString();
+
+    if (sslErrors.isEmpty())
+    {
+        return reply->errorString();
+    }
+
+    return QString("%1 (%2)").arg(reply->errorString(), sslErrors);
 }
 
 // This is run in the WADO thread.

@@ -42,6 +42,49 @@ Starviewer is registered as C-MOVE destination `STARVIEWER`, at
 `host.docker.internal:4006`. For retrieval to work, set Starviewer's local AE title to
 `STARVIEWER` and keep its incoming port at the default of 4006.
 
+## Test PACS with TLS
+
+A second Orthanc with HTTPS and DICOM TLS, with its own storage. It requires a client
+certificate. Its certificates are throwaway ones, in `tls/`, which git ignores.
+
+```
+docker compose run --rm tools sh /lab/make_tls_certs.sh
+docker compose --profile tls up -d orthanc-tls
+docker compose --profile tls run --rm tools sh /lab/load_orthanc_tls.sh
+```
+
+| Setting | Value |
+| --- | --- |
+| DICOM TLS | `localhost:12762`, called AE title `ORTHANC` |
+| DICOMweb | `https://localhost:18043/dicom-web/` |
+| Trust | `tls/ca.pem`. `tls/other-ca.pem` signed nothing, so it must be refused |
+| Client certificate | `tls/client.pem`, private key `tls/client.key` |
+
+The server certificate names `localhost` and not `127.0.0.1`, so connecting by
+`127.0.0.1` must fail the host name check. It holds only the synthetic corpus, and Orthanc
+rejects its `broken` and `deflated` files.
+
+## Retrieve test
+
+`test_RetrieveDICOMFilesFromPACS` is skipped unless these are set, and retrieves one study
+with C-GET into a temporary directory. The header of the test lists all of its variables.
+`STARVIEWER_TESTLAB_CACHE` keeps the files, but the count then includes any other study in
+that directory, so use an empty one for each study.
+
+```
+STARVIEWER_TESTLAB_PORT=14242 STARVIEWER_TESTLAB_ADDRESS=127.0.0.1 \
+STARVIEWER_TESTLAB_STUDY=<Study Instance UID> STARVIEWER_TESTLAB_FILES=<number of files> \
+  autotests -testsToExecute test_RetrieveDICOMFilesFromPACS
+```
+
+`test_EchoToWadoPacs` checks that DICOMweb over HTTPS trusts only the CA file given for the PACS,
+including after a connection made with it in the same process. It is skipped unless these are set:
+
+```
+STARVIEWER_TESTLAB_HTTPS_URI=https://localhost:18043/dicom-web/ STARVIEWER_TESTLAB_CA=<path to tls/ca.pem> \
+  autotests -testsToExecute test_EchoToWadoPacs
+```
+
 ## Corpus
 
 `corpus/` is generated and not committed. `corpus/synthetic/expected.json` has the ground

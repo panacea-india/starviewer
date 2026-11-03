@@ -222,6 +222,7 @@ void WadoSearchRequest::startInternal()
 
     QNetworkRequest request = createNetworkRequest(fullUrl);
     m_reply = m_networkAccessManager->get(request);
+    keepSslErrors(m_reply);
 
     emit started();
 
@@ -282,7 +283,7 @@ void WadoSearchRequest::onReplyFinished()
     else
     {
         m_status = Status::Errored;
-        m_errorsDescription = m_reply->errorString();
+        m_errorsDescription = getErrorString(m_reply);
         ERROR_LOG(m_errorsDescription);
         emit finished();
     }

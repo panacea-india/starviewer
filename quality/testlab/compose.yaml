@@ -23,5 +23,18 @@ services:
       - ./orthanc-lab.json:/etc/orthanc/orthanc.json:ro
       - orthanc-storage:/var/lib/orthanc/db
 
+  # The same PACS with HTTPS and DICOM TLS. Needs make_tls_certs.sh to have been run.
+  orthanc-tls:
+    image: jodogne/orthanc-plugins:1.12.6
+    profiles: [tls]
+    ports:
+      - "127.0.0.1:12762:4242"
+      - "127.0.0.1:18043:8042"
+    volumes:
+      - ./orthanc-lab-tls.json:/etc/orthanc/orthanc.json:ro
+      - ./tls:/tls:ro
+      - orthanc-tls-storage:/var/lib/orthanc/db
+
 volumes:
   orthanc-storage:
+  orthanc-tls-storage:

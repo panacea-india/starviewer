@@ -18,6 +18,7 @@
 #include <QObject>
 
 #include <QPointer>
+#include <QSslConfiguration>
 
 #include "pacsdevice.h"
 
@@ -72,6 +73,12 @@ protected:
     /// Returns a request for the given URL that carries the login of the PACS, if it has one. All network requests to the PACS must be created with this method.
     QNetworkRequest createNetworkRequest(const QUrl &url) const;
 
+    /// Keeps the TLS errors of the given reply, which errorString() leaves out, so that getErrorString() can give them. Must be called right
+    /// after creating each reply.
+    static void keepSslErrors(QNetworkReply *reply);
+    /// Returns the error string of the given reply, followed by the TLS errors kept by keepSslErrors(), if any, which say why a handshake failed.
+    static QString getErrorString(const QNetworkReply *reply);
+
     /// QNetworkAccessManager instance that will be used to perform WADO (HTTP) communications.
     QNetworkAccessManager *m_networkAccessManager;
     /// The QNetworkReply returned by QNetworkAccessManager can be stored here.
@@ -88,6 +95,8 @@ private:
 private:
     /// PACS that will receive the request.
     PacsDevice m_pacs;
+    /// TLS configuration for the requests, if the PACS has its own CA certificates. Otherwise, the default one is used.
+    QSslConfiguration m_sslConfiguration;
 };
 
 } // namespace udg

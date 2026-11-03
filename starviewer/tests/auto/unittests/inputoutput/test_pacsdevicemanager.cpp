@@ -75,6 +75,9 @@ private slots:
     void cleanup();
 
     void addPacs_ShouldStoreTheLoginOutsideTheSettings();
+    void addPacs_ShouldKeepTheTransportSettings_OfADimsePacs();
+    void addPacs_ShouldKeepTheCaCertificate_OfAWadoPacs();
+    void getPacsList_ShouldNotUseTlsOrCGet_WhenTheSettingsDoNotHaveThem();
     void updatePacs_ShouldRemoveTheLogin_WhenLoginIsSetToNone();
     void updatePacs_ShouldKeepTheLogin_WhenPacsDoesNotSpecifyOne();
     void updatePacs_ShouldRemoveTheLoginOfTheOldUri_WhenTheUriChanges();
@@ -978,6 +981,61 @@ void test_PacsDeviceManager::cleanup()
 {
     Settings::setStaticTestingSettings(nullptr);
     PacsCredentialStore::setStaticTestingBackend(nullptr);
+}
+
+void test_PacsDeviceManager::addPacs_ShouldKeepTheTransportSettings_OfADimsePacs()
+{
+    PacsDevice pacs;
+    pacs.setType(PacsDevice::Type::Dimse);
+    pacs.setAETitle("TLS");
+    pacs.setAddress("pacs.example.com");
+    pacs.setQueryRetrieveServiceEnabled(true);
+    pacs.setQueryRetrieveServicePort(2762);
+    pacs.setStoreServiceEnabled(true);
+    pacs.setStoreServicePort(2762);
+    pacs.setDicomTlsEnabled(true);
+    pacs.setCGetEnabled(true);
+    pacs.setCaCertificateFile("C:/certificates/ca.pem");
+    pacs.setClientCertificate("C:/certificates/client.pem", "C:/certificates/client.key");
+    QVERIFY(PacsDeviceManager::addPacs(pacs));
+
+    PacsDevice stored = PacsDeviceManager::getPacsDeviceById(pacs.getID());
+    QVERIFY(stored.isDicomTlsEnabled());
+    QVERIFY(stored.isCGetEnabled());
+    QCOMPARE(stored.getCaCertificateFile(), QString("C:/certificates/ca.pem"));
+    QCOMPARE(stored.getClientCertificateFile(), QString("C:/certificates/client.pem"));
+    QCOMPARE(stored.getClientPrivateKeyFile(), QString("C:/certificates/client.key"));
+}
+
+void test_PacsDeviceManager::addPacs_ShouldKeepTheCaCertificate_OfAWadoPacs()
+{
+    PacsDevice pacs;
+    pacs.setType(PacsDevice::Type::Wado);
+    pacs.setBaseUri(QUrl("https://example.com/dicom-web/"));
+    pacs.setCaCertificateFile("C:/certificates/ca.pem");
+    QVERIFY(PacsDeviceManager::addPacs(pacs));
+
+    PacsDevice stored = PacsDeviceManager::getPacsDeviceById(pacs.getID());
+    QCOMPARE(stored.getCaCertificateFile(), QString("C:/certificates/ca.pem"));
+    QVERIFY(!stored.isDicomTlsEnabled());
+    QVERIFY(!stored.usesCGet());
+}
+
+void test_PacsDeviceManager::getPacsList_ShouldNotUseTlsOrCGet_WhenTheSettingsDoNotHaveThem()
+{
+    Settings::SettingsListItemType item;
+    item["ID"] = "0";
+    item["Type"] = "DIMSE";
+    item["AETitle"] = "OLD";
+    item["PacsHostname"] = "pacs.example.com";
+    item["PacsPort"] = 104;
+    Settings().addListItem(InputOutputSettings::PacsListConfigurationSectionName, item);
+
+    PacsDevice stored = PacsDeviceManager::getPacsDeviceById("0");
+    QCOMPARE(stored.getAETitle(), QString("OLD"));
+    QVERIFY(!stored.isDicomTlsEnabled());
+    QVERIFY(!stored.usesCGet());
+    QVERIFY(stored.getCaCertificateFile().isEmpty());
 }
 
 void test_PacsDeviceManager::addPacs_ShouldStoreTheLoginOutsideTheSettings()

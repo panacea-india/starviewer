@@ -17,17 +17,21 @@
 #include "echotopacs.h"
 #include "echotowadopacs.h"
 #include "logging.h"
+#include "pacsconnection.h"
 #include "pacscredentialstore.h"
 #include "pacsdevicemanager.h"
 #include "starviewerapplication.h"
 
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
+#include <QSslCertificate>
 #include <QRegularExpressionValidator>
 
 namespace udg {
 
 QPacsDialog::QPacsDialog(PacsDevice::Type type, QWidget *parent)
-    : QDialog(parent), m_pacsType(type)
+    : QDialog(parent), m_pacsType(type), m_cGetChosen(false)
 {
     initialize();
 
@@ -53,7 +57,7 @@ QPacsDialog::QPacsDialog(PacsDevice::Type type, QWidget *parent)
 }
 
 QPacsDialog::QPacsDialog(QString pacsId, QWidget *parent)
-    : QDialog(parent), m_pacsId(std::move(pacsId))
+    : QDialog(parent), m_pacsId(std::move(pacsId)), m_cGetChosen(false)
 {
     initialize();
     setWindowTitle(tr("Edit PACS server"));
@@ -88,6 +92,7 @@ void QPacsDialog::setupDimse()
     m_baseUriLabel->hide();
     m_baseUriLineEdit->hide();
     setLoginFieldsVisible(false);
+    setTransportFieldsVisible(true, true);
 }
 
 void QPacsDialog::setupWado()
@@ -107,6 +112,7 @@ void QPacsDialog::setupWado()
     m_baseUriLabel->show();
     m_baseUriLineEdit->show();
     setLoginFieldsVisible(true);
+    setTransportFieldsVisible(false, false);
 }
 
 void QPacsDialog::setupWadoUriDimse()
@@ -128,6 +134,101 @@ void QPacsDialog::setupWadoUriDimse()
     m_baseUriLabel->show();
     m_baseUriLineEdit->show();
     setLoginFieldsVisible(true);
+    setTransportFieldsVisible(true, false);
+}
+
+void QPacsDialog::setTransportFieldsVisible(bool dicomTls, bool cGet)
+{
+    m_dicomTlsCheckBox->setVisible(dicomTls);
+    m_clientCertificateLabel->setVisible(dicomTls);
+    m_clientCertificateLineEdit->setVisible(dicomTls);
+    m_clientCertificateBrowseButton->setVisible(dicomTls);
+    m_clientPrivateKeyLabel->setVisible(dicomTls);
+    m_clientPrivateKeyLineEdit->setVisible(dicomTls);
+    m_clientPrivateKeyBrowseButton->setVisible(dicomTls);
+    m_cGetCheckBox->setVisible(cGet);
+
+    if (dicomTls && !PACSConnection::isDicomTlsAvailable())
+    {
+        m_dicomTlsCheckBox->setChecked(false);
+        m_dicomTlsCheckBox->setEnabled(false);
+        m_dicomTlsCheckBox->setToolTip(tr("This build of %1 cannot use DICOM TLS.").arg(ApplicationNameString));
+    }
+
+    updateTransportFields();
+}
+
+void QPacsDialog::updateTransportFields()
+{
+    bool dicomTls = m_pacsType != PacsDevice::Type::Wado && m_dicomTlsCheckBox->isChecked();
+
+    // A WADO-URI + DIMSE PACS needs it for HTTPS even without DICOM TLS.
+    bool caCertificate = m_pacsType != PacsDevice::Type::Dimse || dicomTls;
+    m_caCertificateLabel->setEnabled(caCertificate);
+    m_caCertificateLineEdit->setEnabled(caCertificate);
+    m_caCertificateBrowseButton->setEnabled(caCertificate);
+
+    m_clientCertificateLabel->setEnabled(dicomTls);
+    m_clientCertificateLineEdit->setEnabled(dicomTls);
+    m_clientCertificateBrowseButton->setEnabled(dicomTls);
+    m_clientPrivateKeyLabel->setEnabled(dicomTls);
+    m_clientPrivateKeyLineEdit->setEnabled(dicomTls);
+    m_clientPrivateKeyBrowseButton->setEnabled(dicomTls);
+
+    m_cGetCheckBox->setChecked(dicomTls || m_cGetChosen);
+    m_cGetCheckBox->setEnabled(!dicomTls);
+}
+
+void QPacsDialog::chooseFile(QLineEdit *lineEdit)
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Choose a file"), QFileInfo(lineEdit->text()).absolutePath(),
+                                                    tr("PEM files (*.pem *.crt *.cer *.key);;All files (*)"));
+
+    if (!fileName.isEmpty())
+    {
+        lineEdit->setText(QDir::toNativeSeparators(fileName));
+    }
+}
+
+bool QPacsDialog::areCertificatesValid()
+{
+    bool dicomTls = m_pacsType != PacsDevice::Type::Wado && m_dicomTlsCheckBox->isChecked();
+    QString caCertificateFile = m_caCertificateLineEdit->text().trimmed();
+
+    if (dicomTls && caCertificateFile.isEmpty())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("DICOM TLS needs a CA certificate file."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (m_caCertificateLineEdit->isEnabled() && !caCertificateFile.isEmpty()
+        && QSslCertificate::fromPath(caCertificateFile, QSsl::Pem, QSslCertificate::PatternSyntax::FixedString).isEmpty())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("No certificates could be read from the CA certificate file."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (!dicomTls)
+    {
+        return true;
+    }
+
+    QString certificateFile = m_clientCertificateLineEdit->text().trimmed();
+    QString privateKeyFile = m_clientPrivateKeyLineEdit->text().trimmed();
+
+    if (certificateFile.isEmpty() != privateKeyFile.isEmpty())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("A client certificate and its private key must be given together."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (!certificateFile.isEmpty() && (!QFileInfo::exists(certificateFile) || !QFileInfo::exists(privateKeyFile)))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The client certificate or its private key file does not exist."), QMessageBox::Ok);
+        return false;
+    }
+
+    return true;
 }
 
 void QPacsDialog::setLoginFieldsVisible(bool visible)
@@ -160,6 +261,12 @@ void QPacsDialog::createConnections()
     connect(m_baseUriLineEdit, &QLineEdit::editingFinished, this, &QPacsDialog::moveLoginFromBaseUriToFields);
     connect(m_baseUriLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateLoginWarning);
     connect(m_usernameLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateLoginWarning);
+
+    connect(m_dicomTlsCheckBox, &QCheckBox::toggled, this, &QPacsDialog::updateTransportFields);
+    connect(m_cGetCheckBox, &QCheckBox::clicked, [this](bool checked) { m_cGetChosen = checked; });
+    connect(m_caCertificateBrowseButton, &QPushButton::clicked, [this]() { chooseFile(m_caCertificateLineEdit); });
+    connect(m_clientCertificateBrowseButton, &QPushButton::clicked, [this]() { chooseFile(m_clientCertificateLineEdit); });
+    connect(m_clientPrivateKeyBrowseButton, &QPushButton::clicked, [this]() { chooseFile(m_clientPrivateKeyLineEdit); });
 
     connect(m_testPushButton, &QPushButton::clicked, this, &QPacsDialog::test);
     connect(m_buttonBox->button(QDialogButtonBox::Apply), &QPushButton::clicked, this, &QPacsDialog::save);
@@ -229,6 +336,11 @@ void QPacsDialog::updateLoginWarning()
 bool QPacsDialog::arePacsSettingsValid()
 {
     moveLoginFromBaseUriToFields();
+
+    if (!areCertificatesValid())
+    {
+        return false;
+    }
 
     if (m_pacsType == PacsDevice::Type::Dimse)
     {
@@ -322,6 +434,17 @@ PacsDevice QPacsDialog::getPacsDevice() const
         pacsDevice.setLogin(m_usernameLineEdit->text(), m_passwordLineEdit->text());
     }
 
+    bool dicomTls = m_pacsType != PacsDevice::Type::Wado && m_dicomTlsCheckBox->isChecked();
+    pacsDevice.setCaCertificateFile(m_pacsType != PacsDevice::Type::Dimse || dicomTls ? m_caCertificateLineEdit->text().trimmed() : QString());
+    pacsDevice.setDicomTlsEnabled(dicomTls);
+
+    if (dicomTls)
+    {
+        pacsDevice.setClientCertificate(m_clientCertificateLineEdit->text().trimmed(), m_clientPrivateKeyLineEdit->text().trimmed());
+    }
+
+    pacsDevice.setCGetEnabled(m_pacsType == PacsDevice::Type::Dimse && m_cGetChosen);
+
     pacsDevice.setInstitution(m_institutionLineEdit->text());
     pacsDevice.setLocation(m_locationLineEdit->text());
     pacsDevice.setDescription(m_descriptionLineEdit->text());
@@ -364,6 +487,12 @@ void QPacsDialog::test()
                     break;
                 case EchoToPACS::EchoCanNotConnectToPACS:
                     message = tr("PACS \"%1\" did not respond.\nMake sure its address and AE Title are correct.").arg(pacsDevice.getAETitle());
+
+                    if (pacsDevice.isDicomTlsEnabled())
+                    {
+                        message += "\n" + tr("With DICOM TLS, also make sure that its certificate is for this address and that the certificate files are correct.");
+                    }
+
                     break;
                 default:
                     // Should never happen
@@ -484,6 +613,11 @@ void QPacsDialog::reset()
         m_passwordLineEdit->setPlaceholderText(QString());
         m_storedUsername.clear();
         m_storedLoginBaseUri.clear();
+        m_cGetChosen = false;
+        m_dicomTlsCheckBox->setChecked(false);
+        m_caCertificateLineEdit->clear();
+        m_clientCertificateLineEdit->clear();
+        m_clientPrivateKeyLineEdit->clear();
         m_institutionLineEdit->clear();
         m_locationLineEdit->clear();
         m_descriptionLineEdit->clear();
@@ -501,6 +635,11 @@ void QPacsDialog::reset()
         m_sendServicePortSpinBox->setValue(pacsDevice.getStoreServicePort());
         m_baseUriLineEdit->setText(pacsDevice.getBaseUri().toString());
         loadStoredLogin();
+        m_cGetChosen = pacsDevice.isCGetEnabled();
+        m_dicomTlsCheckBox->setChecked(pacsDevice.isDicomTlsEnabled());
+        m_caCertificateLineEdit->setText(pacsDevice.getCaCertificateFile());
+        m_clientCertificateLineEdit->setText(pacsDevice.getClientCertificateFile());
+        m_clientPrivateKeyLineEdit->setText(pacsDevice.getClientPrivateKeyFile());
         m_institutionLineEdit->setText(pacsDevice.getInstitution());
         m_locationLineEdit->setText(pacsDevice.getLocation());
         m_descriptionLineEdit->setText(pacsDevice.getDescription());
@@ -519,6 +658,8 @@ void QPacsDialog::reset()
             setupWadoUriDimse();
         }
     }
+
+    updateTransportFields();
 }
 
 } // namespace udg

@@ -11,3 +11,6 @@ build-starviewer*
 starviewer-install*
 
 starviewer/doc/doxygen
+
+# Test lab certificates and private keys, made by make_tls_certs.sh
+quality/testlab/tls/

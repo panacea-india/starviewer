@@ -97,6 +97,28 @@ Settings::SettingsListItemType pacsDeviceToSettingsListItem(const PacsDevice &pa
             item["BaseUri"] = pacsDevice.getBaseUri();
     }
 
+    // These are only written when used, so that entries that don't use them stay as they were.
+    if (!pacsDevice.getCaCertificateFile().isEmpty())
+    {
+        item["CaCertificateFile"] = pacsDevice.getCaCertificateFile();
+    }
+
+    if (pacsDevice.getType() != PacsDevice::Type::Wado && pacsDevice.isDicomTlsEnabled())
+    {
+        item["DicomTlsEnabled"] = true;
+
+        if (!pacsDevice.getClientCertificateFile().isEmpty())
+        {
+            item["ClientCertificateFile"] = pacsDevice.getClientCertificateFile();
+            item["ClientPrivateKeyFile"] = pacsDevice.getClientPrivateKeyFile();
+        }
+    }
+
+    if (pacsDevice.getType() == PacsDevice::Type::Dimse && pacsDevice.isCGetEnabled())
+    {
+        item["CGetEnabled"] = true;
+    }
+
     item["Institution"] = pacsDevice.getInstitution();
     item["Location"] = pacsDevice.getLocation();
     item["Description"] = pacsDevice.getDescription();
@@ -155,6 +177,11 @@ PacsDevice settingsListItemToPacsDevice(const Settings::SettingsListItemType &it
 
         pacsDevice.setBaseUri(item["BaseUri"].toUrl());
     }
+
+    pacsDevice.setCaCertificateFile(item.value("CaCertificateFile").toString());
+    pacsDevice.setDicomTlsEnabled(item.value("DicomTlsEnabled", false).toBool());
+    pacsDevice.setClientCertificate(item.value("ClientCertificateFile").toString(), item.value("ClientPrivateKeyFile").toString());
+    pacsDevice.setCGetEnabled(item.value("CGetEnabled", false).toBool());
 
     pacsDevice.setInstitution(item["Institution"].toString());
     pacsDevice.setLocation(item["Location"].toString());

@@ -6,11 +6,13 @@ set(SOURCES
     test_dicommask.cpp
     test_echotopacs.cpp
     test_echotopacstest.cpp
+    test_echotowadopacs.cpp
     test_firewallaccesstest.cpp
     test_localdatabasebasedal.cpp
     test_localdatabasepacsretrievedimagesdal.cpp
     test_localdatabasestudydal.cpp
     test_pacscredentialstore.cpp
+    test_retrievedicomfilesfrompacs.cpp
     test_pacsdevice.cpp
     test_pacsdevicemanager.cpp
     test_portinuse.cpp

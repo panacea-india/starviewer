@@ -96,6 +96,7 @@ void WadoRetrieveRequest::startInternal()
     QUrl url(urlString);
     QNetworkRequest request = createNetworkRequest(url);
     m_reply = m_networkAccessManager->get(request);
+    keepSslErrors(m_reply);
 
     connect(m_reply, &QNetworkReply::readyRead, this, &WadoRetrieveRequest::onReadyRead, Qt::DirectConnection);
     connect(m_reply, &QNetworkReply::finished, this, &WadoRetrieveRequest::onReplyFinished, Qt::DirectConnection);
@@ -378,9 +379,9 @@ void WadoRetrieveRequest::onReplyFinished()
     {
         errors = true;
         connectionLost = isConnectionError(m_reply->error());
-        m_errorsDescription = m_reply->errorString();
+        m_errorsDescription = getErrorString(m_reply);
         WARN_LOG(QString("QNetworkReply::NetworkError %1: %2. (HTTP %3: %4) [URL: %5]")
-                  .arg(m_reply->error()).arg(m_reply->errorString())
+                  .arg(m_reply->error()).arg(getErrorString(m_reply))
                   .arg(m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt())
                   .arg(m_reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString())
                   .arg(m_reply->url().toString()));

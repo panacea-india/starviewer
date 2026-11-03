@@ -17,6 +17,8 @@
 
 #include "pacsdevice.h"
 
+#include <assoc.h>
+
 struct T_ASC_Network;
 struct T_ASC_Parameters;
 struct T_ASC_Association;
@@ -37,6 +39,9 @@ public:
     /// @param Parametres del Pacs a connectar
     PACSConnection(PacsDevice pacsDevice);
     virtual ~PACSConnection();
+
+    /// Returns true if this build of Starviewer can use DICOM TLS.
+    static bool isDicomTlsAvailable();
 
     /// Aquesta funció ens intenta connectar al PACS
     /// @param Especifica en quina modalitat ens volem connectar, fer echo, busca informació o descarregar imatges
@@ -73,6 +78,12 @@ private:
     /// @return retorna l'estat de la configuracióDUL_PRESENTATIONCONTEXTID
     OFCondition configureMove();
 
+    /// Configures the association to retrieve with C-GET: the PACS sends the images over this same association, so this side offers to be the C-STORE SCP.
+    OFCondition configureGet();
+
+    /// Puts DICOM TLS on the association network, with the certificates of the PACS. Returns false if it cannot be done, because then nothing must be sent.
+    bool setUpDicomTls();
+
     /// Aquesta funció privada permet configurar la connexió per a guardar estudis en el pacs.
     /// @return retorna l'estat de la configuració
     OFCondition configureStore();
@@ -87,7 +98,8 @@ private:
     /// @param abstractSyntax classe SOP a afegir
     /// @param transferSyntaxList
     /// @return estat del mètode
-    OFCondition addPresentationContext(int presentationContextId, const QString &abstractSyntax, QList<const char*> transferSyntaxList);
+    OFCondition addPresentationContext(int presentationContextId, const QString &abstractSyntax, QList<const char*> transferSyntaxList,
+                                       T_ASC_SC_ROLE role = ASC_SC_ROLE_DEFAULT);
 
     /// Aquest mètode inicialitza l'objecte AssociationNetwork en funció de la modalitat amb els paràmetres del PACS, aquest mètode no obre la connexió
     /// simplement inicialitza l'objecte amb les dades necessàries per poder obrir connexió, qui obra la connexió és al invocar el mètode

@@ -15,6 +15,7 @@
 #ifndef UDG_WADOREQUESTMANAGER_H
 #define UDG_WADOREQUESTMANAGER_H
 
+#include <QHash>
 #include <QObject>
 
 class QNetworkAccessManager;
@@ -28,14 +29,16 @@ class WadoRequest;
  *
  * start() can be called from any thread and then it will asynchronously call the request's start() method in the WADO thread.
  *
- * The QNetworkAccessManager is created in the first call to startInternal() so that it lives in the WADO thread.
+ * The QNetworkAccessManagers are created in startInternal() so that they live in the WADO thread. There is one for each CA certificate file
+ * in use, because a QNetworkAccessManager reuses connections and TLS sessions to the same host and port whatever the request's SSL
+ * configuration, so a request that trusts fewer certificates could otherwise get a connection that was trusted for another one.
  */
 class WadoRequestManager : public QObject
 {
     Q_OBJECT
 
 public:
-    /// Creates an instance of the manager with a null QNetworkAccessManager and creates the internal connections.
+    /// Creates an instance of the manager without any QNetworkAccessManager and creates the internal connections.
     explicit WadoRequestManager(QObject *parent = nullptr);
 
     /// Asynchronously starts the given request. Emits startCalled.
@@ -46,12 +49,13 @@ signals:
     void startCalled(WadoRequest *request);
 
 private slots:
-    /// Creates a QNetworkAccessManager in the first call and calls start on the request, all from the thread where this manager lives.
+    /// Calls start on the request with the QNetworkAccessManager for its PACS's CA certificate file, creating it if needed, all from the
+    /// thread where this manager lives.
     void startInternal(WadoRequest *request);
 
 private:
-    /// QNetworkAccessManager instance that will be given to the WadoRequests.
-    QNetworkAccessManager *m_networkAccessManager;
+    /// QNetworkAccessManager instances that will be given to the WadoRequests, by CA certificate file (empty for the system's certificates).
+    QHash<QString, QNetworkAccessManager*> m_networkAccessManagers;
 };
 
 } // namespace udg

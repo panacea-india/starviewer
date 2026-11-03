@@ -165,7 +165,10 @@ target_link_vtk(inputoutput
 target_link_dcmtk(inputoutput
     config
     dcmnet
+    dcmtls
 )
+# PACSConnection sets the host name check of DICOM TLS directly in OpenSSL.
+target_include_directories(inputoutput SYSTEM PRIVATE "${SDK_INSTALL_DIR}/include")
 
 find_package(GDCM REQUIRED)
 target_link_libraries(inputoutput gdcmCommon gdcmDICT gdcmDSED gdcmIOD gdcmMSFF)
