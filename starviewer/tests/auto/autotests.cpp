@@ -124,7 +124,7 @@ inline int run()
             closeStream = error == 0;
         }
 
-        ret += QTest::qExec(test, modifiedArgc, modifiedArgv);
+        ret += qAbs(QTest::qExec(test, modifiedArgc, modifiedArgv));
         
         if (closeStream)
         {
@@ -135,7 +135,7 @@ inline int run()
         {
             freopen(qPrintable(QString("%1/%2.txt").arg(dirToSaveTests).arg(test->objectName())), "w", stdout);
         }
-        ret += QTest::qExec(test, modifiedArgc, modifiedArgv);
+        ret += qAbs(QTest::qExec(test, modifiedArgc, modifiedArgv));
 #endif
     }
 
@@ -146,7 +146,15 @@ inline int run()
     }
 
     delete[] modifiedArgv;
-    return ret;
+
+    // Not the count as the exit code: that wraps modulo 256 on some systems, so 256 failures would be a success.
+    if (ret != 0)
+    {
+        std::cerr << "Failures: " << ret << std::endl;
+        return 1;
+    }
+
+    return 0;
 }
 }
 
