@@ -7,8 +7,15 @@
 #include "applicationupdatechecker.h"
 #include <QNetworkReply>
 #include <QUrl>
+#include <QUrlQuery>
+
+#include "coresettings.h"
+#include "settings.h"
+#include "starviewerapplication.h"
+#include "testingsettings.h"
 
 using namespace udg;
+using namespace testing;
 
 class TestingQNetworkReply : public QNetworkReply {
 public:
@@ -37,6 +44,8 @@ public:
 
 class TestingApplicationUpdateChecker : public ApplicationUpdateChecker {
 public:
+    using ApplicationUpdateChecker::createWebServiceUrl;
+
     QNetworkReply::NetworkError m_testingReplyErrorCode;
     QString m_testingReplyErrorString;
     bool m_testingTimeOut;
@@ -75,7 +84,36 @@ private slots:
 
     void run_ShouldCheckForUpdatesAndFail_data();
     void run_ShouldCheckForUpdatesAndFail();
+
+    void createWebServiceUrl_ShouldUseHttpsAndSendOnlyTheVersion_ByDefault();
+    void createWebServiceUrl_ShouldSendTheOperatingSystem_WhenTheSettingIsOn();
 };
+
+void test_ApplicationUpdateChecker::createWebServiceUrl_ShouldUseHttpsAndSendOnlyTheVersion_ByDefault()
+{
+    TestingSettings testingSettings;
+    Settings::setStaticTestingSettings(&testingSettings);
+
+    QUrl url(TestingApplicationUpdateChecker().createWebServiceUrl());
+    Settings::setStaticTestingSettings(nullptr);
+
+    QCOMPARE(url.scheme(), QString("https"));
+    QCOMPARE(QUrlQuery(url).queryItemValue("currentVersion"), StarviewerVersionString);
+    QVERIFY(!QUrlQuery(url).hasQueryItem("os"));
+}
+
+void test_ApplicationUpdateChecker::createWebServiceUrl_ShouldSendTheOperatingSystem_WhenTheSettingIsOn()
+{
+    TestingSettings testingSettings;
+    Settings::setStaticTestingSettings(&testingSettings);
+    Settings().setValue(CoreSettings::UpdateCheckSendsOperatingSystem, true);
+
+    QUrl url(TestingApplicationUpdateChecker().createWebServiceUrl());
+    Settings::setStaticTestingSettings(nullptr);
+
+    QCOMPARE(url.scheme(), QString("https"));
+    QVERIFY(QUrlQuery(url).hasQueryItem("os"));
+}
 
 void test_ApplicationUpdateChecker::run_ShouldCheckForUpdates_data()
 {

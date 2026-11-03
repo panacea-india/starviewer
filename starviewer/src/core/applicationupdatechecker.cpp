@@ -114,11 +114,14 @@ bool ApplicationUpdateChecker::isChecking() const
 
 QString ApplicationUpdateChecker::createWebServiceUrl()
 {
-    SystemInformation *systemInformation = SystemInformation::newInstance();
-    QString operatingSystem = systemInformation->getOperatingSystemAsShortString();
-    delete systemInformation;
+    QString url = QString("https://starviewer.udg.edu/checknewversion/?currentVersion=%1").arg(StarviewerVersionString);
 
-    QString url = QString("http://starviewer.udg.edu/checknewversion/?currentVersion=%1&os=%2").arg(StarviewerVersionString).arg(operatingSystem);
+    if (Settings().getValue(CoreSettings::UpdateCheckSendsOperatingSystem).toBool())
+    {
+        SystemInformation *systemInformation = SystemInformation::newInstance();
+        url += "&os=" + systemInformation->getOperatingSystemAsShortString();
+        delete systemInformation;
+    }
 
     QString additionalParametersString = Settings().getValue(CoreSettings::UpdateCheckUrlAdditionalParameters).toString();
     QStringList additionalParameters = additionalParametersString.split(",", QString::SkipEmptyParts);

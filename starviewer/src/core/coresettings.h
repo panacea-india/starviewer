@@ -65,6 +65,9 @@ public:
     /// No permetre que es comprobin versions online
     static const QString DontCheckNewVersionsOnline;
 
+    /// Whether the update check also sends the operating system. It always sends the version, because the service needs it. DontCheckNewVersionsOnline stops that.
+    static const QString UpdateCheckSendsOperatingSystem;
+
     /// Additional parameters to add to the update check URL.
     static const QString UpdateCheckUrlAdditionalParameters;
 

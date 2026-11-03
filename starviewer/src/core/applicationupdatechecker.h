@@ -65,8 +65,6 @@ signals:
     void checkFinished();
 
 private:
-    /// Genera la url per fer la crida al servidor i obtenir la versió
-    QString createWebServiceUrl();
     /// Assigna el proxy per defecte, si n'hi ha, a un QNetworkAccessManager, si no n'hi ha el busca.
     void setProxy(const QUrl &url);
 
@@ -79,6 +77,9 @@ private:
     void parseJSON(const QString &json);
 
 protected:
+    /// Genera la url per fer la crida al servidor i obtenir la versió
+    QString createWebServiceUrl();
+
     virtual void performOnlinePetition(const QUrl &url);
     virtual QString readReplyData(QNetworkReply *reply);
 

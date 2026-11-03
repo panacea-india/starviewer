@@ -60,6 +60,7 @@ const QString CoreSettings::LastVersionCheckedDate("LastVersionCheckedDate");
 const QString CoreSettings::CheckVersionInterval("CheckVersionInterval");
 const QString CoreSettings::NeverShowNewVersionReleaseNotes("NeverShowNewVersionReleaseNotes");
 const QString CoreSettings::DontCheckNewVersionsOnline("DontCheckNewVersionsOnline");
+const QString CoreSettings::UpdateCheckSendsOperatingSystem("UpdateCheckSendsOperatingSystem");
 const QString CoreSettings::UpdateCheckUrlAdditionalParameters("UpdateCheckUrlAdditionalParameters");
 
 const QString CoreSettings::MammographyAutoOrientationExceptions("MammographyAutoOrientationExceptions");
@@ -134,6 +135,7 @@ void CoreSettings::init()
     settingsRegistry->addSetting(LastVersionCheckedDate, "");
     settingsRegistry->addSetting(CheckVersionInterval, "1");
     settingsRegistry->addSetting(DontCheckNewVersionsOnline, false);
+    settingsRegistry->addSetting(UpdateCheckSendsOperatingSystem, false);
 #ifdef CORPORATE_VERSION
     settingsRegistry->addSetting(UpdateCheckUrlAdditionalParameters, "machineID,groupID");
 #endif
