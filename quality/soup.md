@@ -21,7 +21,7 @@ python3 quality/generate_sbom.py --platform linux --out sbom.json
 | ITK | 5.3.0 | Apache-2.0 | Image processing | Yes |
 | Qt | 5.15.2 on Windows, Ubuntu 24.04's 5.15 on Linux | LGPL-3.0 | Interface, networking, database | No |
 | ThreadWeaver | 5.64.0 on Windows, Ubuntu 24.04's on Linux | LGPL-2.1 | Background jobs | No |
-| OpenSSL | Ubuntu 24.04's on Linux, **absent on Windows** (A-03) | Apache-2.0 | TLS | No |
+| OpenSSL | Ubuntu 24.04's on Linux; 1.1.1w, built from source, on Windows (A-40) | Apache-2.0 | TLS | No |
 | zlib | Ubuntu 24.04's on Linux; DCMTK's support package on Windows | Zlib | Compression | No |
 | libiconv | DCMTK's support package, on Windows | LGPL-2.1 | Character sets | No |
 | Breakpad | See `src/thirdparty/breakpad/revision.txt` | BSD-3-Clause | Crash reports | Vendored |

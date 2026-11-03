@@ -304,6 +304,46 @@ same-server redirect limit, HTTPS (A-03), DIMSE, the Linux and installed-package
 The DICOMweb entry is left configured with its login in Credential Manager, and the local
 database now also holds `QA-TS-implicit-le`.
 
+### Run 6
+
+Run 6 tests C-GET, DICOM TLS and HTTPS with a CA file per PACS against the two test PACS of
+`quality/testlab` (plain at 127.0.0.1, TLS at localhost). It used `C:\sdk\sv-build\bin\starviewer.exe`
+built on 2026-11-02 from `b993ed31e` plus the uncommitted `phase1` changes, with OpenSSL 1.1.1w, started
+by `C:\sdk\run-starviewer.bat`. Claude drove the interface in Claude Desktop, and I (Claude Code) checked
+the report against the code. It is not a CI package, and the requirements stay *Not verified*.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Dialog fields | Failed | The fields show and enable as designed for each PACS type, and TLS ticks and locks C-GET. Unticking TLS left C-GET ticked although it was never chosen. Fixed: the box now keeps the user's own choice |
+| 2. C-GET | Not done | The test was wrong: it added a second entry with the AE title, address and port of the existing one, which Starviewer refuses (`This PACS already exists.`) |
+| 3. Cancel a C-GET | Not done | Needs step 2 |
+| 4. C-MOVE | Not done | |
+| 5. DICOM TLS | Passed | Test, search, retrieve and view of QA-CT-001 over TLS |
+| 6. TLS failures | Passed | A wrong CA, an address the certificate does not name, and no client certificate all fail Test with the TLS hint. A certificate without its key, and TLS without a CA, are refused on OK |
+| 7. HTTPS DICOMweb | Failed | With the CA, search, retrieve and view worked (100 files). With the CA then cleared, search and Test still succeeded (A-45) |
+| 8. Clean up | Passed | |
+
+A-45 was reproduced by `test_EchoToWadoPacs` against the TLS test PACS before the fix and passes
+after it. All suites passed on that build (4,834 tests, 4 lab tests skipped). Steps 1 to 4 and 7 were run again in run 7.
+
+### Run 7
+
+Run 7 repeats the steps of run 6 that failed or were not done, on a build with the fixes for A-45 and
+the C-GET box, in the same way as run 6. I checked the protocol of each retrieve and the cancel in
+the log.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. C-GET box | Passed | Unticking TLS leaves C-GET as the user chose it, ticked or not |
+| 2. C-GET | Passed | Test passed and C-GET stayed saved. QA-CT-001 retrieved, 100 files, and displayed. The log shows no incoming connection, so it was C-GET |
+| 3. Cancel a C-GET | Passed | Cancelled at 978 of 1049 files, and Starviewer stayed responsive. The study was already complete in the local database from an earlier run, so it was kept, as designed. Cancelling a study that is not yet local was not exercised |
+| 4. C-MOVE | Passed | QA-US-001 retrieved, 1 file. The log shows Orthanc's incoming connection on port 4006, so it was C-MOVE |
+| 5. HTTPS trust | Passed | In one session: no CA failed, the CA worked (QA-BRK-001 retrieved and displayed), the CA cleared failed again, and Test with no CA failed. Each failure said only `SSL handshake failed` (A-46) |
+| 6. Clean up | Passed | The ORTHANC entry is as before. The local database keeps the retrieved studies |
+
+Closing the viewer window ended Starviewer, which is its design: that window is the main one. Deleting a
+PACS entry asks for no confirmation (A-47).
+
 ### Baseline timings
 
 | Date | Machine | Application and version | Data | First image (s) | All loaded (s) | Memory (MB) | MPR (s) | 3D (s) |

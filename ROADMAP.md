@@ -220,29 +220,29 @@ work runs in the order below. DICOMweb has never been tested from the applicatio
 
 - **DICOMweb against Orthanc:** test query, retrieve, send and failed or partial
   transfers, and fix what fails.
-- **Windows OpenSSL:** build it into the SDK, restoring WADO over HTTPS and
-  enabling DICOM TLS support in DCMTK.
+- **Windows OpenSSL:** 1.1.1w is built into the SDK, which enables DICOM TLS in
+  DCMTK and should restore WADO over HTTPS (A-03, A-40).
 - **DICOMweb authentication:** basic authentication, which Orthanc has built in,
   is in place with logins in Windows Credential Manager, and passed on a local
   build in run 5 (A-28, A-29). OAuth 2 bearer tokens are next, and a secure store on Linux
   (A-35) comes with Linux support.
-- **DICOM TLS:** add it to PACS configuration and all DIMSE operations, on
-  Windows and Linux. The SDK enables OpenSSL on Linux, but the application never
-  uses it.
-- **C-GET:** retrieve without Orthanc needing to connect back to the workstation,
-  for firewalls where C-MOVE is impractical.
+- **DICOM TLS:** in PACS configuration and all DIMSE operations (AD-06). C-GET over
+  TLS works against the TLS test PACS, and bad certificates are refused. HTTPS can
+  also trust a CA file per PACS (A-45).
+- **C-GET:** retrieves without Orthanc needing to connect back to the workstation.
+  All 22 test lab studies arrive complete, with lossless pixels unchanged (A-42, A-43).
+  The dialog and cancelling still need testing on screen.
 - **JPEG-LS:** done (A-01). Undecodable frames now give an error instead of a
   blank image.
 - **Wrong-length pixel data:** done for the default reader (A-20). Add the same
   check to the GDCM and ITK readers.
-- **Update checker:** move it to HTTPS and make sending version and OS optional
-  (`applicationupdatechecker.cpp`).
+- **Update checker:** uses HTTPS, and sending the OS is off by default. The version
+  is still sent, since the service needs it (A-06).
 - **Malformed input:** fuzz the DICOM parsers and decoders, locally until CI is
   back in scope, and pin dependency updates. RadiAnt's 2026.1 release fixed an out-of-bounds write
   triggered by a malicious DICOM file (CVE-2026-17264), and Starviewer has
   comparable exposure.
-- **Backlog fix:** make `autotests` report failures correctly, so 256 failures
-  cannot wrap to exit code 0.
+- **Backlog fix:** done. `autotests` returns 1 on any failure (A-04).
 
 **Exit:** authenticated DICOMweb over HTTPS, DICOM TLS and C-GET work against
 Orthanc, every transfer syntax in the corpus decodes, and fuzzing runs regularly.
