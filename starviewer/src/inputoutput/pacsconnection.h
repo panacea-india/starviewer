@@ -60,6 +60,9 @@ public:
     /// @return retorna la configuració de la xarxa
     T_ASC_Network* getNetwork();
 
+    /// Aborts the association with the PACS, for example to cancel a request. disconnect() must still be called to release the resources.
+    OFCondition abort();
+
     /// This action close the session with PACS's machine and release all the resources
     void disconnect();
 
@@ -118,6 +121,8 @@ private:
     T_ASC_Parameters *m_associationParameters;
     // L'associació és el canal de comunicació que s'utilitza per l'intercanvi d'informació entre dispositius DICOM (és la connexió amb el PACS)
     T_ASC_Association *m_dicomAssociation;
+    // True once the association has been aborted, since then it cannot be released.
+    bool m_associationAborted;
 };
 };
 #endif

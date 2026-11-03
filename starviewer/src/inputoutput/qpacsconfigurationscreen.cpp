@@ -19,11 +19,13 @@
 #include "messagebus.h"
 #include "pacsdevice.h"
 #include "pacsdevicemanager.h"
+#include "pacscredentialstore.h"
 #include "pacsdevicemodel.h"
 #include "portinuse.h"
 #include "qpacsdialog.h"
 #include "starviewerapplication.h"
 
+#include <QMessageBox>
 #include <QSortFilterProxyModel>
 
 namespace udg {
@@ -192,6 +194,20 @@ void QPacsConfigurationScreen::deletePacs()
 
     QModelIndex index = m_pacsTableView->selectionModel()->selectedRows(0).first();
     QString pacsId = m_pacsTableView->model()->data(index).toString();
+
+    PacsDevice pacs = PacsDeviceManager::getPacsDeviceById(pacsId);
+    QString name = pacs.getType() == PacsDevice::Type::Wado ? pacs.getBaseUri().toString() : pacs.getAETitle();
+    QString question = tr("Delete the PACS %1?").arg(name);
+
+    if (!pacs.getBaseUri().isEmpty() && !PacsCredentialStore::load(pacs.getBaseUri()).isEmpty())
+    {
+        question += "\n\n" + tr("Its saved login is deleted too, unless another PACS uses the same address.");
+    }
+
+    if (QMessageBox::question(this, ApplicationNameString, question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+    {
+        return;
+    }
 
     INFO_LOG(QString("Deleting PACS with ID %1.").arg(pacsId));
     PacsDeviceManager::deletePacs(pacsId);

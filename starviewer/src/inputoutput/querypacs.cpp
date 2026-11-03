@@ -206,7 +206,7 @@ void QueryPacs::cancelQuery(T_DIMSE_C_FindRQ *request)
         INFO_LOG(QString("Aborto la connexio amb el PACS %1").arg(m_pacsDevice.getAETitle()));
 
         // Si hi hagut un error demanant el cancel·lar, abortem l'associació, d'aquesta manera segur que cancel·lem la query
-        ASC_abortAssociation(m_pacsConnection->getConnection());
+        m_pacsConnection->abort();
     }
 }
 

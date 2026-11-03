@@ -97,6 +97,17 @@ void WadoRequest::keepSslErrors(QNetworkReply *reply)
 
 QString WadoRequest::getErrorString(const QNetworkReply *reply)
 {
+    // Qt says "Host requires authentication" both when no login was sent and when it was refused
+    if (reply->error() == QNetworkReply::AuthenticationRequiredError)
+    {
+        if (reply->request().hasRawHeader("Authorization"))
+        {
+            return tr("The PACS refused the login. Check the user name and password in the PACS settings.");
+        }
+
+        return tr("The PACS requires a login. Enter a user name and password in the PACS settings.");
+    }
+
     QString sslErrors = reply->property(SslErrorsProperty).toString();
 
     if (sslErrors.isEmpty())

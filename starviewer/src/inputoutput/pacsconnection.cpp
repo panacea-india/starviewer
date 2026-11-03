@@ -43,6 +43,7 @@ PACSConnection::PACSConnection(PacsDevice pacsDevice)
     m_associationNetwork = NULL;
     m_associationParameters = NULL;
     m_dicomAssociation = NULL;
+    m_associationAborted = false;
 }
 
 PACSConnection::~PACSConnection()
@@ -409,27 +410,53 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
     return true;
 }
 
-void PACSConnection::disconnect()
+OFCondition PACSConnection::abort()
 {
-    OFCondition condition = ASC_releaseAssociation(m_dicomAssociation);
-    if (condition.bad())
+    if (!m_dicomAssociation || m_associationAborted)
     {
-        ERROR_LOG("No s'ha pogut desconnectar del PACS, descripcio error: " + QString(condition.text()));
+        return EC_Normal;
     }
 
-    condition = ASC_destroyAssociation(&m_dicomAssociation);
-    if (condition.bad())
+    OFCondition condition = ASC_abortAssociation(m_dicomAssociation);
+    m_associationAborted = true;
+    return condition;
+}
+
+void PACSConnection::disconnect()
+{
+    // Only an association that was established and not aborted can be released. If the PACS could not be reached, DCMTK has created the
+    // association but not its upper layer association.
+    if (m_dicomAssociation && m_dicomAssociation->DULassociation && !m_associationAborted)
     {
-        ERROR_LOG("Error al destruir la connexio amb el PACS, descripcio error: " + QString(condition.text()));
+        OFCondition condition = ASC_releaseAssociation(m_dicomAssociation);
+        if (condition.bad())
+        {
+            ERROR_LOG("No s'ha pogut desconnectar del PACS, descripcio error: " + QString(condition.text()));
+        }
+    }
+
+    if (m_dicomAssociation)
+    {
+        OFCondition condition = ASC_destroyAssociation(&m_dicomAssociation);
+        if (condition.bad())
+        {
+            ERROR_LOG("Error al destruir la connexio amb el PACS, descripcio error: " + QString(condition.text()));
+        }
     }
 
     // Destrueix l'objecte i tanca el socket obert, fins que no es fa el drop de l'objecte no es tanca el socket
-    condition = ASC_dropNetwork(&m_associationNetwork);
-    if (condition.bad())
+    if (m_associationNetwork)
     {
-        ERROR_LOG("Error al tancar el port de connexions entrants, descripcio error: " + QString(condition.text()));
+        OFCondition condition = ASC_dropNetwork(&m_associationNetwork);
+        if (condition.bad())
+        {
+            ERROR_LOG("Error al tancar el port de connexions entrants, descripcio error: " + QString(condition.text()));
+        }
     }
 
+    m_dicomAssociation = NULL;
+    m_associationNetwork = NULL;
+    m_associationAborted = false;
 }
 
 QString PACSConnection::constructPacsServerAddress(PACSServiceToRequest pacsServiceToRequest, PacsDevice pacsDevice)

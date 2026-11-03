@@ -23,9 +23,11 @@ private slots:
     void echo_ShouldFail_WithoutTheCaCertificate();
     void echo_ShouldSucceed_WithTheCaCertificate();
     void echo_ShouldFail_WithoutTheCaCertificate_AfterSucceedingWithIt();
+    void echo_ShouldSayTheLoginWasRefused_WithAWrongPassword();
+    void echo_ShouldAskForALogin_WithoutOne();
 
 private:
-    PacsDevice createTestLabPacs(const QString &caCertificateFile) const;
+    PacsDevice createTestLabPacs(const QString &caCertificateFile, const QString &password = "qa-only") const;
 };
 
 void test_EchoToWadoPacs::init()
@@ -36,12 +38,12 @@ void test_EchoToWadoPacs::init()
     }
 }
 
-PacsDevice test_EchoToWadoPacs::createTestLabPacs(const QString &caCertificateFile) const
+PacsDevice test_EchoToWadoPacs::createTestLabPacs(const QString &caCertificateFile, const QString &password) const
 {
     PacsDevice pacs;
     pacs.setType(PacsDevice::Type::Wado);
     pacs.setBaseUri(QUrl(qEnvironmentVariable("STARVIEWER_TESTLAB_HTTPS_URI")));
-    pacs.setLogin("qa", "qa-only");
+    pacs.setLogin(password.isEmpty() ? QString() : "qa", password);
     pacs.setCaCertificateFile(caCertificateFile);
     return pacs;
 }
@@ -64,6 +66,20 @@ void test_EchoToWadoPacs::echo_ShouldFail_WithoutTheCaCertificate_AfterSucceedin
     EchoToWadoPacs echo;
     QVERIFY(!echo.echo(createTestLabPacs(QString())));
     QVERIFY2(echo.getErrors().contains("certificate", Qt::CaseInsensitive), qPrintable(echo.getErrors()));
+}
+
+void test_EchoToWadoPacs::echo_ShouldSayTheLoginWasRefused_WithAWrongPassword()
+{
+    EchoToWadoPacs echo;
+    QVERIFY(!echo.echo(createTestLabPacs(qEnvironmentVariable("STARVIEWER_TESTLAB_CA"), "wrong")));
+    QVERIFY2(echo.getErrors().contains("refused the login"), qPrintable(echo.getErrors()));
+}
+
+void test_EchoToWadoPacs::echo_ShouldAskForALogin_WithoutOne()
+{
+    EchoToWadoPacs echo;
+    QVERIFY(!echo.echo(createTestLabPacs(qEnvironmentVariable("STARVIEWER_TESTLAB_CA"), QString())));
+    QVERIFY2(echo.getErrors().contains("requires a login"), qPrintable(echo.getErrors()));
 }
 
 DECLARE_TEST(test_EchoToWadoPacs)

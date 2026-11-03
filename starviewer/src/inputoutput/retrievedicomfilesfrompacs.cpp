@@ -328,7 +328,7 @@ OFCondition RetrieveDICOMFilesFromPACS::subOperationSCP(T_ASC_Association **subA
         // la connexió per la qual rebem les imatges, el comportament del PACS és desconegut, per exemple DCM4CHEE tanca la connexió amb el PACS, però
         // el RAIM_Server no la tanca i la manté fent que no sortim mai d'aquesta classe. Degut a que no es pot saber en aquesta situació com actuaran
         // els PACS es tanca aquí la connexió amb el PACS.
-        condition = ASC_abortAssociation(m_pacsConnection->getConnection());
+        condition = m_pacsConnection->abort();
         if (!condition.good())
         {
             ERROR_LOG("Error al abortar la connexio pel amb el PACS" + QString(condition.text()));
@@ -376,7 +376,7 @@ OFCondition RetrieveDICOMFilesFromPACS::retrieveWithCGet(T_ASC_Association *asso
         {
             INFO_LOG("Abortarem la connexio amb el PACS, perque han sol.licitant cancel.lar la descarrega");
             *dimseStatus = STATUS_GET_Cancel_SubOperationsTerminatedDueToCancelIndication;
-            return ASC_abortAssociation(association);
+            return m_pacsConnection->abort();
         }
 
         // Waiting a second at a time so that a PACS that is not sending anything doesn't stop the cancel.

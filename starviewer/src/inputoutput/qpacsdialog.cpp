@@ -261,6 +261,8 @@ void QPacsDialog::createConnections()
     connect(m_baseUriLineEdit, &QLineEdit::editingFinished, this, &QPacsDialog::moveLoginFromBaseUriToFields);
     connect(m_baseUriLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateLoginWarning);
     connect(m_usernameLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateLoginWarning);
+    connect(m_baseUriLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updatePasswordPlaceholder);
+    connect(m_usernameLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updatePasswordPlaceholder);
 
     connect(m_dicomTlsCheckBox, &QCheckBox::toggled, this, &QPacsDialog::updateTransportFields);
     connect(m_cGetCheckBox, &QCheckBox::clicked, [this](bool checked) { m_cGetChosen = checked; });
@@ -311,8 +313,12 @@ bool QPacsDialog::isLoginValid()
 
 bool QPacsDialog::keepsStoredPassword() const
 {
-    return m_passwordLineEdit->text().isEmpty()
-        && !m_storedUsername.isEmpty()
+    return m_passwordLineEdit->text().isEmpty() && storedPasswordApplies();
+}
+
+bool QPacsDialog::storedPasswordApplies() const
+{
+    return !m_storedUsername.isEmpty()
         && m_usernameLineEdit->text() == m_storedUsername
         && PacsCredentialStore::getKey(QUrl(m_baseUriLineEdit->text())) == PacsCredentialStore::getKey(m_storedLoginBaseUri);
 }
@@ -323,7 +329,12 @@ void QPacsDialog::loadStoredLogin()
     m_storedUsername = PacsCredentialStore::load(m_storedLoginBaseUri).username;
     m_usernameLineEdit->setText(m_storedUsername);
     m_passwordLineEdit->clear();
-    m_passwordLineEdit->setPlaceholderText(m_storedUsername.isEmpty() ? QString() : tr("Saved. Leave blank to keep it."));
+    updatePasswordPlaceholder();
+}
+
+void QPacsDialog::updatePasswordPlaceholder()
+{
+    m_passwordLineEdit->setPlaceholderText(storedPasswordApplies() ? tr("Saved. Leave blank to keep it.") : QString());
 }
 
 void QPacsDialog::updateLoginWarning()

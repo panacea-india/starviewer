@@ -69,6 +69,9 @@ private:
     /// entered. A changed base URI needs the password to be entered again, so that the stored one is not sent to another server.
     bool keepsStoredPassword() const;
 
+    /// Returns true if the stored password applies to the current base URI and user name.
+    bool storedPasswordApplies() const;
+
     /// Reads the stored user name for the current base URI into the login fields. The stored password is never put in the dialog.
     void loadStoredLogin();
 
@@ -87,6 +90,9 @@ private slots:
 
     /// Shows the warning about sending a password without encryption if it applies to the current values.
     void updateLoginWarning();
+
+    /// Says in the password field that the stored password will be kept, only while it applies to the current base URI and user name.
+    void updatePasswordPlaceholder();
 
     /// If the base URI field has a login, moves it to the login fields, so that it's never saved or shown in the base URI.
     void moveLoginFromBaseUriToFields();
