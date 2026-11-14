@@ -28,7 +28,7 @@ UserMessage::~UserMessage()
 
 QString UserMessage::getProblemPersistsAdvice()
 {
-    return QObject::tr("If the problem persists contact with an administrator");
+    return QObject::tr("If the problem persists, contact an administrator.");
 }
 
 QString UserMessage::getCloseWindowsAndTryAgainAdvice()

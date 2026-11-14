@@ -344,6 +344,32 @@ the log.
 Closing the viewer window ended Starviewer, which is its design: that window is the main one. Deleting a
 PACS entry asks for no confirmation (A-47).
 
+### Run 8
+
+Run 8 tests the lossy marker, English only, the PACS login messages, the password placeholder,
+the delete confirmation and the log after failed and cancelled connections, on a build from
+`ee541d337` plus the changes later committed for A-09, A-20, A-21, A-36 to A-38 and A-44. It ran in
+the same way as run 6, in two sessions: the first stopped when Edit on the ORTHANC entry asked to
+delete it (A-48), and the second ran on a build with that fixed. I checked the log and a copy of
+the local database afterwards. All suites passed on that build (4,871 tests, 6 lab tests skipped
+without the lab variables; with them, the 7 tests of `test_EchoToWadoPacs` passed).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Start-up and language | Passed | No Language entry, and the menus and settings are in English. The log viewer shows Catalan messages (A-50). The database upgrade to revision 9598 is in the log; the autotests made it, as they share the user's local database |
+| 2. Lossy marker | Partly passed | "LOSSY 10.1:1" for JPEG 2000, also while scrolling and in sagittal and coronal views; "LOSSY 52.7:1" for JPEG baseline; "LOSSY 6.8:1" for JPEG-LS near-lossless; nothing for JPEG lossless, JPEG 2000 lossless, RLE and implicit little endian. The decompressed file that keeps Lossy Image Compression 01 was loaded, but the overlay was too small to read. The check after a restart was not possible, as a folder opened from disk is not added to the local database |
+| 3. Missing login | Passed | "The PACS requires a login. Enter a user name and password in the PACS settings." |
+| 4. Wrong password | Passed | "The PACS refused the login. Check the user name and password in the PACS settings." The right password then passed Test |
+| 5. Password placeholder | Passed | Shown for the saved login; gone with another base URI or user name, and back when they match again |
+| 6. Delete confirmation | Passed | "Delete the PACS https://localhost:18043/dicom-web/? Its saved login is deleted too, unless another PACS uses the same address." No kept the entry and Yes deleted it |
+| 7. Failed connection log | Passed | The query error ran two sentences together (A-51). The log shows the connection error and no NULL key error. Delete asked "Delete the PACS NOBODY?" with no mention of a login |
+| 8. Cancelled C-GET | Not done as designed | The C-GET of 1049 files ended about 0.2 s before the cancel, during the save to the local database. The list said CANCELLED, but the study was stored (A-49). No DUL error in the log, but no cancel during a transfer either |
+| 9. Clean up | Passed | The ORTHANC entry is as before. The local database keeps the RIDER study and the synthetic QA-PT-001, opened by mistake |
+
+The tester's file dialog allowed only one file to be chosen, so each folder opened its first file.
+That was enough for the overlay checks. The decompressed file, the marker after reloading from the
+local database, a cancel during a transfer and the A-51 message go to run 9.
+
 ### Baseline timings
 
 | Date | Machine | Application and version | Data | First image (s) | All loaded (s) | Memory (MB) | MPR (s) | 3D (s) |

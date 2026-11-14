@@ -122,6 +122,7 @@ QString QueryPacsJob::getStatusDescription()
             message = tr("Query failed: Unable to connect to PACS %1.").arg(pacsAETitle);
             message += "\n\n";
             message += tr("Make sure your computer is connected to the network and the PACS configuration is correct.");
+            message += "\n";
             message += UserMessage::getProblemPersistsAdvice();
             break;
         case PACSRequestStatus::QueryFailedOrRefused:

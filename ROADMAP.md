@@ -231,11 +231,18 @@ work runs in the order below. DICOMweb has never been tested from the applicatio
   also trust a CA file per PACS (A-45).
 - **C-GET:** retrieves without Orthanc needing to connect back to the workstation.
   All 22 test lab studies arrive complete, with lossless pixels unchanged (A-42, A-43).
-  The dialog and cancelling still need testing on screen.
+  The dialog passed on screen in runs 6 and 7. A cancel during a transfer still needs
+  testing, and the list can say CANCELLED for a study that was stored (A-49).
 - **JPEG-LS:** done (A-01). Undecodable frames now give an error instead of a
   blank image.
-- **Wrong-length pixel data:** done for the default reader (A-20). Add the same
-  check to the GDCM and ITK readers.
+- **Wrong-length pixel data:** done (A-20). Every reader now refuses uncompressed
+  pixel data shorter than declared.
+- **Lossy marker:** done (A-21). Lossy images show LOSSY and the ratio in the 2D
+  viewer.
+- **English only:** done (A-09). Log messages are still partly in Catalan (A-50).
+- **PACS settings:** login messages, the password placeholder and the delete
+  confirmation are fixed (A-36 to A-38), and the log no longer shows false errors
+  after a failed connection (A-44).
 - **Update checker:** uses HTTPS, and sending the OS is off by default. The version
   is still sent, since the service needs it (A-06).
 - **Malformed input:** fuzz the DICOM parsers and decoders, locally until CI is

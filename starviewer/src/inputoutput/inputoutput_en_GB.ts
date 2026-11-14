@@ -77,7 +77,7 @@
     </message>
     <message>
         <location filename="usermessage.cpp" line="31"/>
-        <source>If the problem persists contact with an administrator</source>
+        <source>If the problem persists, contact an administrator.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
