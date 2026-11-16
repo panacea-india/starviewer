@@ -51,7 +51,7 @@ void PacsManager::enqueuePACSJob(PACSJobPointer pacsJob)
             m_queryQueue->enqueue(pacsJob);
             break;
         default:
-            ERROR_LOG("Tipus de job invalid");
+            ERROR_LOG("Invalid job type");
             break;
     }
 
@@ -78,7 +78,7 @@ bool PacsManager::isExecutingPACSJob(PACSJob::PACSJobType pacsJobType)
             return !m_queryQueue->isIdle();
             break;
         default:
-            ERROR_LOG("Metode isExecutingPACS ha rebut un Tipus de job invalid");
+            ERROR_LOG("Method isExecutingPACS received an invalid job type");
             return false;
     }
 }
@@ -104,7 +104,7 @@ void PacsManager::requestCancelPACSJob(PACSJobPointer pacsJob)
             pacsJobIsExecuting = !m_queryQueue->dequeue(pacsJob);
             break;
         default:
-            ERROR_LOG("Metode requestCancel ha rebut un Tipus de job invalid");
+            ERROR_LOG("Method requestCancel received an invalid job type");
             return;
     }
 

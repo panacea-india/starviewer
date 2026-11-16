@@ -34,7 +34,7 @@ TransDifferenceTool::TransDifferenceTool(QViewer *viewer, QObject *parent)
 
     m_myData = new TransDifferenceToolData;
 
-    //DEBUG_LOG("Tool creada");
+    //DEBUG_LOG("Tool created");
 
     // Ens assegurem que desde la creació tenim un viewer vàlid
     Q_ASSERT(m_viewer);
@@ -170,7 +170,7 @@ void TransDifferenceTool::initializeDifferenceImage()
 {
     if (m_myData->getInputVolume() == 0)
     {
-        DEBUG_LOG("ERROR: Estem inicialitzant la diferència sense tenir input!");
+        DEBUG_LOG("ERROR: Initializing the difference without having an input!");
         return;
     }
 

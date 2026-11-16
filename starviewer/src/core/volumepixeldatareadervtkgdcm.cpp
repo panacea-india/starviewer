@@ -76,7 +76,7 @@ int VolumePixelDataReaderVTKGDCM::read(const QStringList &filenames)
 
     if (filenames.isEmpty())
     {
-        WARN_LOG("La llista de noms de fitxer per carregar és buida");
+        WARN_LOG("The list of file names to load is empty");
         errorCode = InvalidFileName;
         return errorCode;
     }
@@ -91,13 +91,13 @@ int VolumePixelDataReaderVTKGDCM::read(const QStringList &filenames)
         {
             stringArray->InsertNextValue(filenames.at(i).toStdString());
         }
-        DEBUG_LOG("Llegim diversos arxius amb vtkGDCM");
+        DEBUG_LOG("Reading several files with vtkGDCM");
         m_vtkGDCMReader->SetFileNames(stringArray);
         stringArray->Delete();
     }
     else
     {
-        DEBUG_LOG("Llegim un sol arxiu amb vtkGDCM");
+        DEBUG_LOG("Reading a single file with vtkGDCM");
         m_vtkGDCMReader->SetFileName(qPrintable(filenames.first()));
     }
 
@@ -111,9 +111,9 @@ int VolumePixelDataReaderVTKGDCM::read(const QStringList &filenames)
     }
     catch (gdcm::Exception &e)
     {
-        WARN_LOG(QString("ExcepciÃ³ llegint els arxius del directori [%1] DescripciÃ³: [%2]")
+        WARN_LOG(QString("Exception reading the files of directory [%1] Description: [%2]")
             .arg(QFileInfo(filenames.at(0)).dir().path()).arg(e.GetDescription()));
-        DEBUG_LOG(QString("ExcepciÃ³ llegint els arxius del directori [%1] DescripciÃ³: [%2]")
+        DEBUG_LOG(QString("Exception reading the files of directory [%1] Description: [%2]")
             .arg(QFileInfo(filenames.at(0)).dir().path()).arg(e.GetDescription()));
         
         // Identifiquem l'error que es produeix
@@ -176,7 +176,7 @@ void VolumePixelDataReaderVTKGDCM::applyColorProcessing()
 
         if (lookupTable->IsA("vtkLookupTable16"))
         {
-            DEBUG_LOG("Mapejem una LUT de 16 bits");
+            DEBUG_LOG("Mapping a 16-bit LUT");
             vtkImageMapToColors16 *imageColorMapper16 = vtkImageMapToColors16::New();
             imageColorMapper16->SetInputConnection(m_vtkGDCMReader->GetOutputPort());
             imageColorMapper16->SetLookupTable(m_vtkGDCMReader->GetOutput()->GetPointData()->GetScalars()->GetLookupTable());
@@ -189,7 +189,7 @@ void VolumePixelDataReaderVTKGDCM::applyColorProcessing()
         }
         else
         {
-            DEBUG_LOG("Mapejem una LUT de 8 bits");
+            DEBUG_LOG("Mapping an 8-bit LUT");
             vtkImageMapToColors *imageColorMapper = vtkImageMapToColors::New();
             imageColorMapper->SetInputConnection(m_vtkGDCMReader->GetOutputPort());
             imageColorMapper->SetLookupTable(m_vtkGDCMReader->GetOutput()->GetPointData()->GetScalars()->GetLookupTable());
@@ -213,13 +213,13 @@ void VolumePixelDataReaderVTKGDCM::applyColorProcessing()
     }
     else if (imageFormat == VTK_RGB || imageFormat == VTK_RGBA)
     {
-        DEBUG_LOG("Llegim directament de vtkGDCMImageReader. No cal aplicar cap mapeig adicional, les dades estan en format RGB/RGBA");
+        DEBUG_LOG("Reading directly from vtkGDCMImageReader. No additional mapping is needed, the data is in RGB/RGBA format");
         // Easy case !
         imageData = m_vtkGDCMReader->GetOutput();
     }
     else
     {
-        DEBUG_LOG(QString("Llegim directament de vtkGDCMImageReader. No cal aplicar cap mapeig adicional. Format d'imatge: %1").arg(imageFormat));
+        DEBUG_LOG(QString("Reading directly from vtkGDCMImageReader. No additional mapping is needed. Image format: %1").arg(imageFormat));
         imageData = m_vtkGDCMReader->GetOutput();
     }
 

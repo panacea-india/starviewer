@@ -46,13 +46,13 @@ void QLogViewer::updateData()
     QFile logFile(udg::UserLogsFile);
     if (!logFile.open(QFile::ReadOnly | QFile::Text))
     {
-        ERROR_LOG("No s'ha pogut obrir l'arxiu de logs");
+        ERROR_LOG("Could not open the log file");
         m_logBrowser->setPlainText(tr("ERROR: No Log file found at this path: %1\nEnvironment variable (logFilePath): %2").arg(udg::UserLogsFile).arg(
                                    QString::fromLocal8Bit(qgetenv("logFilePath"))));
     }
     else
     {
-        INFO_LOG("S'ha obert amb èxit l'arxiu de logs [" + udg::getLogFilePath() + "]");
+        INFO_LOG("The log file was opened successfully [" + udg::getLogFilePath() + "]");
         m_logBrowser->setPlainText(logFile.readAll());
         m_logBrowser->moveCursor(QTextCursor::End);
     }

@@ -52,8 +52,8 @@ int VolumePixelDataReaderITKDCMTK::read(const QStringList &filenames)
 
     if (filenames.isEmpty())
     {
-        WARN_LOG("La llista de noms de fitxer per carregar és buida");
-        DEBUG_LOG("La llista de noms de fitxer per carregar és buida");
+        WARN_LOG("The list of file names to load is empty");
+        DEBUG_LOG("The list of file names to load is empty");
         errorCode = InvalidFileName;
     }
     else
@@ -97,9 +97,9 @@ int VolumePixelDataReaderITKDCMTK::readMultipleFiles(const QStringList &filename
     }
     catch (itk::ExceptionObject &e)
     {
-        WARN_LOG(QString("Excepció llegint els arxius del directori [%1] Descripció: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
+        WARN_LOG(QString("Exception reading the files of directory [%1] Description: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
                     .arg(e.GetDescription()));
-        DEBUG_LOG(QString("Excepció llegint els arxius del directori [%1] Descripció: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
+        DEBUG_LOG(QString("Exception reading the files of directory [%1] Description: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
                      .arg(e.GetDescription()));
         // Llegim el missatge d'error per esbrinar de quin error es tracta
         errorCode = identifyErrorMessage(QString(e.GetDescription()));
@@ -110,8 +110,8 @@ int VolumePixelDataReaderITKDCMTK::readMultipleFiles(const QStringList &filename
     }
     catch (...)
     {
-        WARN_LOG(QString("Excepció desconeguda llegint els arxius del directori [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
-        DEBUG_LOG(QString("Excepció desconeguda els arxius del directori [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
+        WARN_LOG(QString("Unknown exception reading the files of directory [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
+        DEBUG_LOG(QString("Unknown exception in the files of directory [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
         errorCode = UnknownError;
     }
 
@@ -157,8 +157,8 @@ int VolumePixelDataReaderITKDCMTK::readSingleFile(const QString &fileName)
     }
     catch (itk::ExceptionObject &e)
     {
-        WARN_LOG(QString("Excepció llegint l'arxiu [%1] Descripció: [%2]").arg(fileName).arg(e.GetDescription()));
-        DEBUG_LOG(QString("Excepció llegint l'arxiu [%1] Descripció: [%2]").arg(fileName).arg(e.GetDescription()));
+        WARN_LOG(QString("Exception reading the file [%1] Description: [%2]").arg(fileName).arg(e.GetDescription()));
+        DEBUG_LOG(QString("Exception reading the file [%1] Description: [%2]").arg(fileName).arg(e.GetDescription()));
         // Llegim el missatge d'error per esbrinar de quin error es tracta
         errorCode = identifyErrorMessage(QString(e.GetDescription()));
     }
@@ -168,8 +168,8 @@ int VolumePixelDataReaderITKDCMTK::readSingleFile(const QString &fileName)
     }
     catch (...)
     {
-        WARN_LOG(QString("Excepció desconeguda llegint l'arxiu [%1]").arg(fileName));
-        DEBUG_LOG(QString("Excepció desconeguda llegint l'arxiu [%1]").arg(fileName));
+        WARN_LOG(QString("Unknown exception reading the file [%1]").arg(fileName));
+        DEBUG_LOG(QString("Unknown exception reading the file [%1]").arg(fileName));
         errorCode = UnknownError;
     }
 
@@ -226,9 +226,9 @@ void VolumePixelDataReaderITKDCMTK::readDifferentSizeImagesIntoOneVolume(const Q
         }
         catch (itk::ExceptionObject &e)
         {
-            WARN_LOG(QString("Excepció llegint els arxius del directori [%1] Descripció: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
+            WARN_LOG(QString("Exception reading the files of directory [%1] Description: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
                         .arg(e.GetDescription()));
-            DEBUG_LOG(QString("Excepció llegint els arxius del directori [%1] Descripció: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
+            DEBUG_LOG(QString("Exception reading the files of directory [%1] Description: [%2]").arg(QFileInfo(filenames.at(0)).dir().path())
                          .arg(e.GetDescription()));
 
             // Llegim el missatge d'error per esbrinar de quin error es tracta
@@ -240,8 +240,8 @@ void VolumePixelDataReaderITKDCMTK::readDifferentSizeImagesIntoOneVolume(const Q
         }
         catch (...)
         {
-            WARN_LOG(QString("Excepció desconeguda llegint els arxius del directori [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
-            DEBUG_LOG(QString("Excepció desconeguda els arxius del directori [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
+            WARN_LOG(QString("Unknown exception reading the files of directory [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
+            DEBUG_LOG(QString("Unknown exception in the files of directory [%1]").arg(QFileInfo(filenames.at(0)).dir().path()));
             errorCode = UnknownError;
         }
         
@@ -314,15 +314,15 @@ void VolumePixelDataReaderITKDCMTK::checkZeroSpacingException()
         }
         else if (spacing[2] == 0.0)
         {
-            WARN_LOG("El z-spacing de les dades llegides és 0. Possiblement la informació corresponent (SliceThikness/SpacingBetweenSlices) estigui dins "
-                     "de seqüències privades. Donem el volum per vàlid igualment.");
-            DEBUG_LOG("El z-spacing de les dades llegides és 0. Possiblement la informació corresponent (SliceThikness/SpacingBetweenSlices) estigui dins "
-                     "de seqüències privades. Donem el volum per vàlid igualment.");
+            WARN_LOG("The z-spacing of the data read is 0. The corresponding information (SliceThikness/SpacingBetweenSlices) may be inside "
+                     "private sequences. The volume is considered valid anyway.");
+            DEBUG_LOG("The z-spacing of the data read is 0. The corresponding information (SliceThikness/SpacingBetweenSlices) may be inside "
+                     "private sequences. The volume is considered valid anyway.");
         }
     }
     else
     {
-        DEBUG_LOG("No s'han assignat les dades vtk! No podem fer cap comprovació.");
+        DEBUG_LOG("The VTK data has not been assigned! No check can be made.");
     }
 }
 

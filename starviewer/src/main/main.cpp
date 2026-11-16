@@ -87,13 +87,13 @@ void initializeTranslations(QApplication &app)
             QString translationFilePath = ":/extensions/" + mediator->getExtensionID().getID() + "/translations_" + defaultLocale.name();
             if (!translationsLoader.loadTranslation(translationFilePath))
             {
-                ERROR_LOG("No s'ha pogut carregar el translator " + translationFilePath);
+                ERROR_LOG("Could not load the translator " + translationFilePath);
             }
             delete mediator;
         }
         else
         {
-            ERROR_LOG("Error carregant el mediator de " + mediatorName);
+            ERROR_LOG("Error loading the mediator of " + mediatorName);
         }
     }
 }
@@ -104,13 +104,13 @@ void sendToFirstStarviewerInstanceCommandLineOptions(QtSingleApplication &app)
 
     if (!app.sendMessage(app.arguments().join(";"), 10000))
     {
-        ERROR_LOG("No s'ha pogut enviar a la instancia principal la llista d'arguments, sembla que l'instancia principal no respon.");
+        ERROR_LOG("Could not send the argument list to the main instance, it seems the main instance does not respond.");
         QMessageBox::critical(NULL, udg::ApplicationNameString, QObject::tr("%1 is already running, but is not responding. "
             "To open %1, you must first close the existing %1 process, or restart your system.").arg(udg::ApplicationNameString));
     }
     else
     {
-        INFO_LOG("S'ha enviat correctament a la instancia principal els arguments de la línia de comandes.");
+        INFO_LOG("The command line arguments were sent successfully to the main instance.");
     }
 }
 
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
     QStringList commandLineArgumentsList = app.arguments();
 
     QString commandLineCall = commandLineArgumentsList.join(" ");
-    INFO_LOG("Iniciada nova instancia Starviewer amb el seguents arguments de linia de comandes " + commandLineCall);
+    INFO_LOG("Started a new Starviewer instance with the following command line arguments " + commandLineCall);
 
     if (commandLineArgumentsList.count() > 1)
     {
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
             invalidCommandLine += StarviewerSingleApplicationCommandLineSingleton::instance()->getStarviewerApplicationCommandLineParser().helpText();
             QMessageBox::warning(NULL, udg::ApplicationNameString, invalidCommandLine);
 
-            ERROR_LOG("Arguments de linia de comandes invalids, error : " + errorInvalidCommanLineArguments);
+            ERROR_LOG("Invalid command line arguments, error : " + errorInvalidCommanLineArguments);
 
             // Si ja hi ha una altra instància execuntat-se donem el missatge d'error i tanquem Starviewer
             if (app.isRunning())
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
     if (app.isRunning())
     {
         // Hi ha una altra instància del Starviewer executant-se
-        INFO_LOG("Hi ha una altra instancia de l'starviewer executant-se. S'enviaran els arguments de la linia de comandes a la instancia principal.");
+        INFO_LOG("Another instance of Starviewer is running. The command line arguments will be sent to the main instance.");
 
         sendToFirstStarviewerInstanceCommandLineOptions(app);
 
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
             udg::ExternalStudyRequestManager::instance()->listen();
 #endif
 
-            INFO_LOG("Creada finestra principal");
+            INFO_LOG("Main window created");
 
             mainWin->show();
             mainWin->checkNewVersionAndShowReleaseNotes();

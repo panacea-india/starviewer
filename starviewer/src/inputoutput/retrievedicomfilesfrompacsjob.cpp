@@ -115,8 +115,8 @@ void RetrieveDICOMFilesFromPACSJob::run(ThreadWeaver::JobPointer self, ThreadWea
 
     Settings settings;
     // TODO: És aquest el lloc per aquest missatge ? no seria potser millor fer-ho a RetrieveDICOMFilesFromPACS
-    INFO_LOG(QString("Iniciant descarrega del PACS %1, IP: %2, Port: %3, AE Title Local: %4 Port local: %5, "
-                     "l'estudi UID: %6, series UID: %7, SOP Instance UID:%8")
+    INFO_LOG(QString("Starting retrieval from PACS %1, IP: %2, Port: %3, Local AE Title: %4 Local port: %5, "
+                     "study UID: %6, series UID: %7, SOP Instance UID:%8")
         .arg(getPacsDevice().getAETitle(), getPacsDevice().getAddress(), QString::number(getPacsDevice().getQueryRetrieveServicePort()))
         .arg(settings.getValue(InputOutputSettings::LocalAETitle).toString(), settings.getValue(InputOutputSettings::IncomingDICOMConnectionsPort).toString())
         .arg(m_studyToRetrieveDICOMFiles->getInstanceUID(), m_seriesInstanceUIDToRetrieve, m_SOPInstanceUIDToRetrieve));
@@ -136,7 +136,7 @@ void RetrieveDICOMFilesFromPACSJob::run(ThreadWeaver::JobPointer self, ThreadWea
     if (!getPacsDevice().usesCGet() && PortInUse().isPortInUse(localPort))
     {
         m_retrieveRequestStatus = PACSRequestStatus::RetrieveIncomingDICOMConnectionsPortInUse;
-        ERROR_LOG("El port " + QString::number(localPort) + " per a connexions entrants del PACS, esta en us, no es pot descarregar l'estudi");
+        ERROR_LOG("The port " + QString::number(localPort) + " for incoming connections from the PACS is in use, the study cannot be retrieved");
     }
     else
     {
@@ -169,7 +169,7 @@ void RetrieveDICOMFilesFromPACSJob::run(ThreadWeaver::JobPointer self, ThreadWea
         if ((m_retrieveRequestStatus == PACSRequestStatus::RetrieveOk || m_retrieveRequestStatus == PACSRequestStatus::RetrieveSomeDICOMFilesFailed) &&
             beginUninterruptiblePhase())
         {
-            INFO_LOG(QString("Ha finalitzat la descarrega de l'estudi %1 del PACS %2, s'han descarregat %3 fitxers")
+            INFO_LOG(QString("Finished retrieving study %1 from PACS %2, %3 files were retrieved")
                 .arg(m_studyToRetrieveDICOMFiles->getInstanceUID(), getPacsDevice().getAETitle())
                 .arg(m_retrieveDICOMFilesFromPACS->getNumberOfDICOMFilesRetrieved()));
 
@@ -220,7 +220,7 @@ void RetrieveDICOMFilesFromPACSJob::run(ThreadWeaver::JobPointer self, ThreadWea
 
 void RetrieveDICOMFilesFromPACSJob::requestCancelJob()
 {
-    INFO_LOG(QString("S'ha demanat la cancel.lacio del Job de descarrega d'imatges de l'estudi %1 del PACS %2")
+    INFO_LOG(QString("Cancellation of the job retrieving the images of study %1 from PACS %2 was requested")
                 .arg(getStudyToRetrieveDICOMFiles()->getInstanceUID(),
              getPacsDevice().getAETitle()));
     m_retrieveDICOMFilesFromPACS->requestCancel();
@@ -285,12 +285,12 @@ void RetrieveDICOMFilesFromPACSJob::deleteRetrievedDICOMFilesIfStudyNotExistInDa
         // Si l'estudi no existeix a la base de dades esborrem el contingut del directori, en principi segons la normativa DICO; si rebem un status de
         // tipus error per part de MoveSCP indicaria s'ha pogut descarregar cap objecte dicom amb èxit
 
-        INFO_LOG("L'estudi " + m_studyToRetrieveDICOMFiles->getInstanceUID() + " no existeix a la base de de dades, esborrem el contingut del seu directori.");
+        INFO_LOG("The study " + m_studyToRetrieveDICOMFiles->getInstanceUID() + " does not exist in the database, deleting the contents of its directory.");
         DirectoryUtilities().deleteDirectory(LocalDatabaseManager().getStudyPath(m_studyToRetrieveDICOMFiles->getInstanceUID()), true);
     }
     else
     {
-        INFO_LOG("L'estudi " + m_studyToRetrieveDICOMFiles->getInstanceUID() + " existeix a la base de dades, no esborrem el contingut del seu directori.");
+        INFO_LOG("The study " + m_studyToRetrieveDICOMFiles->getInstanceUID() + " exists in the database, not deleting the contents of its directory.");
     }
 }
 

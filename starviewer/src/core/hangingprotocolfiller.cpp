@@ -56,7 +56,7 @@ bool isValidImage(Image *image, const HangingProtocolImageSet *imageSet)
 {
     if (!image)
     {
-        DEBUG_LOG("La imatge passada és NUL·LA! Retornem fals.");
+        DEBUG_LOG("The given image is NULL! Returning false.");
         return false;
     }
 

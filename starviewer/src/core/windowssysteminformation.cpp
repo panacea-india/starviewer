@@ -769,7 +769,7 @@ IEnumWbemClassObject* WindowsSystemInformation::executeQuery(QString query)
         m_api = initializeAPI();
         if (!m_api)
         {
-            WARN_LOG("No s'ha pogut inicialitzar l'API per WMI.");
+            WARN_LOG("Could not initialize the WMI API.");
             return NULL;
         }
     }

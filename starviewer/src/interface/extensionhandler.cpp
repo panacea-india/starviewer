@@ -92,8 +92,8 @@ bool ExtensionHandler::request(const QString &who)
     ExtensionMediator *mediator = ExtensionMediatorFactory::instance()->create(who);
     if (!mediator)
     {
-        WARN_LOG("No s'ha pogut crear el mediator per: " + who);
-        DEBUG_LOG("No s'ha pogut crear el mediator per: " + who);
+        WARN_LOG("Could not create the mediator for: " + who);
+        DEBUG_LOG("Could not create the mediator for: " + who);
         ok = false;
         return ok;
     }
@@ -131,7 +131,7 @@ bool ExtensionHandler::request(const QString &who)
         QWidget *extension = ExtensionFactory::instance()->create(who);
         if (extension)
         {
-            INFO_LOG("Activem extensió: " + who);
+            INFO_LOG("Activating the extension: " + who);
             mediator->initializeExtension(extension, m_extensionContext);
             m_mainApp->getExtensionWorkspace()->addApplication(extension, requestedExtensionLabel, who);
         }
@@ -196,7 +196,7 @@ void ExtensionHandler::processInput(const QStringList &inputFiles)
     if (numberOfPatients == 0)
     {
         QMessageBox::critical(0, ApplicationNameString, tr("Sorry, it seems that there is no patient data that can be loaded."));
-        ERROR_LOG("Error fent el fill de patientFiller. Ha retornat 0 pacients.");
+        ERROR_LOG("Error running the patientFiller. It returned 0 patients.");
         return;
     }
 

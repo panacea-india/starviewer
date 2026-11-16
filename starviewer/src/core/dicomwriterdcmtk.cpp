@@ -135,7 +135,7 @@ DcmSequenceOfItems* DICOMWriterDCMTK::generateDcmSequenceOfItems(DICOMSequenceAt
             }
             else
             {
-                DEBUG_LOG(QString("Tipus d'element no suportat al generar la sequencia."));
+                DEBUG_LOG(QString("Element type not supported when generating the sequence."));
                 return NULL;
             }
         }
@@ -166,12 +166,12 @@ bool DICOMWriterDCMTK::write()
 
     if (saveFileCondition == EC_Normal)
     {
-        DEBUG_LOG(QString("Fitxer DICOM generat correctament: %1").arg(this->getPath()));
+        DEBUG_LOG(QString("DICOM file generated successfully: %1").arg(this->getPath()));
         return true;
     }
     else
     {
-        DEBUG_LOG(QString("No s'ha pogut generar el fitxer DICOM: %1").arg(this->getPath()));
+        DEBUG_LOG(QString("Could not generate the DICOM file: %1").arg(this->getPath()));
         return false;
     }
 }

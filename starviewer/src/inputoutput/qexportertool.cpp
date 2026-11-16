@@ -106,8 +106,8 @@ void QExporterTool::generateAndStoreNewSeries()
 {
     if (!canAllocateEnoughMemory())
     {
-        DEBUG_LOG("No hi ha prou memòria per generar el nou volum.");
-        WARN_LOG("No hi ha prou memòria per generar el nou volum.");
+        DEBUG_LOG("Not enough memory to generate the new volume.");
+        WARN_LOG("Not enough memory to generate the new volume.");
         QMessageBox::warning(this, tr("No enough memory"), tr("The new volume cannot be generated because there is not enough memory. Please, select "
                                                               "less slices or reduce the window size."));
         return;
@@ -232,7 +232,7 @@ void QExporterTool::generateAndStoreNewSeries()
 
     if (result)
     {
-        DEBUG_LOG("Fitxers generats correctament");
+        DEBUG_LOG("Files generated successfully");
 
         progress.setLabelText(tr("Storing in database..."));
         progress.setValue(progress.value() + 1);
@@ -262,7 +262,7 @@ void QExporterTool::generateAndStoreNewSeries()
     }
     else
     {
-        ERROR_LOG(QString("Error al escriure al directori: %1").arg(dirPath));
+        ERROR_LOG(QString("Error writing to the directory: %1").arg(dirPath));
         QMessageBox::warning(this, tr("Export to DICOM"), tr("Could not generate the new series."));
     }
 
@@ -301,7 +301,7 @@ void QExporterTool::allImagesRadioButtonClicked()
     }
     else
     {
-        DEBUG_LOG(QString("Només està pensat per visors 2D."));
+        DEBUG_LOG(QString("It is only intended for 2D viewers."));
     }
 }
 
@@ -316,7 +316,7 @@ void QExporterTool::imageOfCurrentPhaseRadioButtonClicked()
     }
     else
     {
-        DEBUG_LOG(QString("Només està pensat per visors 2D."));
+        DEBUG_LOG(QString("It is only intended for 2D viewers."));
     }
 }
 
@@ -331,7 +331,7 @@ void QExporterTool::phasesOfCurrentImageRadioButtonClicked()
     }
     else
     {
-        DEBUG_LOG(QString("Només està pensat per visors 2D."));
+        DEBUG_LOG(QString("It is only intended for 2D viewers."));
     }
 }
 

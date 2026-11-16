@@ -440,7 +440,7 @@ QStringList DICOMDIRReader::getFiles(const QString &studyUID)
     }
     else
     {
-        DEBUG_LOG("No s'ha trobat cap estudi amb aquest uid: " + studyUID + " al dicomdir");
+        DEBUG_LOG("No study with this uid was found: " + studyUID + " in the dicomdir");
     }
     return files;
 }

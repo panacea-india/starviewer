@@ -131,7 +131,7 @@ void QCustomWindowLevelEditWidget::updatePresetsIfAreValid()
     if (validate())
     {
         CustomWindowLevelsRepository::getRepository()->cleanUp();
-        INFO_LOG("S'actualitza el repositori de Window Level amb els següents WW/WL:");
+        INFO_LOG("Updating the Window Level repository with the following WW/WL:");
 
         QTreeWidgetItemIterator iterator(m_customWindowLevelTreeWidget);
         while (*iterator)
@@ -145,7 +145,7 @@ void QCustomWindowLevelEditWidget::updatePresetsIfAreValid()
                         .arg(customWindowLevel->getCenter()));
             ++iterator;
         }
-        INFO_LOG("Fi de llistat del repositori de WW/WL");
+        INFO_LOG("End of the WW/WL repository listing");
 
         // TODO Caldria pensar bé a on s'ha de fer això.
         CustomWindowLevelsWriter customWindowLevelsWriter;

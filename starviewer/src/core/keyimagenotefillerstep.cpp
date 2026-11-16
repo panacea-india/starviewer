@@ -39,10 +39,10 @@ void KeyImageNoteFillerStep::processKeyImageNote()
     if (ok)
     {
         // TODO per implementar
-        DEBUG_LOG("Pendent d'implementació!");
+        DEBUG_LOG("Not implemented yet!");
     }
 //     else
-//         DEBUG_LOG("No s'ha pogut obrir amb el tagReader l'arxiu: " + keyImageNote->getPath());
+//         DEBUG_LOG("Could not open the file with the tagReader: " + keyImageNote->getPath());
 }
 
 }

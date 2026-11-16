@@ -138,7 +138,7 @@ void VoiLutPresetsTool::updateVoiLutData()
     m_defaultPresetsIndex = 0;
     if (!m_myToolData)
     {
-        DEBUG_LOG("No tenim tooldata de window level!");
+        DEBUG_LOG("There is no window level tooldata!");
     }
     else
     {
@@ -154,7 +154,7 @@ void VoiLutPresetsTool::setToolData(ToolData *toolData)
     m_myToolData = qobject_cast<VoiLutPresetsToolData*>(toolData);
     if (!m_myToolData)
     {
-        DEBUG_LOG("El tooldata proporcionat no és un WindwoLevelPresetsToolData que és l'esperat");
+        DEBUG_LOG("The given tooldata is not the expected WindwoLevelPresetsToolData");
     }
     else
     {

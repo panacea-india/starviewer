@@ -124,7 +124,7 @@ void VolumeReaderJobFactory::assignResourceRestrictionPolicy(VolumeReaderJob *vo
         QMutexLocker lock(volumeReaderJob->mutex());
         volumeReaderJob->assignQueuePolicy(&m_resourceRestrictionPolicy);
     }
-    INFO_LOG(QString("Limitem a %1 la quantitat de volums carregant-se simultàniament.").arg(m_resourceRestrictionPolicy.cap()));
+    INFO_LOG(QString("Limiting to %1 the number of volumes loading simultaneously.").arg(m_resourceRestrictionPolicy.cap()));
 }
 
 void VolumeReaderJobFactory::onJobProgress(ThreadWeaver::JobPointer job, int progress)
@@ -156,7 +156,7 @@ bool VolumeReaderJobFactory::isVolumeLoading(Volume *volume) const
 {
     if (!volume)
     {
-        DEBUG_LOG("El volum és nul. No pot estar carregant-se.");
+        DEBUG_LOG("The volume is null. It cannot be loading.");
         return false;
     }
 
@@ -167,7 +167,7 @@ void VolumeReaderJobFactory::cancelLoadingAndDeleteVolume(Volume *volume)
 {
     if (!volume)
     {
-        DEBUG_LOG("El volum és nul. No es pot fer cancel de la càrrega ni esborrar.");
+        DEBUG_LOG("The volume is null. The loading cannot be cancelled or deleted.");
         return;
     }
 

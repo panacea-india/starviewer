@@ -210,7 +210,7 @@ void QInputOutputLocalDatabaseWidget::removeStudyFromQStudyTreeWidget(QString st
 
 void QInputOutputLocalDatabaseWidget::requestedSeriesOfStudy(Study *study)
 { 
-    INFO_LOG("Cerca de sèries a la font cache de l'estudi " + study->getInstanceUID());
+    INFO_LOG("Searching for series in the cache source of the study " + study->getInstanceUID());
 
     // Preparem la mascara i cerquem les series a la cache
     DicomMask mask;
@@ -245,7 +245,7 @@ void QInputOutputLocalDatabaseWidget::setSeriesToSeriesListWidget(Study *current
         return;
     }
 
-    INFO_LOG("Cerca de sèries a la cache de l'estudi " + currentStudy->getInstanceUID());
+    INFO_LOG("Searching for series in the cache of the study " + currentStudy->getInstanceUID());
 
     DicomMask mask;
     mask.setStudyInstanceUID(currentStudy->getInstanceUID());
@@ -322,7 +322,7 @@ void QInputOutputLocalDatabaseWidget::deleteSelectedItemsFromLocalDatabase()
                 {
                     if (!dicomMaskToDelete.getSeriesInstanceUID().isEmpty())
                     {
-                        INFO_LOG(QString("L'usuari ha indicat que vol esborrar de la cache la serie %1 de l'estudi %2")
+                        INFO_LOG(QString("The user asked to delete series %1 of study %2 from the cache")
                                     .arg(dicomMaskToDelete.getSeriesInstanceUID(), dicomMaskToDelete.getStudyInstanceUID()));
                         localDatabaseManager.deleteSeries(dicomMaskToDelete.getStudyInstanceUID(), dicomMaskToDelete.getSeriesInstanceUID());
 
@@ -331,7 +331,7 @@ void QInputOutputLocalDatabaseWidget::deleteSelectedItemsFromLocalDatabase()
                     }
                     else
                     {
-                        INFO_LOG(QString("L'usuari ha indicat que vol esborrar de la cache l'estudi %1").arg(dicomMaskToDelete.getStudyInstanceUID()));
+                        INFO_LOG(QString("The user asked to delete study %1 from the cache").arg(dicomMaskToDelete.getStudyInstanceUID()));
                         localDatabaseManager.deleteStudy(dicomMaskToDelete.getStudyInstanceUID());
 
                         m_seriesThumbnailPreviewWidget->clear();
@@ -399,13 +399,13 @@ void QInputOutputLocalDatabaseWidget::view(QList<DicomMask> dicomMaskStudiesToVi
         }
         else
         {
-            DEBUG_LOG("No s'ha pogut obtenir l'estudi amb UID " + dicomMaskStudyToView.getStudyInstanceUID());
+            DEBUG_LOG("Could not get the study with UID " + dicomMaskStudyToView.getStudyInstanceUID());
         }
     }
 
     if (selectedPatientsList.count() > 0)
     {
-        DEBUG_LOG("Llançat signal per visualitzar estudi del pacient " + patient->getFullName());
+        DEBUG_LOG("Signal emitted to display the study of the patient " + patient->getFullName());
         emit viewPatients(selectedPatientsList, loadOnly);
     }
 

@@ -386,12 +386,12 @@ bool QViewer::saveGrabbedViews(const QString &baseName, FileType extension)
 
             case DICOM:
                 // TODO A suportar
-                DEBUG_LOG("El format DICOM encara no està suportat per guardar imatges");
+                DEBUG_LOG("The DICOM format is not yet supported for saving images");
                 return false;
 
             case META:
                 // TODO A suportar
-                DEBUG_LOG("El format META encara no està suportat per guardar imatges");
+                DEBUG_LOG("The META format is not yet supported for saving images");
                 return false;
         }
         int count = m_grabList.count();
@@ -513,7 +513,7 @@ void QViewer::pan(double motionVector[3])
     vtkCamera *camera = getActiveCamera();
     if (!camera)
     {
-        DEBUG_LOG("No hi ha càmera");
+        DEBUG_LOG("There is no camera");
         return;
     }
 
@@ -544,7 +544,7 @@ bool QViewer::getCurrentFocalPoint(double focalPoint[3])
     vtkCamera *camera = getActiveCamera();
     if (!camera)
     {
-        DEBUG_LOG("No hi ha càmera");
+        DEBUG_LOG("There is no camera");
         return false;
     }
 

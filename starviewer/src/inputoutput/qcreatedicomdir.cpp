@@ -326,13 +326,13 @@ Status QCreateDicomdir::createDicomdirOnCdOrDvd()
     // Si el directori dicomdir ja existeix al temporal l'esborrem
     clearTemporaryDICOMDIRPath();
 
-    INFO_LOG("Iniciant la creació del DICOMDIR en cd-dvd al directori temporal " + dicomdirPath);
+    INFO_LOG("Starting the creation of the DICOMDIR on cd-dvd in the temporary directory " + dicomdirPath);
 
     // Creem el directori temporal
     if (!temporaryDirPath.mkpath(dicomdirPath))
     {
         QMessageBox::critical(this, ApplicationNameString, tr("Unable to create the temporary directory to create the DICOMDIR. Please check user permissions."));
-        ERROR_LOG("Error al crear directori " + dicomdirPath);
+        ERROR_LOG("Error creating the directory " + dicomdirPath);
         return state.setStatus("Unable to create temporary DICOMDIR", false, 3002);
     }
     else
@@ -356,7 +356,7 @@ void QCreateDicomdir::createDicomdirOnHardDiskOrFlashMemories()
         return;
     }
 
-    INFO_LOG("Iniciant la creació del DICOMDIR en discdur o usb al directori " + dicomdirPath);
+    INFO_LOG("Starting the creation of the DICOMDIR on hard disk or usb in the directory " + dicomdirPath);
 
     // TODO:El codi de comprova si el directori és un DICOMDIR hauria d'estar a una DICOMDIRManager, la UI no ha de saber
     // quins elements componen un DICOMDIR
@@ -372,7 +372,7 @@ void QCreateDicomdir::createDicomdirOnHardDiskOrFlashMemories()
                 delDirectory.deleteDirectory(dicomdirPath, false);
                 break;
             case 1:
-                INFO_LOG("El directori no està buit, i l'usuari no dona permís per esborrar el seu contingut");
+                INFO_LOG("The directory is not empty, and the user does not allow deleting its contents");
                 // No fem res, l'usuari no vol sobreescriure el directori, cancel·lem l'operacio i tornem el control a l'usuari
                 return;
                 break;
@@ -380,7 +380,7 @@ void QCreateDicomdir::createDicomdirOnHardDiskOrFlashMemories()
     }
     else if (!dicomdirPathIsEmpty(dicomdirPath))
     {
-        WARN_LOG(QString("No es pot crear el DICOMDIR perque no esta buit el directori de desti %1").arg(dicomdirPath));
+        WARN_LOG(QString("The DICOMDIR cannot be created because the destination directory %1 is not empty").arg(dicomdirPath));
         QMessageBox::information(this, ApplicationNameString, tr("The destination directory is not empty, please choose an empty directory."));
         return;
     }
@@ -399,11 +399,11 @@ void QCreateDicomdir::createDicomdirOnHardDiskOrFlashMemories()
                         if (!directoryDicomdirPath.mkpath(dicomdirPath))
                         {
                             QMessageBox::critical(this, ApplicationNameString, tr("Unable to create directory. Please check user permissions."));
-                            ERROR_LOG("Error al crear directori " + dicomdirPath);
+                            ERROR_LOG("Error creating the directory " + dicomdirPath);
                         }
                         break;
                     case 1:
-                        INFO_LOG("El directori especificat per l'usuari no existeix, i no el vol crear per tant cancel·lem la creació del DICOMDIR");
+                        INFO_LOG("The directory specified by the user does not exist, and the user does not want to create it, so the creation of the DICOMDIR is cancelled");
                         // Cancel·lem;
                         return;
                         break;
@@ -429,7 +429,7 @@ Status QCreateDicomdir::startCreateDicomdir(QString dicomdirPath)
     if (!enoughFreeSpace(dicomdirPath))
     {
         QMessageBox::information(this, ApplicationNameString, tr("Not enough free space to create DICOMDIR. Please free space."));
-        ERROR_LOG("Error al crear el DICOMDIR, no hi ha suficient espai al disc ERROR : " + state.text());
+        ERROR_LOG("Error creating the DICOMDIR, not enough disk space ERROR : " + state.text());
         return state.setStatus("Not enough space to create DICOMDIR", false, 3000);
     }
 
@@ -450,7 +450,7 @@ Status QCreateDicomdir::startCreateDicomdir(QString dicomdirPath)
         item = dicomdirStudiesList.at(i);
         // Indiquem a la classe convertToDicomdir, quins estudis s'ha de convertir a dicomdir, passant el UID de l'estudi
         convertToDicomdir.addStudy(item->text(7));
-        INFO_LOG("L'estudi " + item->text(7) + " s'afegirà al DICOMDIR ");
+        INFO_LOG("The study " + item->text(7) + " will be added to the DICOMDIR ");
     }
 
     if (m_anonymizeDICOMDIRCheckBox->isChecked())
@@ -502,8 +502,8 @@ Status QCreateDicomdir::startCreateDicomdir(QString dicomdirPath)
             default:
                 QMessageBox::critical(this, ApplicationNameString, tr("Error creating DICOMDIR. Make sure you have appropriate permissions on both source and "
                     "destination folders and %1 folder is empty.").arg(m_lineEditDicomdirPath->text()));
-                ERROR_LOG(QString("Error (%1) al crear el DICOMDIR: %2").arg(state.code()).arg(state.text()));
-                DEBUG_LOG(QString("Error (%1) al crear el DICOMDIR: %2").arg(state.code()).arg(state.text()));
+                ERROR_LOG(QString("Error (%1) creating the DICOMDIR: %2").arg(state.code()).arg(state.text()));
+                DEBUG_LOG(QString("Error (%1) creating the DICOMDIR: %2").arg(state.code()).arg(state.text()));
                 return state;
         }
     }
@@ -512,7 +512,7 @@ Status QCreateDicomdir::startCreateDicomdir(QString dicomdirPath)
         clearScreen = true;
     }
 
-    INFO_LOG("Finalitzada la creació del DICOMDIR");
+    INFO_LOG("Finished creating the DICOMDIR");
     if (clearScreen)
     {
         clearQCreateDicomdirScreen();
@@ -684,14 +684,14 @@ void QCreateDicomdir::openBurningApplication(bool createIsoResult)
         {
             QMessageBox::critical(this, tr("DICOMDIR Burning Failure"), tr("There was an error during the burning of the DICOMDIR ISO image file.") + "\n" +
                 dicomdirBurningApplication.getLastErrorDescription() + "\n\n" + tr("Please, contact your system administrator to solve this problem."));
-            ERROR_LOG("Error al gravar la imatge ISO amb descripció: " + dicomdirBurningApplication.getLastErrorDescription());
+            ERROR_LOG("Error writing the ISO image with description: " + dicomdirBurningApplication.getLastErrorDescription());
         }
     }
     else
     {
         QMessageBox::critical(this, tr("DICOMDIR creation failure"), tr("There was an error during the creation of the DICOMDIR ISO image file.") + "\n" +
             m_isoImageFileCreator->getLastErrorDescription() + "\n\n" + tr("Please, contact your system administrator to solve this problem."));
-        ERROR_LOG("Error al crear ISO amb descripció: " + m_isoImageFileCreator->getLastErrorDescription());
+        ERROR_LOG("Error creating the ISO with description: " + m_isoImageFileCreator->getLastErrorDescription());
     }
     delete m_isoImageFileCreator;
     // Un cop acabada l'acció de gravar, esborrem el directori temporal

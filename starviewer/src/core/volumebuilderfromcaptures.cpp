@@ -221,7 +221,7 @@ Volume* VolumeBuilderFromCaptures::build()
     newVolume->setNumberOfSlicesPerPhase(newSeries->getImages().count());
 
     // Informació de DEBUG
-    DEBUG_LOG(QString("\nNova sèrie generada:") +
+    DEBUG_LOG(QString("\nNew series generated:") +
      QString("\n  SeriesInstanceUID: ") + newSeries->getInstanceUID() +
      QString("\n  SeriesNumber: ") + newSeries->getSeriesNumber() +
      QString("\n  SeriesDescription: ") + newSeries->getDescription() +
@@ -234,7 +234,7 @@ Volume* VolumeBuilderFromCaptures::build()
      QString("\n  HighBit: ") + QString::number(highBit) +
      QString("\n  PixelRepresentation: ") + QString::number(pixelRepresentation) +
      QString("\n  PixelSpacing: ") + QString::number(spacing[0]) + QString(",") + QString::number(spacing[1]) +
-     QString("\n  Num.Imatges: ") + QString::number(newSeries->getImages().count()));
+     QString("\n  Num.Images: ") + QString::number(newSeries->getImages().count()));
 
     return newVolume;
 

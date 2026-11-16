@@ -142,7 +142,7 @@ QList<HangingProtocol*> HangingProtocolManager::searchHangingProtocols(Study *st
     }
     else
     {
-        INFO_LOG(QString("No s'ha trobat cap hanging protocol"));
+        INFO_LOG(QString("No hanging protocol was found"));
     }
 
     return outputHangingProtocolList;
@@ -161,7 +161,7 @@ HangingProtocol* HangingProtocolManager::setBestHangingProtocol(Patient *patient
 
     if (bestHangingProtocol)
     {
-        DEBUG_LOG(QString("Hanging protocol que s'aplica: %1").arg(bestHangingProtocol->getName()));
+        DEBUG_LOG(QString("Hanging protocol being applied: %1").arg(bestHangingProtocol->getName()));
         applyHangingProtocol(bestHangingProtocol, layout, patient, geometry);
     }
 

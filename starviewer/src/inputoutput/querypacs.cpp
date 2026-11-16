@@ -130,7 +130,7 @@ PACSRequestStatus::QueryRequestStatus QueryPacs::query()
 
     if (!m_pacsConnection->connectToPACS(PACSConnection::Query))
     {
-        ERROR_LOG("S'ha produit un error al intentar connectar al PACS per fer query. AE Title: " + m_pacsDevice.getAETitle());
+        ERROR_LOG("An error occurred trying to connect to the PACS to query. AE Title: " + m_pacsDevice.getAETitle());
         delete m_pacsConnection;
         return PACSRequestStatus::QueryCanNotConnectToPACS;
     }
@@ -139,7 +139,7 @@ PACSRequestStatus::QueryRequestStatus QueryPacs::query()
     m_presId = ASC_findAcceptedPresentationContextID(m_pacsConnection->getConnection(), FindStudyAbstractSyntax);
     if (m_presId == 0)
     {
-        ERROR_LOG("El PACS no ha acceptat el nivell de cerca d'estudis FINDStudyRootQueryRetrieveInformationModel");
+        ERROR_LOG("The PACS did not accept the study query level FINDStudyRootQueryRetrieveInformationModel");
         delete m_pacsConnection;
         return PACSRequestStatus::QueryFailedOrRefused;
     }
@@ -160,7 +160,7 @@ PACSRequestStatus::QueryRequestStatus QueryPacs::query()
 
     if (!condition.good())
     {
-        ERROR_LOG(QString("Error al fer una consulta al PACS %1, descripcio error: %2").arg(m_pacsDevice.getAETitle(), condition.text()));
+        ERROR_LOG(QString("Error querying the PACS %1, error description: %2").arg(m_pacsDevice.getAETitle(), condition.text()));
     }
 
     PACSRequestStatus::QueryRequestStatus queryRequestStatus = getDIMSEStatusCodeAsQueryRequestStatus(findResponse.DimseStatus);
@@ -196,14 +196,14 @@ void QueryPacs::cancelQuery()
 
 void QueryPacs::cancelQuery(T_DIMSE_C_FindRQ *request)
 {
-    INFO_LOG(QString("Demanem cancel.lar al PACS %1 l'actual query").arg(m_pacsDevice.getAETitle()));
+    INFO_LOG(QString("Asking the PACS %1 to cancel the current query").arg(m_pacsDevice.getAETitle()));
 
     // Tots els PACS està obligats pel DICOM Conformance a implementar la cancel·lació
     OFCondition cond = DIMSE_sendCancelRequest(m_pacsConnection->getConnection(), m_presId, request->MessageID);
     if (cond.bad())
     {
-        ERROR_LOG("S'ha produit el seguent error al cancel.lar la query: " + QString(cond.text()));
-        INFO_LOG(QString("Aborto la connexio amb el PACS %1").arg(m_pacsDevice.getAETitle()));
+        ERROR_LOG("The following error occurred cancelling the query: " + QString(cond.text()));
+        INFO_LOG(QString("Aborting the connection with the PACS %1").arg(m_pacsDevice.getAETitle()));
 
         // Si hi hagut un error demanant el cancel·lar, abortem l'associació, d'aquesta manera segur que cancel·lem la query
         m_pacsConnection->abort();

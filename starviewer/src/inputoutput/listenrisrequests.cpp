@@ -61,7 +61,7 @@ void ListenRISRequests::newRISRequest()
     QTcpSocket *tcpSocket = m_tcpRISServer->nextPendingConnection();
     QString risRequestData;
 
-    INFO_LOG("Rebuda peticio de la IP " + tcpSocket->peerAddress().toString());
+    INFO_LOG("Request received from IP " + tcpSocket->peerAddress().toString());
     if (tcpSocket->waitForReadyRead(TimeOutToReadData))
     {
         risRequestData = QString(tcpSocket->readAll());
@@ -69,7 +69,7 @@ void ListenRISRequests::newRISRequest()
     }
     else
     {
-        INFO_LOG("No s'ha rebut dades, error: " + tcpSocket->errorString());
+        INFO_LOG("No data was received, error: " + tcpSocket->errorString());
     }
 
     INFO_LOG("Tanco socket");
@@ -86,7 +86,7 @@ void ListenRISRequests::newRISRequest()
 void ListenRISRequests::processRequest(QString risRequestData)
 {
     // Com ara mateix només rebrem peticions del RIS PIER del IDI, no cal esbrinar quin tipus de petició és per defecte entenem que és petició del RIS PIER
-    INFO_LOG("S'intencarà processar la petició rebuda com a Xml");
+    INFO_LOG("An attempt will be made to process the received request as XML");
 
     ParseXmlRisPIERRequest parseXml;
 
@@ -101,7 +101,7 @@ void ListenRISRequests::processRequest(QString risRequestData)
 
 void ListenRISRequests::networkError(QTcpServer *tcpServer)
 {
-    ERROR_LOG("No es poden escoltar les peticions del RIS pel port " + QString().setNum(Settings().getValue(InputOutputSettings::RISRequestsPort).toUInt()) +
+    ERROR_LOG("Cannot listen for RIS requests on port " + QString().setNum(Settings().getValue(InputOutputSettings::RISRequestsPort).toUInt()) +
               ", error " + tcpServer->errorString());
 
     switch (tcpServer->serverError())

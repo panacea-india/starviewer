@@ -149,7 +149,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Shutter Left Vertical Edge en un arxiu que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Shutter Left Vertical Edge tag was not found in a file that is supposed to have it!");
         }
 
         // Obtenim Shutter Right Vertical Edge, requerit quan shutter shape conté RECTANGULAR
@@ -160,7 +160,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Shutter Right Vertical Edge en un arxiu que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Shutter Right Vertical Edge tag was not found in a file that is supposed to have it!");
         }
 
         // Obtenim Shutter Upper Horizontal Edge, requerit quan shutter shape conté RECTANGULAR
@@ -171,7 +171,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Shutter Upper Horizontal Edge en un arxiu que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Shutter Upper Horizontal Edge tag was not found in a file that is supposed to have it!");
         }
 
         // Obtenim Shutter Lower Horizontal Edge, requerit quan shutter shape conté RECTANGULAR
@@ -182,7 +182,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Shutter Lower Horizontal Edge en un arxiu que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Shutter Lower Horizontal Edge tag was not found in a file that is supposed to have it!");
         }
 
         DisplayShutter rectangularShutter;
@@ -204,7 +204,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Radius of Circular Shutter en un arxiu que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Radius of Circular Shutter tag was not found in a file that is supposed to have it!");
         }
 
         // Obtenim Center of Circular Shutter, requerit quan shutter shape conté CIRCULAR
@@ -215,7 +215,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
             QStringList centreStringList = dicomValue->getValueAsQString().split("\\");
             if (centreStringList.count() != 2)
             {
-                ERROR_LOG("L'atribut Center of Circular Shutter està en un format inesperat: " + dicomValue->getValueAsQString());
+                ERROR_LOG("The Center of Circular Shutter attribute is in an unexpected format: " + dicomValue->getValueAsQString());
             }
             else
             {
@@ -226,7 +226,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Radius of Circular Shutter en un arxiu que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Radius of Circular Shutter tag was not found in a file that is supposed to have it!");
         }
 
         DisplayShutter circularShutter;
@@ -261,7 +261,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Vertices of the Polygonal Shutter en un arxiu que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Vertices of the Polygonal Shutter tag was not found in a file that is supposed to have it!");
         }
 
         DisplayShutter polygonalShutter;
@@ -565,7 +565,7 @@ QList<Image*> ImageFillerStep::processEnhancedDICOMFile(const DICOMTagReader *di
     }
     else
     {
-        ERROR_LOG("No hem trobat la Shared Functional Groups Sequence en un arxiu DICOM que es presuposa Enhanced");
+        ERROR_LOG("The Shared Functional Groups Sequence was not found in a DICOM file that is presumed to be Enhanced");
     }
     // Tractem la Per-Frame Functional Groups Sequence
     DICOMSequenceAttribute *perFrameFunctionalGroupsSequence = dicomReader->getSequenceAttribute(DICOMPerFrameFunctionalGroupsSequence);
@@ -581,7 +581,7 @@ QList<Image*> ImageFillerStep::processEnhancedDICOMFile(const DICOMTagReader *di
     }
     else
     {
-        ERROR_LOG("No hem trobat la per-frame Functional Groups Sequence en un arxiu DICOM que es presuposa Enhanced");
+        ERROR_LOG("The per-frame Functional Groups Sequence was not found in a DICOM file that is presumed to be Enhanced");
     }
 
     return generatedImages;
@@ -629,7 +629,7 @@ void ImageFillerStep::fillFunctionalGroupsInformation(Image *image, DICOMSequenc
                 }
                 else
                 {
-                    ERROR_LOG("Falta el tag FrameType que hauria d'estar present!");
+                    ERROR_LOG("The FrameType tag is missing and should be present!");
                 }
             }
         }
@@ -708,7 +708,7 @@ void ImageFillerStep::fillFunctionalGroupsInformation(Image *image, DICOMSequenc
                 }
                 else
                 {
-                    DEBUG_LOG("El valor està buit quan hauria de contenir algun valor!");
+                    DEBUG_LOG("The value is empty when it should contain a value!");
                 }
             }
         }
@@ -727,7 +727,7 @@ void ImageFillerStep::fillFunctionalGroupsInformation(Image *image, DICOMSequenc
             }
             else
             {
-                ERROR_LOG("Falta el tag RescaleIntercept que hauria d'estar present!");
+                ERROR_LOG("The RescaleIntercept tag is missing and should be present!");
             }
             // Obtenim Rescale Slope (1)
             dicomValue = item->getValueAttribute(DICOMRescaleSlope);
@@ -737,7 +737,7 @@ void ImageFillerStep::fillFunctionalGroupsInformation(Image *image, DICOMSequenc
             }
             else
             {
-                ERROR_LOG("Falta el tag RescaleSlope que hauria d'estar present!");
+                ERROR_LOG("The RescaleSlope tag is missing and should be present!");
             }
         }
     }
@@ -772,7 +772,7 @@ void ImageFillerStep::fillFunctionalGroupsInformation(Image *image, DICOMSequenc
             }
             else
             {
-                ERROR_LOG("No s'ha trobat el tag Calculated Anatomy Thickness en una seqüència que se suposa que l'ha de tenir!");
+                ERROR_LOG("The Calculated Anatomy Thickness tag was not found in a sequence that is supposed to have it!");
             }
         }
 
@@ -792,7 +792,7 @@ void ImageFillerStep::fillFunctionalGroupsInformation(Image *image, DICOMSequenc
             }
             else
             {
-                ERROR_LOG("No s'ha trobat el tag Patient Orientation en una seqüència que se suposa que l'ha de tenir!");
+                ERROR_LOG("The Patient Orientation tag was not found in a sequence that is supposed to have it!");
             }
         }
     }
@@ -831,7 +831,7 @@ void ImageFillerStep::fillFunctionalGroupsInformation(Image *image, DICOMSequenc
         }
         else
         {
-            ERROR_LOG("No s'ha trobat el tag Frame Laterality en una seqüència que se suposa que l'ha de tenir!");
+            ERROR_LOG("The Frame Laterality tag was not found in a sequence that is supposed to have it!");
         }
     }
 }
@@ -1058,7 +1058,7 @@ void ImageFillerStep::validateAndSetSpacingAttribute(Image *image, const QString
     }
     else
     {
-        DEBUG_LOG("No s'ha trobat cap valor de pixel spacing definit de forma estàndar esperada: " + spacing);
+        DEBUG_LOG("No pixel spacing value was found defined in the expected standard way: " + spacing);
     }
 }
 

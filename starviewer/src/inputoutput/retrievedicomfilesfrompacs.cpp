@@ -137,11 +137,11 @@ void RetrieveDICOMFilesFromPACS::moveCallback(void *callbackData, T_DIMSE_C_Move
 
     //    if (condition.good())
     //    {
-    //        INFO_LOG("S'ha cancel·lat la descarrega");
+    //        INFO_LOG("The retrieval was cancelled");
     //    }
     //    else
     //    {
-    //        ERROR_LOG("Error al intentar cancel.lar la descarrga. Descripcio error: " + QString(condition.text()));
+    //        ERROR_LOG("Error trying to cancel the retrieval. Error description: " + QString(condition.text()));
     //    }
     //}
 }
@@ -153,7 +153,7 @@ OFCondition RetrieveDICOMFilesFromPACS::echoSCP(T_ASC_Association *association, 
     OFCondition condition = DIMSE_sendEchoResponse(association, presentationContextID, &dimseMessage->msg.CEchoRQ, STATUS_Success, NULL);
     if (condition.bad())
     {
-        ERROR_LOG("El PACS ens ha sol.licitat un echo durant la descarrega pero la resposta a aquest ha fallat");
+        ERROR_LOG("The PACS requested an echo during the retrieval but the response to it failed");
     }
 
     return condition;
@@ -186,12 +186,12 @@ void RetrieveDICOMFilesFromPACS::storeSCPCallback(void *callbackData, T_DIMSE_St
             if (stateSaveImage.bad())
             {
                 storeResponse->DimseStatus = STATUS_STORE_Refused_OutOfResources;
-                DEBUG_LOG("No s'ha pogut guardar la imatge descarregada [" + dicomFileAbsolutePath + "], error: " + stateSaveImage.text());
-                ERROR_LOG("No s'ha pogut guardar la imatge descarregada [" + dicomFileAbsolutePath + "], error: " + stateSaveImage.text());
+                DEBUG_LOG("Could not save the retrieved image [" + dicomFileAbsolutePath + "], error: " + stateSaveImage.text());
+                ERROR_LOG("Could not save the retrieved image [" + dicomFileAbsolutePath + "], error: " + stateSaveImage.text());
                 if (!QFile::remove(dicomFileAbsolutePath))
                 {
-                    DEBUG_LOG("Ha fallat el voler esborrar el fitxer " + dicomFileAbsolutePath + " que havia fallat prèviament al voler guardar-se.");
-                    ERROR_LOG("Ha fallat el voler esborrar el fitxer " + dicomFileAbsolutePath + " que havia fallat prèviament al voler guardar-se.");
+                    DEBUG_LOG("Deleting the file " + dicomFileAbsolutePath + " that had previously failed to be saved failed.");
+                    ERROR_LOG("Deleting the file " + dicomFileAbsolutePath + " that had previously failed to be saved failed.");
                 }
             }
             else
@@ -204,17 +204,17 @@ void RetrieveDICOMFilesFromPACS::storeSCPCallback(void *callbackData, T_DIMSE_St
                     if (!DU_findSOPClassAndInstanceInDataSet(*imageDataSet, sopClass, sizeof(sopClass), sopInstance, sizeof(sopInstance), correctUIDPadding))
                     {
                         storeResponse->DimseStatus = STATUS_STORE_Error_CannotUnderstand;
-                        ERROR_LOG(QString("No s'ha trobat la sop class i la sop instance per la imatge %1").arg(storeSCPCallbackData->fileName));
+                        ERROR_LOG(QString("The sop class and sop instance for image %1 were not found").arg(storeSCPCallbackData->fileName));
                     }
                     else if (strcmp(sopClass, storeRequest->AffectedSOPClassUID) != 0)
                     {
                         storeResponse->DimseStatus = STATUS_STORE_Error_DataSetDoesNotMatchSOPClass;
-                        ERROR_LOG(QString("No concorda la sop class rebuda amb la sol.licitada per la imatge %1").arg(storeSCPCallbackData->fileName));
+                        ERROR_LOG(QString("The received sop class does not match the requested one for image %1").arg(storeSCPCallbackData->fileName));
                     }
                     else if (strcmp(sopInstance, storeRequest->AffectedSOPInstanceUID) != 0)
                     {
                         storeResponse->DimseStatus = STATUS_STORE_Error_DataSetDoesNotMatchSOPClass;
-                        ERROR_LOG(QString("No concorda sop instance rebuda amb la sol.licitada per la imatge %1").arg(storeSCPCallbackData->fileName));
+                        ERROR_LOG(QString("The received sop instance does not match the requested one for image %1").arg(storeSCPCallbackData->fileName));
                     }
                 }
 
@@ -259,7 +259,7 @@ OFCondition RetrieveDICOMFilesFromPACS::storeSCP(T_ASC_Association *association,
     if (condition.bad())
     {
         // Remove file
-        ERROR_LOG("S'ha produit al processar una peticio de descarregar d'un fitxer, descripcio error " + QString(condition.text()));
+        ERROR_LOG("An error occurred processing a request to retrieve a file, error description " + QString(condition.text()));
         unlink(qPrintable(storeSCPCallbackData.fileName));
     }
 
@@ -292,7 +292,7 @@ OFCondition RetrieveDICOMFilesFromPACS::subOperationSCP(T_ASC_Association **subA
                 break;
 
             default:
-                ERROR_LOG("El PACS ens ha sol.licitat un tipus d'operacio invalida");
+                ERROR_LOG("The PACS requested an invalid operation type");
                 condition = DIMSE_BADCOMMANDTYPE;
                 break;
         }
@@ -300,7 +300,7 @@ OFCondition RetrieveDICOMFilesFromPACS::subOperationSCP(T_ASC_Association **subA
     // Clean up on association termination
     if (condition == DUL_PEERREQUESTEDRELEASE)
     {
-        INFO_LOG("El PACS sol.licita tancar la connexio per on ens ha enviat els fitxers");
+        INFO_LOG("The PACS requests closing the connection over which it sent us the files");
         condition = ASC_acknowledgeRelease(*subAssociation);
         ASC_dropSCPAssociation(*subAssociation);
         ASC_destroyAssociation(subAssociation);
@@ -308,20 +308,20 @@ OFCondition RetrieveDICOMFilesFromPACS::subOperationSCP(T_ASC_Association **subA
     }
     else if (condition == DUL_PEERABORTEDASSOCIATION)
     {
-        INFO_LOG("El PACS ha abortat la connexió");
+        INFO_LOG("The PACS aborted the connection");
     }
     else if (condition != EC_Normal)
     {
-        ERROR_LOG("S'ha produit un error reben la peticio d'una suboperacio, descripcio error: " + QString(condition.text()));
+        ERROR_LOG("An error occurred receiving a suboperation request, error description: " + QString(condition.text()));
         condition = ASC_abortAssociation(*subAssociation);
     }
     else if (m_abortIsRequested)
     {
-        INFO_LOG("Abortarem les connexions amb el PACS, perque han sol.licitant cancel.lar la descarrega");
+        INFO_LOG("Aborting the connections with the PACS, because cancelling the retrieval was requested");
         condition = ASC_abortAssociation(*subAssociation);
         if (!condition.good())
         {
-            ERROR_LOG("Error al abortar la connexio pel qual rebem les imatges" + QString(condition.text()));
+            ERROR_LOG("Error aborting the connection over which we receive the images" + QString(condition.text()));
         }
 
         // Tanquem la connexió amb el PACS perquè segons indica la documentació DICOM al PS 3.4 (Baseline Behavior of SCP) C.4.2.3.1 si abortem
@@ -331,11 +331,11 @@ OFCondition RetrieveDICOMFilesFromPACS::subOperationSCP(T_ASC_Association **subA
         condition = m_pacsConnection->abort();
         if (!condition.good())
         {
-            ERROR_LOG("Error al abortar la connexio pel amb el PACS" + QString(condition.text()));
+            ERROR_LOG("Error aborting the connection with the PACS" + QString(condition.text()));
         }
         else
         {
-            INFO_LOG("Abortada la connexio amb el PACS");
+            INFO_LOG("Aborted the connection with the PACS");
         }
     }
 
@@ -374,7 +374,7 @@ OFCondition RetrieveDICOMFilesFromPACS::retrieveWithCGet(T_ASC_Association *asso
         // Like C-MOVE, it cancels by aborting, because not all PACS support a cancel request.
         if (m_abortIsRequested)
         {
-            INFO_LOG("Abortarem la connexio amb el PACS, perque han sol.licitant cancel.lar la descarrega");
+            INFO_LOG("Aborting the connection with the PACS, because cancelling the retrieval was requested");
             *dimseStatus = STATUS_GET_Cancel_SubOperationsTerminatedDueToCancelIndication;
             return m_pacsConnection->abort();
         }
@@ -384,7 +384,7 @@ OFCondition RetrieveDICOMFilesFromPACS::retrieveWithCGet(T_ASC_Association *asso
         {
             if (idleTimer.hasExpired(MaximumCGetIdleMilliseconds))
             {
-                ERROR_LOG("El PACS ha deixat d'enviar durant un C-GET");
+                ERROR_LOG("The PACS stopped sending during a C-GET");
                 return DIMSE_NODATAAVAILABLE;
             }
 
@@ -442,7 +442,7 @@ OFCondition RetrieveDICOMFilesFromPACS::retrieveWithCGet(T_ASC_Association *asso
         else
         {
             delete messageStatusDetail;
-            ERROR_LOG("El PACS ens ha sol.licitat un tipus d'operacio invalida");
+            ERROR_LOG("The PACS requested an invalid operation type");
             return DIMSE_BADCOMMANDTYPE;
         }
     }
@@ -462,11 +462,11 @@ void RetrieveDICOMFilesFromPACS::subOperationCallback(void *subOperationCallback
         OFCondition condition = retrieveDICOMFilesFromPACS->acceptSubAssociation(associationNetwork, subAssociation);
         if (!condition.good())
         {
-            ERROR_LOG("S'ha produit un error negociant l'associacio de la connexio DICOM entrant, descripcio error: " + QString(condition.text()));
+            ERROR_LOG("An error occurred negotiating the association of the incoming DICOM connection, error description: " + QString(condition.text()));
         }
         else
         {
-            INFO_LOG("Rebuda solicitud de connexio pel port de connexions DICOM entrants del PACS.");
+            INFO_LOG("Connection request received on the PACS incoming DICOM connections port.");
         }
     }
     else
@@ -489,7 +489,7 @@ PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACS::retrieve(co
     // TODO S'hauria de comprovar que es tracti d'un PACS amb el servei de retrieve configurat
     if (!m_pacsConnection->connectToPACS(PACSConnection::RetrieveDICOMFiles))
     {
-        ERROR_LOG("S'ha produit un error al intentar connectar al PACS per fer un retrieve. AE Title: " + m_pacs.getAETitle());
+        ERROR_LOG("An error occurred trying to connect to the PACS to retrieve. AE Title: " + m_pacs.getAETitle());
         return PACSRequestStatus::RetrieveCanNotConnectToPACS;
     }
 
@@ -498,7 +498,7 @@ PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACS::retrieve(co
     presentationContextID = ASC_findAcceptedPresentationContextID(association, m_pacs.usesCGet() ? GetAbstractSyntax : MoveAbstractSyntax);
     if (presentationContextID == 0)
     {
-        ERROR_LOG("No s'ha trobat cap presentation context valid");
+        ERROR_LOG("No valid presentation context was found");
         return PACSRequestStatus::RetrieveFailureOrRefused;
     }
 
@@ -530,7 +530,7 @@ PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACS::retrieve(co
 
     if (condition.bad())
     {
-        ERROR_LOG(QString("El metode descarrega no ha finalitzat correctament. Codi error: %1, descripcio error: %2").arg(condition.code())
+        ERROR_LOG(QString("The retrieve method did not finish correctly. Error code: %1, error description: %2").arg(condition.code())
                      .arg(condition.text()));
     }
 
@@ -553,7 +553,7 @@ PACSRequestStatus::RetrieveRequestStatus RetrieveDICOMFilesFromPACS::retrieve(co
 void RetrieveDICOMFilesFromPACS::requestCancel()
 {
     m_abortIsRequested = true;
-    INFO_LOG("S'ha sol.licitat cancel.lar la descarrega");
+    INFO_LOG("Cancelling the retrieval was requested");
 }
 
 int RetrieveDICOMFilesFromPACS::getNumberOfDICOMFilesRetrieved()
@@ -672,7 +672,7 @@ QString RetrieveDICOMFilesFromPACS::getAbsoluteFilePathCompositeInstance(DcmData
     dicomQueryStatus = imageDataset->findAndGetString(DCM_StudyInstanceUID, instanceUID, false);
     if (dicomQueryStatus.bad())
     {
-        DEBUG_LOG("Ha fallat l'obtencio de l'UID d'estudi al dataset. Rao: " + QString(dicomQueryStatus.text()));
+        DEBUG_LOG("Getting the study UID from the dataset failed. Reason: " + QString(dicomQueryStatus.text()));
     }
     else
     {
@@ -690,7 +690,7 @@ QString RetrieveDICOMFilesFromPACS::getAbsoluteFilePathCompositeInstance(DcmData
     dicomQueryStatus = imageDataset->findAndGetString(DCM_SeriesInstanceUID, instanceUID, false);
     if (dicomQueryStatus.bad())
     {
-        DEBUG_LOG("Ha fallat l'obtenció de l'UID de la serie al dataset. Rao: " + QString(dicomQueryStatus.text()));
+        DEBUG_LOG("Getting the series UID from the dataset failed. Reason: " + QString(dicomQueryStatus.text()));
     }
     else
     {

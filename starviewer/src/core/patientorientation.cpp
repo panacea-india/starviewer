@@ -70,7 +70,7 @@ void PatientOrientation::setPatientOrientationFromImageOrientation(const ImageOr
 
     if (!setLabels(rowLabel, columnLabel, normalLabel))
     {
-        DEBUG_LOG("makePatientOrientationFromImageOrientationPatient() ha generat una cadena d'orientació de pacient invàlida");
+        DEBUG_LOG("makePatientOrientationFromImageOrientationPatient() generated an invalid patient orientation string");
     }
 }
 

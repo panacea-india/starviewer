@@ -40,7 +40,7 @@ bool SettingsAccessLevelFileReader::read(const QString &filePath)
         {
             QStringList list = settings.allKeys();
             QString fileVersion = settings.value("settingsAccessLevelVersion").toString();
-            DEBUG_LOG("Versió d'arxiu 'settingsAccessLevel': " + fileVersion);
+            DEBUG_LOG("Version of the 'settingsAccessLevel' file: " + fileVersion);
             if (!fileVersion.isEmpty())
             {
                 list.removeAt(list.indexOf("settingsAccessLevelVersion"));
@@ -70,13 +70,13 @@ bool SettingsAccessLevelFileReader::read(const QString &filePath)
                     }
                     else
                     {
-                        DEBUG_LOG("Valor inesperat d'accessLevel: " + value);
-                        WARN_LOG("Valor inesperat d'accessLevel: " + value);
+                        DEBUG_LOG("Unexpected accessLevel value: " + value);
+                        WARN_LOG("Unexpected accessLevel value: " + value);
                         ok = false;
                     }
                     if (ok)
                     {
-                        DEBUG_LOG(">>>>>>>>>>>>>Inserim la clau: " + key + " amb valor: " + value);
+                        DEBUG_LOG(">>>>>>>>>>>>>Inserting the key: " + key + " with value: " + value);
                         m_accessLevelTable.insert(key, accessLevel);
                     }
                 }
@@ -86,12 +86,12 @@ bool SettingsAccessLevelFileReader::read(const QString &filePath)
 
         case QSettings::FormatError:
             ok = false;
-            DEBUG_LOG("Error de format en l'arxiu: " + filePath + ". Possiblement el format no és el d'un .INI");
+            DEBUG_LOG("Format error in the file: " + filePath + ". The format may not be that of an .INI file");
             break;
 
         case QSettings::AccessError:
             ok = false;
-            DEBUG_LOG("Error d'accés amb el fitxer: " + filePath);
+            DEBUG_LOG("Error accessing the file: " + filePath);
             break;
     }
 

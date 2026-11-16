@@ -45,7 +45,7 @@ VolumePixelData::ItkImageTypePointer VolumePixelData::getItkData()
     }
     catch (itk::ExceptionObject &excep)
     {
-        WARN_LOG(QString("Excepció en el filtre vtkToItk :: Volume::getItkData() -> ") + excep.GetDescription());
+        WARN_LOG(QString("Exception in the vtkToItk filter :: Volume::getItkData() -> ") + excep.GetDescription());
     }
     return m_vtkToItkFilter->GetOutput();
 }
@@ -59,7 +59,7 @@ void VolumePixelData::setData(ItkImageTypePointer itkImage)
     }
     catch (itk::ExceptionObject &excep)
     {
-        WARN_LOG(QString("Excepció en el filtre itkToVtk :: Volume::setData(ItkImageTypePointer itkImage) -> ") + excep.GetDescription());
+        WARN_LOG(QString("Exception in the itkToVtk filter :: Volume::setData(ItkImageTypePointer itkImage) -> ") + excep.GetDescription());
     }
     this->setData(m_itkToVtkFilter->GetOutput());
 }
@@ -151,7 +151,7 @@ bool VolumePixelData::computeCoordinateIndex(const double coordinate[3], int ind
 {
     if (!this->getVtkData())
     {
-        DEBUG_LOG("Dades VTK nul·les!");
+        DEBUG_LOG("Null VTK data!");
         return false;
     }
 

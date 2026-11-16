@@ -147,7 +147,7 @@ void QAngioSubstractionExtension::computeDifferenceImage(int imageid)
 {
     if(m_mainVolume == 0)
     {
-        DEBUG_LOG("ERROR: Estem inicialitzant la diferència sense tenir input!");
+        DEBUG_LOG("ERROR: Initializing the difference without having an input!");
         return;
     }
 

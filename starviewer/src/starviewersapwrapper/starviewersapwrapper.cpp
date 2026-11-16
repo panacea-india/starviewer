@@ -39,7 +39,7 @@ void retrieveStudy(QString accessionNumber)
 
     // Executem una instància del Starviewer utiltizant la opció de línia de comandes -accessionnumber "valor del accessio number"
 
-    INFO_LOG("Starviewer_sapwrapper::S'iniciara nova instancia del Starviewer per demanar descarrega de l'estudi amb accession number" + accessionNumber);
+    INFO_LOG("Starviewer_sapwrapper::A new instance of Starviewer will be started to request retrieving the study with accession number" + accessionNumber);
     process.startDetached(getStarviewerExecutableFilePath() + starviewerCommandLine);
 }
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        INFO_LOG(QString("StarviewerSAPWrapper::Número de parametres incorrecte, s'han passat %1 parametres").arg(QString().setNum(argc - 1)));
+        INFO_LOG(QString("StarviewerSAPWrapper::Wrong number of parameters, %1 parameters were passed").arg(QString().setNum(argc - 1)));
         printHelp();
     }
 

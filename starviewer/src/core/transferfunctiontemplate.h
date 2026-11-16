@@ -134,8 +134,8 @@ T TransferFunctionTemplate<T>::get(double x) const
 
     if (m_map.isEmpty())
     {
-        DEBUG_LOG("La funció de transferència és buida. Retornem un valor per defecte.");
-        WARN_LOG("La funció de transferència és buida. Retornem un valor per defecte.");
+        DEBUG_LOG("The transfer function is empty. Returning a default value.");
+        WARN_LOG("The transfer function is empty. Returning a default value.");
         return defaultValue();
     }
 
@@ -207,8 +207,8 @@ void TransferFunctionTemplate<T>::trim(double x1, double x2)
 
     if (m_map.isEmpty())
     {
-        DEBUG_LOG("La funció de transferència és buida.");
-        WARN_LOG("La funció de transferència és buida.");
+        DEBUG_LOG("The transfer function is empty.");
+        WARN_LOG("The transfer function is empty.");
         return;
     }
 

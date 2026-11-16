@@ -49,12 +49,12 @@ void DICOMDumpDefaultTagsLoader::loadDefaults()
 
     if (QFile::exists(defaultPath))
     {
-        INFO_LOG(QString("Directori a on es van a buscar els hanging protocols per defecte: %1").arg(defaultPath));
+        INFO_LOG(QString("Directory where the default hanging protocols are looked up: %1").arg(defaultPath));
         loadXMLFiles(defaultPath);
     }
     else
     {
-        INFO_LOG(QString("El directori per defecte dels dicom dump default tags files no existeix. No es carregaran."));
+        INFO_LOG(QString("The default directory of the DICOM dump default tags files does not exist. They will not be loaded."));
     }
 
     /// Default Tags definits per l'usuari

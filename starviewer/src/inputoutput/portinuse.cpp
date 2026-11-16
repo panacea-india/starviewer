@@ -50,7 +50,7 @@ bool PortInUse::isPortInUse(int port)
     else
     {
         // No s'hauria de donar un error diferent a AddressInUseError, de totes maneres per seguretat el loggagem
-        ERROR_LOG("No s'ha pogut comprovat correctament si el port " + QString().setNum(port) + " està en ús, per error: " + errorString);
+        ERROR_LOG("Could not check correctly whether the port " + QString().setNum(port) + " is in use, because of the error: " + errorString);
         m_errorString = errorString;
         m_status = PortInUse::PortCheckError;
     }

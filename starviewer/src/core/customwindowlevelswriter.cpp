@@ -76,7 +76,7 @@ void CustomWindowLevelsWriter::write()
     writer.writeEndElement();
     writer.writeEndDocument();
 
-    INFO_LOG(QString("S'han guardat els custom window levels a: %1").arg(path));
+    INFO_LOG(QString("Custom window levels saved to: %1").arg(path));
 }
 
 QString CustomWindowLevelsWriter::getPath()

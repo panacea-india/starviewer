@@ -298,7 +298,7 @@ HangingProtocolDisplaySet* HangingProtocolXMLReader::readDisplaySet(HangingProto
             }
             else
             {
-                ERROR_LOG(QString("No s'ha trobat l'image set requerit pel display set %1.").arg(displaySet->getIdentifier()));
+                ERROR_LOG(QString("The image set required by display set %1 was not found.").arg(displaySet->getIdentifier()));
             }
         }
         else if (m_xmlReader.name() == "position")

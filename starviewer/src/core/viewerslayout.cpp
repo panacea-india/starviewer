@@ -369,7 +369,7 @@ void ViewersLayout::setViewerGeometry(Q2DViewerWidget *viewer, const QRectF &geo
 {
     if (!viewer)
     {
-        DEBUG_LOG("El viewer proporcionat és nul! No s'aplicarà cap geometria.");
+        DEBUG_LOG("The given viewer is null! No geometry will be applied.");
         return;
     }
 

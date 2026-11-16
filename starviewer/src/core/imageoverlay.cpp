@@ -202,7 +202,7 @@ ImageOverlay ImageOverlay::mergeOverlays(const QList<ImageOverlay> &overlaysList
     }
     catch (const std::bad_alloc&)
     {
-        ERROR_LOG(QString("No hi ha memòria suficient per crear el buffer per l'overlay fusionat [%1*%2] = %3 bytes")
+        ERROR_LOG(QString("Not enough memory to create the buffer for the merged overlay [%1*%2] = %3 bytes")
             .arg(outRows).arg(outColumns).arg((unsigned long)outRows * outColumns));
 
         ok = false;

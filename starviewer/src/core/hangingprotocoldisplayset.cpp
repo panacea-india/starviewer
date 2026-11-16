@@ -99,10 +99,10 @@ QRectF HangingProtocolDisplaySet::getGeometry() const
 
     if (splittedGeometryList.count() < 4)
     {
-        DEBUG_LOG("La geometria proporcionada no conté el nombre d'elements necessaris o està mal formada. Geometry dump: [" +
-                  geometry + "]. No s'aplicarà cap geometria al viewer proporcinat.");
-        WARN_LOG("La geometria proporcionada no conté el nombre d'elements necessaris o està mal formada. Geometry dump: [" +
-                 geometry + "]. No s'aplicarà cap geometria al viewer proporcinat.");
+        DEBUG_LOG("The given geometry does not contain the required number of elements or is malformed. Geometry dump: [" +
+                  geometry + "]. No geometry will be applied to the given viewer.");
+        WARN_LOG("The given geometry does not contain the required number of elements or is malformed. Geometry dump: [" +
+                 geometry + "]. No geometry will be applied to the given viewer.");
         return QRectF();
     }
 

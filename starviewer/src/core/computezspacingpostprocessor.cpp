@@ -31,7 +31,7 @@ void ComputeZSpacingPostprocessor::postprocess(Volume *volume)
     double spacing[3];
     volume->getSpacing(spacing);
     double zSpacing = qAbs(Image::distance(volume->getImage(0)) - Image::distance(volume->getImage(1)));
-    DEBUG_LOG(QString("Calculem el z-spacing a partir de la distància entre llesques. z-spacing llegit: %1, z-spacing calculat: %2").arg(spacing[2])
+    DEBUG_LOG(QString("Computing the z-spacing from the distance between slices. z-spacing read: %1, z-spacing computed: %2").arg(spacing[2])
                                                                                                                                     .arg(zSpacing));
 
     if (!MathTools::closeEnough(zSpacing, 0.0))

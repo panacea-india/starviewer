@@ -51,8 +51,8 @@ bool ImageOrientation::setDICOMFormattedImageOrientation(const QString &imageOri
     QStringList list = imageOrientation.split(DICOMValueRepresentationConverter::ValuesSeparator);
     if (list.size() != 6)
     {
-        DEBUG_LOG("Image Orientation (Patient) no té els 6 elements esperats. Inconsistència DICOM.");
-        ERROR_LOG("Image Orientation (Patient) no té els 6 elements esperats. Inconsistència DICOM.");
+        DEBUG_LOG("Image Orientation (Patient) does not have the 6 expected elements. DICOM inconsistency.");
+        ERROR_LOG("Image Orientation (Patient) does not have the 6 expected elements. DICOM inconsistency.");
 
         return false;
     }
@@ -63,8 +63,8 @@ bool ImageOrientation::setDICOMFormattedImageOrientation(const QString &imageOri
 
     if (!validValues)
     {
-        DEBUG_LOG("Els valors d'Image Orientation (Patient) no són vàlids. Inconsistència DICOM.");
-        ERROR_LOG("Els valors d'Image Orientation (Patient) no són vàlids. Inconsistència DICOM.");
+        DEBUG_LOG("The Image Orientation (Patient) values are not valid. DICOM inconsistency.");
+        ERROR_LOG("The Image Orientation (Patient) values are not valid. DICOM inconsistency.");
         
         return false;
     }

@@ -374,7 +374,7 @@ void EditorTool::eraseMask()
 
 void EditorTool::paintMask()
 {
-    // DEBUG_LOG(QString("Màxim = %1 // Mínim = %2").arg(m_outsideValue).arg(m_insideValue));
+    // DEBUG_LOG(QString("Maximum = %1 // Minimum = %2").arg(m_outsideValue).arg(m_insideValue));
     int i, j;
     double pos[3];
     double origin[3];

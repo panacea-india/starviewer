@@ -46,12 +46,12 @@ void QCustomWindowLevelDialog::confirmWindowLevel()
     if (m_windowSpinBox->value())
     {
         // \TODO implement me!
-        DEBUG_LOG("Falta validar el valor del window");
+        DEBUG_LOG("The window value needs validation");
     }
     if (m_levelSpinBox->value())
     {
         // \TODO implement me!
-        DEBUG_LOG("Falta validar el valor del level");
+        DEBUG_LOG("The level value needs validation");
     }
 
     emit windowLevel(m_windowSpinBox->value(), m_levelSpinBox->value());

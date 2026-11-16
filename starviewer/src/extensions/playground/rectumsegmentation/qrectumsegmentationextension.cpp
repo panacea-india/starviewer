@@ -616,13 +616,13 @@ double QRectumSegmentationExtension::calculateMaskVolume()
         }
         else
         {
-            DEBUG_LOG("No existeix la editor tool");
+            DEBUG_LOG("The editor tool does not exist");
             return 0.0;
         }
     }
     else
     {
-        DEBUG_LOG("No existeix la editor tool");
+        DEBUG_LOG("The editor tool does not exist");
         return 0.0;
     }
 

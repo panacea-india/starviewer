@@ -275,14 +275,14 @@ void QInputOutputPacsWidget::requestedSeriesOfStudy(Study *study)
 {
     if (study->getDICOMSource().getRetrievePACS().count() == 0)
     {
-        ERROR_LOG(QString("No s'ha trobat de quin PACS es l'estudi %1 per obtenir-ne les series").arg(study->getInstanceUID()));
+        ERROR_LOG(QString("Could not find which PACS study %1 belongs to in order to get its series").arg(study->getInstanceUID()));
         return;
     }
 
     PacsDevice pacsDevice = study->getDICOMSource().getRetrievePACS().at(0);
     QString pacsDescription = pacsDevice.getAETitle() + " Institució" + pacsDevice.getInstitution() + " IP:" + pacsDevice.getAddress();
 
-    INFO_LOG("Cercant informacio de les series de l'estudi" + study->getInstanceUID() + " del PACS " + pacsDescription);
+    INFO_LOG("Looking up the series information of the study" + study->getInstanceUID() + " from the PACS " + pacsDescription);
 
     DicomMask mask = buildSeriesDicomMask(study->getInstanceUID());
     StudyOperationResult *result = StudyOperationsService::instance()->searchPacs(pacsDevice, mask, StudyOperations::TargetResource::Series);
@@ -293,15 +293,15 @@ void QInputOutputPacsWidget::requestedImagesOfSeries(Series *series)
 {
     if (series->getDICOMSource().getRetrievePACS().count() == 0)
     {
-        ERROR_LOG(QString("No s'ha trobat de quin PACS es la serie per obtenir-ne les imatges").arg(series->getInstanceUID()));
+        ERROR_LOG(QString("Could not find which PACS the series belongs to in order to get its images").arg(series->getInstanceUID()));
         return;
     }
 
     PacsDevice pacsDevice = series->getDICOMSource().getRetrievePACS().at(0);
     QString pacsDescription = pacsDevice.getAETitle() + " Institució" + pacsDevice.getInstitution() + " IP:" + pacsDevice.getAddress();
 
-    INFO_LOG("Cercant informacio de les imatges de la serie" + series->getInstanceUID() + " de l'estudi" + series->getParentStudy()->getInstanceUID() +
-             " del PACS " + pacsDescription);
+    INFO_LOG("Looking up the image information of the series" + series->getInstanceUID() + " of the study" + series->getParentStudy()->getInstanceUID() +
+             " from the PACS " + pacsDescription);
 
     DicomMask mask = buildImageDicomMask(series->getParentStudy()->getInstanceUID(), series->getInstanceUID());
     StudyOperationResult *result = StudyOperationsService::instance()->searchPacs(pacsDevice, mask, StudyOperations::TargetResource::Instances);

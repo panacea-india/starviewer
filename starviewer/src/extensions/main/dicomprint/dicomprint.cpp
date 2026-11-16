@@ -39,7 +39,7 @@ int DicomPrint::print(DicomPrinter printer, DicomPrintJob printJob)
 
     m_lastError = Ok;
 
-    INFO_LOG("Han demanat imprimir imatges DICOM a la impresssora " + printer.getAETitle() + ", IP: " + printer.getHostname() + ", port: " +
+    INFO_LOG("Printing of DICOM images was requested on the printer " + printer.getAETitle() + ", IP: " + printer.getHostname() + ", port: " +
              QString().setNum(printer.getPort()));
 
     dcmtkStoredPrintPathFileList = createDicomPrintSpool(printer, printJob);
@@ -85,13 +85,13 @@ int DicomPrint::print(DicomPrinter printer, DicomPrintJob printJob)
 
         if (printDicomSpool.getLastError() == PrintDicomSpool::Ok)
         {
-            INFO_LOG("S'ha imprés correctament.");
+            INFO_LOG("Printed successfully.");
         }
 
         m_lastError = printDicomSpoolErrorToDicomPrintError(printDicomSpool.getLastError());
     }
 
-    INFO_LOG("Esborro directori spool");
+    INFO_LOG("Deleting the spool directory");
     deleteDirectory.deleteDirectory(getSpoolDirectory(), true);
 
     return numberOfFilmSessionPrinted;
@@ -109,7 +109,7 @@ bool DicomPrint::echoPrinter(DicomPrinter printer)
     pacs.setQueryRetrieveServicePort(printer.getPort());
     pacs.setAddress(printer.getHostname());
 
-    INFO_LOG("Es fa echoSCU a la impressora amb AETitle " + printer.getAETitle());
+    INFO_LOG("Performing echoSCU to the printer with AETitle " + printer.getAETitle());
     resultTest = echoToPACS.echo(pacs);
 
     switch (echoToPACS.getLastError())
@@ -118,11 +118,11 @@ bool DicomPrint::echoPrinter(DicomPrinter printer)
             m_lastError = DicomPrint::Ok;
             break;
         case EchoToPACS::EchoCanNotConnectToPACS:
-            ERROR_LOG("No s'ha pogunt connectar amb la impressora");
+            ERROR_LOG("Could not connect to the printer");
             m_lastError = DicomPrint::CanNotConnectToDicomPrinter;
             break;
         default:
-            ERROR_LOG("L'echo ha fallat, la impressora no ha respos com s'esperava");
+            ERROR_LOG("The echo failed, the printer did not respond as expected");
             m_lastError = DicomPrint::NotRespondedAsExpected;
     }
 
@@ -139,7 +139,7 @@ QStringList DicomPrint::createDicomPrintSpool(DicomPrinter printer, DicomPrintJo
     foreach (DicomPrintPage dicomPrintPage, printJob.getDicomPrintPages())
     {
         QString storedPrintPathFile;
-        INFO_LOG("Creo les " + QString().setNum(dicomPrintPage.getImagesToPrint().count()) + " imatges de la pagina " +
+        INFO_LOG("Creating the " + QString().setNum(dicomPrintPage.getImagesToPrint().count()) + " images of the page " +
                  QString().setNum(dicomPrintPage.getPageNumber()));
 
         storedPrintPathFile = dicomPrintSpool.createPrintSpool(printer, dicomPrintPage, getSpoolDirectory());

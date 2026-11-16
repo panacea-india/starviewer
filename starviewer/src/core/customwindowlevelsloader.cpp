@@ -52,7 +52,7 @@ void CustomWindowLevelsLoader::loadXMLFiles(const QString &path)
     QFileInfo fileToRead(path);
     QStringList customWindowLevelsLoaded = loadXMLFiles(fileToRead);
 
-    INFO_LOG(QString("Fitxers que contenen Custom Window Levels carregats: %1").arg(customWindowLevelsLoaded.join(", ")));
+    INFO_LOG(QString("Files containing the loaded Custom Window Levels: %1").arg(customWindowLevelsLoaded.join(", ")));
 }
 
 QStringList CustomWindowLevelsLoader::loadXMLFiles(const QFileInfo &fileInfo)

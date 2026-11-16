@@ -182,7 +182,7 @@ PatientOrientation Q2DViewer::getCurrentDisplayedImagePatientOrientation() const
     }
     else
     {
-        DEBUG_LOG("L'índex d'imatge actual és incorrecte o no hi ha imatges al volum. Això no hauria de passar en aquest mètode.");
+        DEBUG_LOG("The current image index is wrong or there are no images in the volume. This should not happen in this method.");
         return PatientOrientation();
     }
     
@@ -669,9 +669,9 @@ void Q2DViewer::loadOverlays(Volume *volume)
             Image *image = volume->getImage(sliceIndex, phaseIndex);
             if (!image)
             {
-                ERROR_LOG(QString("Error inesperat intentant accedir a la imatge amb índexs: %1(slice), %2(phase) del volum actual")
+                ERROR_LOG(QString("Unexpected error trying to access the image with indices: %1(slice), %2(phase) of the current volume")
                     .arg(sliceIndex).arg(phaseIndex));
-                DEBUG_LOG(QString("Error inesperat intentant accedir a la imatge amb índexs: %1(slice), %2(phase) del volum actual")
+                DEBUG_LOG(QString("Unexpected error trying to access the image with indices: %1(slice), %2(phase) of the current volume")
                     .arg(sliceIndex).arg(phaseIndex));
             }
             else
@@ -919,7 +919,7 @@ void Q2DViewer::updateCamera()
     }
     else
     {
-        DEBUG_LOG("Intentant actualitzar rotació de càmera sense haver donat un input abans...");
+        DEBUG_LOG("Trying to update the camera rotation without having given an input first...");
     }
 }
 
@@ -1205,7 +1205,7 @@ bool Q2DViewer::getDicomWorldCoordinates(const double xyz[3], double dicomWorldP
     else
     {
         DEBUG_LOG("The requested plane is not available, maybe due to poor multiframe support.");
-        INFO_LOG("No es pot actualitzar la posició del cursor 3D perquè no podem obtenir el pla corresponent.");
+        INFO_LOG("The 3D cursor position cannot be updated because the corresponding plane cannot be obtained.");
     }
 
     delete currentPlane;
@@ -1249,7 +1249,7 @@ void Q2DViewer::projectDICOMPointToCurrentDisplayedImage(const double pointToPro
     }
     else
     {
-        DEBUG_LOG("No hi ha cap pla actual valid");
+        DEBUG_LOG("There is no valid current plane");
     }
 }
 
@@ -1264,7 +1264,7 @@ void Q2DViewer::absolutePan(double motionVector[3])
     vtkCamera *camera = getActiveCamera();
     if (!camera)
     {
-        DEBUG_LOG("No hi ha càmera");
+        DEBUG_LOG("There is no camera");
         return;
     }
     camera->GetFocalPoint(currentPosition);

@@ -393,8 +393,8 @@ static VTK_THREAD_RETURN_TYPE switchOnDataType(void *arg)
     {
             vtkTemplateMacro(computeGradients(estimator, static_cast<VTK_TT*>(scalars->GetVoidPointer(0)), threadId, threadCount, estimator->getRadius()));
         default:
-            DEBUG_LOG("No es pot calcular el gradient per aquest tipus de dades.");
-            WARN_LOG("No es pot calcular el gradient per aquest tipus de dades.");
+            DEBUG_LOG("The gradient cannot be computed for this data type.");
+            WARN_LOG("The gradient cannot be computed for this data type.");
     }
 
     return VTK_THREAD_RETURN_VALUE;
@@ -427,7 +427,7 @@ Vtk4DLinearRegressionGradientEstimator::~Vtk4DLinearRegressionGradientEstimator(
 
 void Vtk4DLinearRegressionGradientEstimator::UpdateNormals(void)
 {
-    DEBUG_LOG("S'estan actualitzant les normals");
+    DEBUG_LOG("Updating the normals");
     this->Threader->SetNumberOfThreads(this->NumberOfThreads);
     this->Threader->SetSingleMethod(switchOnDataType, this);
     this->Threader->SingleMethodExecute();

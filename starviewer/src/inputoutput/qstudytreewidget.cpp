@@ -115,7 +115,7 @@ void QStudyTreeWidget::insertSeriesList(const QString &studyInstanceUID, QList<S
     QTreeWidgetItem *studyItem = getStudyQTreeWidgetItem(studyInstanceUID, seriesList.at(0)->getDICOMSource());
     if (!studyItem)
     {
-        ERROR_LOG("No s'ha trobat l'estudi d'on s'han d'inserir les series.");
+        ERROR_LOG("The study to insert the series into was not found.");
         return;
     }
 
@@ -135,7 +135,7 @@ void QStudyTreeWidget::insertImageList(const QString &studyInstanceUID, const QS
 
     if (!seriesItem)
     {
-        ERROR_LOG("No s'ha trobat la serie d'on s'han d'inserir les imatges.");
+        ERROR_LOG("The series to insert the images into was not found.");
         return;
     }
 

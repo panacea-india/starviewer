@@ -130,7 +130,7 @@ QImage ThumbnailCreator::createThumbnail(const DICOMTagReader *reader, int resol
         }
         catch (std::bad_alloc &e)
         {
-            ERROR_LOG(QString("No s'ha pogut generar el thumbnail per falta de memòria: %1").arg(e.what()));
+            ERROR_LOG(QString("The thumbnail could not be generated because of lack of memory: %1").arg(e.what()));
             thumbnail = makeEmptyThumbnailWithCustomText(PreviewNotAvailableText);
         }
     }
@@ -151,7 +151,7 @@ QImage ThumbnailCreator::createThumbnail(DicomImage *dicomImage, int resolution)
     if (dicomImage == NULL)
     {
         ok = false;
-        DEBUG_LOG("Memòria insuficient per carregar l'imatge DICOM al fer el thumbnail o punter nul");
+        DEBUG_LOG("Not enough memory to load the DICOM image when making the thumbnail, or null pointer");
     }
     else if (dicomImage->getStatus() == EIS_Normal)
     {
@@ -175,14 +175,14 @@ QImage ThumbnailCreator::createThumbnail(DicomImage *dicomImage, int resolution)
         if (scaledImage == NULL)
         {
             ok = false;
-            DEBUG_LOG("La imatge escalada s'ha retornat com a nul");
+            DEBUG_LOG("The scaled image was returned as null");
         }
         else if (scaledImage->getStatus() == EIS_Normal)
         {
             QPixmap pixmap = convertToQPixmap(scaledImage);
             if (pixmap.isNull())
             {
-                DEBUG_LOG("No s'ha pogut convertir la DicomImage a QImage. Es crea un thumbnail de Preview not available.");
+                DEBUG_LOG("The DicomImage could not be converted to QImage. A Preview not available thumbnail is created.");
                 ok = false;
             }
             else
@@ -216,7 +216,7 @@ QImage ThumbnailCreator::createThumbnail(DicomImage *dicomImage, int resolution)
         else
         {
             ok = false;
-            DEBUG_LOG(QString("La imatge escalada té errors. Error: %1 ").arg(DicomImage::getString(scaledImage->getStatus())));
+            DEBUG_LOG(QString("The scaled image has errors. Error: %1 ").arg(DicomImage::getString(scaledImage->getStatus())));
         }
     }
     else
@@ -238,13 +238,13 @@ bool ThumbnailCreator::isSuitableForThumbnailCreation(const DICOMTagReader *read
 {
     if (!reader)
     {
-        DEBUG_LOG("El DICOMTagReader donat és NUL!");
+        DEBUG_LOG("The given DICOMTagReader is NULL!");
         return false;
     }
 
     if (!reader->getDcmDataset())
     {
-        DEBUG_LOG("El DICOMTagReader no té cap DcmDataset assignat, no podem generar el thumbnail.");
+        DEBUG_LOG("The DICOMTagReader has no DcmDataset assigned, the thumbnail cannot be generated.");
         return false;
     }
 
@@ -293,7 +293,7 @@ QPixmap ThumbnailCreator::convertToQPixmap(DicomImage *dicomImage)
         {
             if (!thumbnail.loadFromData((const unsigned char*)buffer, length, imageFormat.toLatin1()))
             {
-                DEBUG_LOG("La càrrega del buffer al thumbnail ha fallat :(");
+                DEBUG_LOG("Loading the buffer into the thumbnail failed :(");
             }
         }
         // Delete temporary pixel buffer
@@ -301,7 +301,7 @@ QPixmap ThumbnailCreator::convertToQPixmap(DicomImage *dicomImage)
     }
     else
     {
-        DEBUG_LOG("Memòria insuficient per crear el buffer del thumbnail!");
+        DEBUG_LOG("Not enough memory to create the thumbnail buffer!");
     }
 
     return thumbnail;

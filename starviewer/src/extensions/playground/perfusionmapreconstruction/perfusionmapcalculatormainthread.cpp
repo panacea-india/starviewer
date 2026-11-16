@@ -87,10 +87,10 @@ void PerfusionMapCalculatorMainThread::run()
     this->computePerfusion();
     DEBUG_LOG("Done!");
     computePerfusiontime += time.elapsed();
-    DEBUG_LOG(QString("TEMPS COMPUTANT DELTAR : %1ms ").arg(deltaRtime));
-    DEBUG_LOG(QString("TEMPS COMPUTANT MOMENTS : %1ms ").arg(momentstime));
-    DEBUG_LOG(QString("TEMPS COMPUTANT FINDING AIF : %1ms ").arg(findAiftime));
-    DEBUG_LOG(QString("TEMPS COMPUTANT PERFUSION TIME : %1ms ").arg(computePerfusiontime));
+    DEBUG_LOG(QString("TIME COMPUTING DELTAR : %1ms ").arg(deltaRtime));
+    DEBUG_LOG(QString("TIME COMPUTING MOMENTS : %1ms ").arg(momentstime));
+    DEBUG_LOG(QString("TIME COMPUTING FINDING AIF : %1ms ").arg(findAiftime));
+    DEBUG_LOG(QString("TIME COMPUTING PERFUSION TIME : %1ms ").arg(computePerfusiontime));
     emit computed();
 }
 
@@ -349,8 +349,8 @@ void PerfusionMapCalculatorMainThread::computeDeltaR()
     }*/
     time2 += time.elapsed();
 
-    DEBUG_LOG(QString("-- TEMPS Computant checkImage : %1ms ").arg(time1));
-    DEBUG_LOG(QString("-- TEMPS Computant deltaR : %1ms ").arg(time2));
+    DEBUG_LOG(QString("-- TIME Computing checkImage : %1ms ").arg(time1));
+    DEBUG_LOG(QString("-- TIME Computing deltaR : %1ms ").arg(time2));
 
     // destruïm els threads
     for (int j = 0; j < numberOfThreads; j++)
@@ -522,9 +522,9 @@ void PerfusionMapCalculatorMainThread::computeMoments()
             }
         }
     }
-    DEBUG_LOG(QString("A compute moments hi ha %1 voxels valids").arg(contvalid));
-    DEBUG_LOG(QString("A compute moments hi ha %1 voxels m0").arg(contm0));
-    DEBUG_LOG(QString("A compute moments hi ha %1 voxels molt valids").arg(contvalid-contm0));
+    DEBUG_LOG(QString("In compute moments there are %1 valid voxels").arg(contvalid));
+    DEBUG_LOG(QString("In compute moments there are %1 m0 voxels").arg(contm0));
+    DEBUG_LOG(QString("In compute moments there are %1 very valid voxels").arg(contvalid-contm0));
 /*    fout0.close();
     fout1.close();
     fout2.close();*/
@@ -571,7 +571,7 @@ void PerfusionMapCalculatorMainThread::findAIF()
     }
     std::sort(sortedMoment0.begin(), sortedMoment0.end());    // sort in ascending order
     DEBUG_LOG(QString("sortedMoment 0 size: %1").arg(sortedMoment0.size()));
-    DEBUG_LOG(QString("A sorted moments0 hi ha %1 voxels").arg(contm0));
+    DEBUG_LOG(QString("In sorted moments0 there are %1 voxels").arg(contm0));
 
     for (i=sortedMoment0.size()-firstSelection;i<sortedMoment0.size();i++)
     {
@@ -865,8 +865,8 @@ void PerfusionMapCalculatorMainThread::computePerfusion()
     time2 += time.elapsed();
     DEBUG_LOG(QString("Done!!"));
 
-    DEBUG_LOG(QString("-- TEMPS COMPUTANT Perfusion : %1ms ").arg(time1));
-    DEBUG_LOG(QString("-- TEMPS PINTANT Perfusion : %1ms ").arg(time2));
+    DEBUG_LOG(QString("-- TIME COMPUTING Perfusion : %1ms ").arg(time1));
+    DEBUG_LOG(QString("-- TIME DRAWING Perfusion : %1ms ").arg(time2));
 }
 
 void PerfusionMapCalculatorMainThread::fftAIF()

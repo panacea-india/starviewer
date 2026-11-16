@@ -36,17 +36,17 @@ int UpgradeDatabaseXMLParser::getMinimumDatabaseRevisionRequiredToUpgrade() cons
 
     if (reader.isNull())
     {
-        ERROR_LOG("XML d'actualització de la base de dades buit");
+        ERROR_LOG("Empty database update XML");
         return -1;
     }
     if (!reader->readNextStartElement())
     {
-        ERROR_LOG("XML d'actualitzacio de base de dades no valid");
+        ERROR_LOG("Invalid database update XML");
         return -1;
     }
     else if (reader->name().toString() != "upgradeDatabase")
     {
-        ERROR_LOG("S'esperava tag upgradeDatabase i s'ha trobat" + reader->name().toString());
+        ERROR_LOG("The upgradeDatabase tag was expected and the tag found was" + reader->name().toString());
         return -1;
     }
 
@@ -64,12 +64,12 @@ UpgradeDatabaseRevisionCommands UpgradeDatabaseXMLParser::getUpgradeDatabaseRevi
 
     if (!reader->readNextStartElement())
     {
-        ERROR_LOG("XML d'actualitzacio de base de dades no valid");
+        ERROR_LOG("Invalid database update XML");
         return UpgradeDatabaseRevisionCommands();
     }
     else if (reader->name().toString() != "upgradeDatabase")
     {
-        ERROR_LOG("S'esperava tag upgradeDatabase i s'ha trobat" + reader->name().toString());
+        ERROR_LOG("The upgradeDatabase tag was expected and the tag found was" + reader->name().toString());
         return UpgradeDatabaseRevisionCommands();
     }
 

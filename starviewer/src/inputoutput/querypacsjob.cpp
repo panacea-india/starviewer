@@ -93,7 +93,7 @@ QList<Image*> QueryPacsJob::getImageList()
 
 void QueryPacsJob::requestCancelJob()
 {
-    INFO_LOG(QString("S'ha demanat la cancel.lacio del Job de consulta al PACS %1").arg(getPacsDevice().getAETitle()));
+    INFO_LOG(QString("Cancellation of the PACS query job %1 was requested").arg(getPacsDevice().getAETitle()));
     m_queryPacs->cancelQuery();
 }
 

@@ -128,7 +128,7 @@ void ToolManager::addExclusiveToolsGroup(const QString &groupName, const QString
         }
         else
         {
-            DEBUG_LOG(QString("No tenim registrada cap Action per la tool ") + toolName);
+            DEBUG_LOG(QString("No Action is registered for the tool ") + toolName);
         }
     }
     // Guarrada! TODO Aixo es un workaround per poder desactivar "automaticament" les tools dins d'un mateix grup
@@ -296,7 +296,7 @@ void ToolManager::triggeredToolAction(const QString &toolName)
     }
     else
     {
-        DEBUG_LOG(QString("No hi ha cap tool Action per la tool anomenada: ") + toolName);
+        DEBUG_LOG(QString("There is no tool Action for the tool named: ") + toolName);
     }
 }
 

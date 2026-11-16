@@ -182,8 +182,8 @@ void StudyLayoutMapper::placeImagesInCurrentLayout(const QList<QPair<Volume*, in
     // Comprovem que tinguem el nombre suficient de files i columnes pel nombre de volums
     if (numberOfVolumesToPlace > rows * columns)
     {
-        DEBUG_LOG(QString("No hi ha suficients visors pel nombre passat de volums/imatges. #Volums/imatges: %1. Files: %2, Columnes: %3. "
-            "Limitem el nombre de volums a col·locar a files * columnes = %4").arg(numberOfVolumesToPlace).arg(rows).arg(columns).arg(rows * columns));
+        DEBUG_LOG(QString("There are not enough viewers for the given number of volumes/images. #Volumes/images: %1. Rows: %2, Columns: %3. "
+            "Limiting the number of volumes to place to rows * columns = %4").arg(numberOfVolumesToPlace).arg(rows).arg(columns).arg(rows * columns));
         // Limitem el nombre de volums al nombre total de visors disponibles
         numberOfVolumesToPlace = rows * columns;
     }

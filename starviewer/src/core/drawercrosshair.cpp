@@ -125,7 +125,7 @@ void DrawerCrossHair::updateVtkProp()
     }
     else
     {
-        DEBUG_LOG("No es pot actualitzar la línia, ja que encara no s'ha creat!");
+        DEBUG_LOG("The line cannot be updated, because it has not been created yet!");
     }
 }
 

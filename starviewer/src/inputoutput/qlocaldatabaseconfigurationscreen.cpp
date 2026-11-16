@@ -332,7 +332,7 @@ void QLocalDatabaseConfigurationScreen::deleteStudies()
                                                                        QMessageBox::No);
     if (response == QMessageBox::Yes)
     {
-        INFO_LOG("Neteja de la cache");
+        INFO_LOG("Cleaning the cache");
 
         clearCache();
         MessageBus::instance()->send("Pacs/CacheCleared");
@@ -379,7 +379,7 @@ void QLocalDatabaseConfigurationScreen::clearCache()
 
 void QLocalDatabaseConfigurationScreen::compactCache()
 {
-    INFO_LOG("Compactació de la base de dades");
+    INFO_LOG("Compacting the database");
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 

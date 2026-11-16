@@ -73,7 +73,7 @@ void AppImportFile::openDirectory(bool recursively)
     QString directoryName = QFileDialog::getExistingDirectory(0, tr("Choose a directory to scan"), m_workingDicomDirectory, QFileDialog::ShowDirsOnly);
     if (!directoryName.isEmpty())
     {
-        INFO_LOG("S'escaneja el directori: " + directoryName + " per obrir els estudis que hi contingui");
+        INFO_LOG("Scanning the directory: " + directoryName + " to open the studies it contains");
         m_workingDicomDirectory = directoryName;
         writeSettings();
 

@@ -81,7 +81,7 @@ void QViewerCINEController::setCINEDimension(int dimension)
     // Checkejem per si el que ens passen és vàlid o no
     if (dimension != SpatialDimension && dimension != TemporalDimension)
     {
-        DEBUG_LOG("Paràmetre ilegal!");
+        DEBUG_LOG("Illegal parameter!");
     }
     else
     {

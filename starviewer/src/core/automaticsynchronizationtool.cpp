@@ -77,7 +77,7 @@ void AutomaticSynchronizationTool::initialize()
             }
             else
             {
-                DEBUG_LOG(QString("Viewer sense frameOfReference, no es tindrà en compte a la sincronitzacio automatica."));
+                DEBUG_LOG(QString("Viewer without frameOfReference, it will not be taken into account in automatic synchronization."));
             }
         }
 

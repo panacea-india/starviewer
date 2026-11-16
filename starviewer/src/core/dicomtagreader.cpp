@@ -114,8 +114,8 @@ bool DICOMTagReader::setFile(const QString &filename)
     else
     {
         m_hasValidFile = false;
-        DEBUG_LOG(QString("Error en llegir l'arxiu [%1]\nPossible causa: %2 ").arg(filename).arg(status.text()));
-        ERROR_LOG(QString("Error en llegir l'arxiu [%1]\nPossible causa: %2 ").arg(filename).arg(status.text()));
+        DEBUG_LOG(QString("Error reading the file [%1]\nPossible cause: %2 ").arg(filename).arg(status.text()));
+        ERROR_LOG(QString("Error reading the file [%1]\nPossible cause: %2 ").arg(filename).arg(status.text()));
         return false;
     }
 
@@ -510,7 +510,7 @@ void DICOMTagReader::logStatusForTagOperation(const DICOMTag &tag, const OFCondi
 
     if (QString::compare(status.text(), "Tag Not Found", Qt::CaseInsensitive) != 0)
     {
-        DEBUG_LOG(QString("S'ha produit el següent problema a l'intentar obtenir el tag %1 :: %2").arg(tag.getKeyAsQString()).arg(status.text()));
+        DEBUG_LOG(QString("The following problem occurred while trying to get tag %1 :: %2").arg(tag.getKeyAsQString()).arg(status.text()));
     }
 }
 

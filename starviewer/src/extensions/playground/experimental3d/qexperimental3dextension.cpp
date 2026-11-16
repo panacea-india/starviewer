@@ -380,7 +380,7 @@ void QExperimental3DExtension::loadColorVomiPalette(QString fileName)
 
     if (!colorVomiPaletteFile.open(QFile::ReadOnly | QFile::Text))
     {
-        DEBUG_LOG(QString("No es pot llegir el fitxer ") + fileName);
+        DEBUG_LOG(QString("Cannot read the file ") + fileName);
         if (m_interactive)
         {
             QMessageBox::warning(this, tr("Can't load color VoMI palette"), QString(tr("Can't load color VoMI palette from file ")) + fileName);
@@ -815,7 +815,7 @@ bool QExperimental3DExtension::loadData(QString &fileName, const QString &settin
 
     if (!file.open(QIODevice::ReadOnly))
     {
-        DEBUG_LOG(QString("No es pot llegir el fitxer ") + fileName + ": " + file.errorString());
+        DEBUG_LOG(QString("Cannot read the file ") + fileName + ": " + file.errorString());
         if (m_interactive)
         {
             QMessageBox::warning(this, QString(tr("Can't load %1 from file ")).arg(name).arg(fileName), file.errorString());
@@ -877,7 +877,7 @@ bool QExperimental3DExtension::saveData(QString &fileName, const QString &settin
 
     if (!file.open(mode))
     {
-        DEBUG_LOG(QString("No es pot escriure al fitxer ") + fileName + ": " + file.errorString());
+        DEBUG_LOG(QString("Cannot write to the file ") + fileName + ": " + file.errorString());
         if (m_interactive)
         {
             QMessageBox::warning(this, QString(tr("Can't save %1 to file ")).arg(name).arg(fileName), file.errorString());
@@ -941,7 +941,7 @@ bool QExperimental3DExtension::loadData(const QString &fileName, QList<T> &list)
 
     if (!file.open(QIODevice::ReadOnly))
     {
-        DEBUG_LOG(QString("No es pot llegir el fitxer ") + fileName);
+        DEBUG_LOG(QString("Cannot read the file ") + fileName);
         return false;
     }
 
@@ -968,7 +968,7 @@ bool QExperimental3DExtension::saveData(const QList<T> &list, const QString &fil
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
     {
-        DEBUG_LOG(QString("No es pot escriure al fitxer ") + fileName);
+        DEBUG_LOG(QString("Cannot write to the file ") + fileName);
         return false;
     }
 
@@ -991,7 +991,7 @@ bool QExperimental3DExtension::saveDataAsText(const QList< QPair<int, Vector3> >
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
     {
-        DEBUG_LOG(QString("No es pot escriure al fitxer ") + fileName);
+        DEBUG_LOG(QString("Cannot write to the file ") + fileName);
         return false;
     }
 
@@ -1862,8 +1862,8 @@ void QExperimental3DExtension::loadCamera(const QString &fileName)
 
     if (!cameraFile.open(QFile::ReadOnly | QFile::Text))
     {
-        DEBUG_LOG(QString("No es pot llegir el fitxer ") + fileName);
-        ERROR_LOG(QString("No es pot llegir el fitxer ") + fileName);
+        DEBUG_LOG(QString("Cannot read the file ") + fileName);
+        ERROR_LOG(QString("Cannot read the file ") + fileName);
         if (m_interactive)
         {
             QMessageBox::warning(this, tr("Can't load"), QString(tr("Can't load from file ")) + fileName);
@@ -1942,7 +1942,7 @@ void QExperimental3DExtension::saveCamera()
 
         if (!cameraFile.open(QFile::WriteOnly | QFile::Truncate | QFile::Text))
         {
-            ERROR_LOG(QString("No es pot escriure al fitxer ") + cameraFileName);
+            ERROR_LOG(QString("Cannot write to the file ") + cameraFileName);
             if (m_interactive)
             {
                 QMessageBox::warning(this, tr("Can't save"), QString(tr("Can't save to file ")) + cameraFileName);
@@ -2461,8 +2461,8 @@ void QExperimental3DExtension::computeSelectedVmi()
                                         computeColorVomi, computeEvmiOpacity, computeEvmiVomi, computeBestViews, computeGuidedTour, computeExploratoryTour,
                                         m_vmiDisplayCheckBox->isChecked());
     int elapsed = time.elapsed();
-    DEBUG_LOG(QString("Temps total de VOMI i altres: %1 s").arg(elapsed / 1000.0f));
-    INFO_LOG(QString("Temps total de VOMI i altres: %1 s").arg(elapsed / 1000.0f));
+    DEBUG_LOG(QString("Total time of VOMI and others: %1 s").arg(elapsed / 1000.0f));
+    INFO_LOG(QString("Total time of VOMI and others: %1 s").arg(elapsed / 1000.0f));
 
     if (viewpointInformationChannel.hasViewedVolume())
     {
@@ -2708,8 +2708,8 @@ void QExperimental3DExtension::computeSelectedVmii()
                                                  computeMii, computeViewpointUnstabilities, computeImi, computeIntensityClustering,
                                                  m_vmiiDisplayCheckBox->isChecked());
     int elapsed = time.elapsed();
-    DEBUG_LOG(QString("Temps total de VMIi i altres: %1 s").arg(elapsed / 1000.0f));
-    INFO_LOG(QString("Temps total de VMIi i altres: %1 s").arg(elapsed / 1000.0f));
+    DEBUG_LOG(QString("Total time of VMIi and others: %1 s").arg(elapsed / 1000.0f));
+    INFO_LOG(QString("Total time of VMIi and others: %1 s").arg(elapsed / 1000.0f));
 
     if (viewpointIntensityInformationChannel.hasViewedVolume())
     {
@@ -2846,7 +2846,7 @@ void QExperimental3DExtension::loadAndRunProgram()
 
     if (!programFile.open(QFile::ReadOnly | QFile::Text))
     {
-        DEBUG_LOG(QString("No es pot llegir el fitxer ") + programFileName);
+        DEBUG_LOG(QString("Cannot read the file ") + programFileName);
         QMessageBox::warning(this, tr("Can't load program"), QString(tr("Can't load program from file ")) + programFileName);
         return;
     }
@@ -4550,7 +4550,7 @@ void QExperimental3DExtension::generateAndEvolveTransferFunctionFromIntensityClu
 
     for (int i = 0; i < iterations; i++)
     {
-        DEBUG_LOG(QString("------------------------------------- algorisme genètic, iteració %1/%2 --------------------------------").arg(i).arg(iterations));
+        DEBUG_LOG(QString("------------------------------------- genetic algorithm, iteration %1/%2 --------------------------------").arg(i).arg(iterations));
         TransferFunction evolvedTransferFunction(bestTransferFunction);
 
         //for (int j = 0; j < m_intensityClusters.size(); j++)    // evolucionar-los tots
@@ -4650,7 +4650,7 @@ void QExperimental3DExtension::generateAndEvolveTransferFunctionFromIntensityClu
             }
             evolvedPI = viewpointIntensityInformationChannel.intensityProbabilities();
             evolved = InformationTheory::kullbackLeiblerDivergence(evolvedPI, weights, true);
-            DEBUG_LOG(QString(".......................................... distància mínima = %1, distància evolucionada = %2").arg(best).arg(evolved));
+            DEBUG_LOG(QString(".......................................... minimum distance = %1, evolved distance = %2").arg(best).arg(evolved));
             accept = evolved < best;
         }
         if (minimizeDkl_IV_W)
@@ -4667,14 +4667,14 @@ void QExperimental3DExtension::generateAndEvolveTransferFunctionFromIntensityClu
             {
                 evolved += evolvedPV.at(k) * InformationTheory::kullbackLeiblerDivergence(evolvedPIV.at(k), weights, true);
             }
-            DEBUG_LOG(QString(".......................................... D_KL(I|V || W) mínima = %1, D_KL(I|V || W) evolucionada = %2").arg(best)
+            DEBUG_LOG(QString(".......................................... D_KL(I|V || W) minimum = %1, D_KL(I|V || W) evolved = %2").arg(best)
                                                                                                                                         .arg(evolved));
             accept = evolved < best;
         }
         if (maximizeHIV)
         {
             evolved = viewpointIntensityInformationChannel.HIV();
-            DEBUG_LOG(QString(".......................................... H(I|V) màxima = %1, H(I|V) evolucionada = %2").arg(best).arg(evolved));
+            DEBUG_LOG(QString(".......................................... H(I|V) maximum = %1, H(I|V) evolved = %2").arg(best).arg(evolved));
             accept = evolved > best;
         }
         if (maximizeMiiOverHI || minimizeMiiOverHI)
@@ -4864,7 +4864,7 @@ void QExperimental3DExtension::fineTuneGeneticTransferFunctionFromIntensityClust
 
     for (int i = 0; i < iterations; i++)
     {
-        DEBUG_LOG(QString("------------------------------------- fine-tune, iteració %1/%2 --------------------------------").arg(i).arg(iterations));
+        DEBUG_LOG(QString("------------------------------------- fine-tune, iteration %1/%2 --------------------------------").arg(i).arg(iterations));
 
         int cluster;
 //        double x1, x2, x;
@@ -4969,7 +4969,7 @@ void QExperimental3DExtension::fineTuneGeneticTransferFunctionFromIntensityClust
                 }
                 fineTunedPI = viewpointIntensityInformationChannel.intensityProbabilities();
                 fineTuned = InformationTheory::kullbackLeiblerDivergence(fineTunedPI, weights, true);
-                DEBUG_LOG(QString(".......................................... distància mínima = %1, distància ajustada = %2").arg(best).arg(fineTuned));
+                DEBUG_LOG(QString(".......................................... minimum distance = %1, adjusted distance = %2").arg(best).arg(fineTuned));
                 accept = fineTuned < best;
             }
             if (minimizeDkl_IV_W)
@@ -4986,14 +4986,14 @@ void QExperimental3DExtension::fineTuneGeneticTransferFunctionFromIntensityClust
                 {
                     fineTuned += fineTunedPV.at(k) * InformationTheory::kullbackLeiblerDivergence(fineTunedPIV.at(k), weights, true);
                 }
-                DEBUG_LOG(QString(".......................................... D_KL(I|V || W) mínima = %1, D_KL(I|V || W) ajustada = %2").arg(best)
+                DEBUG_LOG(QString(".......................................... D_KL(I|V || W) minimum = %1, D_KL(I|V || W) adjusted = %2").arg(best)
                                                                                                                                         .arg(fineTuned));
                 accept = fineTuned < best;
             }
             if (maximizeHIV)
             {
                 fineTuned = viewpointIntensityInformationChannel.HIV();
-                DEBUG_LOG(QString(".......................................... H(I|V) màxima = %1, H(I|V) ajustada = %2").arg(best).arg(fineTuned));
+                DEBUG_LOG(QString(".......................................... H(I|V) maximum = %1, H(I|V) adjusted = %2").arg(best).arg(fineTuned));
                 accept = fineTuned > best;
             }
             if (maximizeMiiOverHI || minimizeMiiOverHI)
@@ -5274,7 +5274,7 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
     while (iteration < MaximumIterations && best > Threshold && maximumK > MinimumK && !m_stopOptimization)
     {
         round++;
-        DEBUG_LOG(QString("==================== optimització per la derivada, inici ronda %1 ====================").arg(round));
+        DEBUG_LOG(QString("==================== derivative optimization, start of round %1 ====================").arg(round));
 
         TransferFunction lastTransferFunction(bestTransferFunction);
         double last = best;
@@ -5298,7 +5298,7 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
         while (rejected < MaximumRejections && iteration < MaximumIterations && best > Threshold && !m_stopOptimization)
         {
             iteration++;
-            DEBUG_LOG(QString("------------------------------------- optimització per la derivada, inici iteració %1 -------------------------------------")
+            DEBUG_LOG(QString("------------------------------------- derivative optimization, start of iteration %1 -------------------------------------")
                              .arg(iteration));
 
             TransferFunction optimizedTransferFunction(lastTransferFunction);
@@ -5468,7 +5468,7 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
                 {
                     newOpacity = 0.0; // si la intensitat actual té pes 0 li posem l'opacitat directament a 0 i ens estalviem temps
                 }
-                //DEBUG_LOG(QString("................................ cluster %1: opacitat vella = %2, opacitat nova desitjada = %3, opacitat nova final = %4")
+                //DEBUG_LOG(QString("................................ cluster %1: old opacity = %2, desired new opacity = %3, final new opacity = %4")
                 //                 .arg(j).arg(opacity).arg(newOpacities.at(j)).arg(newOpacity));
 
     //            if (m_transferFunctionFromIntensityClusteringTransferFunctionTypeCenterPointRadioButton->isChecked())
@@ -5536,11 +5536,11 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
                     optimized = optimized - beta * optimizedTotalViewedVolume;   // resta
                     //optimized = optimized / (beta * optimizedTotalViewedVolume); // divisió
                 }
-                DEBUG_LOG(QString(".................................. volum total vist: últim = %1, optimitzat = %2, millor = %3").arg(lastTotalViewedVolume)
+                DEBUG_LOG(QString(".................................. total volume seen: last = %1, optimized = %2, best = %3").arg(lastTotalViewedVolume)
                                  .arg(optimizedTotalViewedVolume).arg(bestTotalViewedVolume));
-                DEBUG_LOG(QString(".................................. volum total vist * beta: últim = %1, optimitzat = %2, millor = %3")
+                DEBUG_LOG(QString(".................................. total volume seen * beta: last = %1, optimized = %2, best = %3")
                                  .arg(beta * lastTotalViewedVolume).arg(beta * optimizedTotalViewedVolume).arg(beta * bestTotalViewedVolume));
-                DEBUG_LOG(QString(".................................. D_KL(I || W) última = %1, D_KL(I || W) optimitzada = %2, D_KL(I || W) mínima = %3")
+                DEBUG_LOG(QString(".................................. D_KL(I || W) last = %1, D_KL(I || W) optimized = %2, D_KL(I || W) minimum = %3")
                                  .arg(last).arg(optimized).arg(best));
                 accept = optimized < best;
             }
@@ -5565,11 +5565,11 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
                     optimized = optimized - beta * optimizedTotalViewedVolume;   // resta
                     //optimized = optimized / (beta * optimizedTotalViewedVolume); // divisió
                 }
-                DEBUG_LOG(QString(".................................. volum total vist: últim = %1, optimitzat = %2, millor = %3").arg(lastTotalViewedVolume)
+                DEBUG_LOG(QString(".................................. total volume seen: last = %1, optimized = %2, best = %3").arg(lastTotalViewedVolume)
                                  .arg(optimizedTotalViewedVolume).arg(bestTotalViewedVolume));
-                DEBUG_LOG(QString(".................................. volum total vist * beta: últim = %1, optimitzat = %2, millor = %3")
+                DEBUG_LOG(QString(".................................. total volume seen * beta: last = %1, optimized = %2, best = %3")
                                  .arg(beta * lastTotalViewedVolume).arg(beta * optimizedTotalViewedVolume).arg(beta * bestTotalViewedVolume));
-                DEBUG_LOG(QString(".................................. D_KL(I|V || W) última = %1, D_KL(I|V || W) optimitzada = %2, D_KL(I|V || W) mínima = %3")
+                DEBUG_LOG(QString(".................................. D_KL(I|V || W) last = %1, D_KL(I|V || W) optimized = %2, D_KL(I|V || W) minimum = %3")
                                  .arg(last).arg(optimized).arg(best));
                 accept = optimized < best;
             }
@@ -5603,7 +5603,7 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
                 DEBUG_LOG("................................. rebutjada");
             }
 
-            DEBUG_LOG(QString("------------------------------------- optimització per la derivada, fi iteració %1 -------------------------------------")
+            DEBUG_LOG(QString("------------------------------------- derivative optimization, end of iteration %1 -------------------------------------")
                              .arg(iteration));
 
             if (!t01 && best < 0.01)
@@ -5630,7 +5630,7 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
 
         m_transferFunctionEditor->setTransferFunction(bestTransferFunction.simplify());
         setTransferFunction();
-        DEBUG_LOG(QString("------------------------------------- fi de ronda: distància mínima = %1").arg(best));
+        DEBUG_LOG(QString("------------------------------------- end of round: minimum distance = %1").arg(best));
 
         if (best == previousBest)
         {
@@ -5641,10 +5641,10 @@ void QExperimental3DExtension::optimizeByDerivativeTransferFunctionFromIntensity
             maximumK = 1.0;
         }
 
-        DEBUG_LOG(QString("==================== optimització per la derivada, fi ronda %1 ====================").arg(round));
+        DEBUG_LOG(QString("==================== derivative optimization, end of round %1 ====================").arg(round));
     }
 
-    DEBUG_LOG(QString("------------------------------------- fi: distància mínima = %1").arg(best));
+    DEBUG_LOG(QString("------------------------------------- end: minimum distance = %1").arg(best));
 
     if (switchMode)
     {
@@ -5694,7 +5694,7 @@ void QExperimental3DExtension::optimizeTransferFunctionForOneViewpoint()
 {
     if (m_optimizing)
     {
-        DEBUG_LOG("-- parem l'optimització actual --");
+        DEBUG_LOG("-- stopping the current optimization --");
         m_pendingOptimization = true;
         m_stopOptimization = true;
     }
@@ -5898,8 +5898,8 @@ void QExperimental3DExtension::fillWeightsEditor()
     {
         if (m_intensityGradientMap.isEmpty())
         {
-            DEBUG_LOG("Atenció! S'ha intentat aplicar pesos 2D a un clustering 1D.");
-            WARN_LOG("Atenció! S'ha intentat aplicar pesos 2D a un clustering 1D.");
+            DEBUG_LOG("Warning! An attempt was made to apply 2D weights to a 1D clustering.");
+            WARN_LOG("Warning! An attempt was made to apply 2D weights to a 1D clustering.");
         }
 
         const unsigned short *data = reinterpret_cast<unsigned short*>(m_clusterizedVolume->getImage()->GetScalarPointer());
@@ -5925,8 +5925,8 @@ void QExperimental3DExtension::fillWeightsEditor()
     {
         if (m_intensityGradientMap.isEmpty())
         {
-            DEBUG_LOG("Atenció! S'ha intentat aplicar pesos 2D a un clustering 1D.");
-            WARN_LOG("Atenció! S'ha intentat aplicar pesos 2D a un clustering 1D.");
+            DEBUG_LOG("Warning! An attempt was made to apply 2D weights to a 1D clustering.");
+            WARN_LOG("Warning! An attempt was made to apply 2D weights to a 1D clustering.");
         }
 
         for (int i = 0; i < nClusters; i++)
@@ -6038,7 +6038,7 @@ QVector<float> QExperimental3DExtension::getWeights() const
 
     if (totalWeight == 0.0)
     {
-        DEBUG_LOG("tots els pesos són 0");
+        DEBUG_LOG("all the weights are 0");
     }
 
     //DEBUG_LOG("pesos:");
@@ -6320,8 +6320,8 @@ void QExperimental3DExtension::intensityGradientClustering()
             int cluster = cluster2DIndexFromBins(intensityMap.at(i), gradientMap.at(j));
             if (cluster > 0x0000ffff)
             {
-                DEBUG_LOG(QString("Overflow a l'índex del cluster: %1").arg(cluster));
-                WARN_LOG(QString("Overflow a l'índex del cluster: %1").arg(cluster));
+                DEBUG_LOG(QString("Overflow at the cluster index: %1").arg(cluster));
+                WARN_LOG(QString("Overflow at the cluster index: %1").arg(cluster));
             }
             m_intensityGradientMap[i][j] = cluster;
         }
@@ -6533,7 +6533,7 @@ void QExperimental3DExtension::importanceClustering()
     // primer mirem si tenim la màscara, sinó no podem fer res
     if (m_viewer->getMainInput()->getStudy()->getNumberOfSeries() < 2)
     {
-        DEBUG_LOG("No tenim màscara. Bye bye y hasta otro ratito, eh?");
+        DEBUG_LOG("There is no mask.");
         return;
     }
 

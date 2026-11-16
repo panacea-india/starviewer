@@ -325,7 +325,7 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
     OFCondition condition = ASC_createAssociationParameters(&m_associationParameters, ASC_DEFAULTMAXPDU);
     if (!condition.good())
     {
-        ERROR_LOG("Error al crear els parametres de l'associacio, descripcio error: " + QString(condition.text()));
+        ERROR_LOG("Error creating the association parameters, error description: " + QString(condition.text()));
         return false;
     }
 
@@ -359,8 +359,8 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
 
     if (!condition.good())
     {
-        ERROR_LOG("S'ha produit un error al configurar la connexio. AE Title: " + m_pacs.getAETitle() + ", adreca: " +
-            constructPacsServerAddress(pacsServiceToRequest, m_pacs) + ". Descripcio error: " + QString(condition.text()));
+        ERROR_LOG("An error occurred configuring the connection. AE Title: " + m_pacs.getAETitle() + ", address: " +
+            constructPacsServerAddress(pacsServiceToRequest, m_pacs) + ". Error description: " + QString(condition.text()));
         return false;
     }
 
@@ -369,7 +369,7 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
 
     if (m_associationNetwork == NULL)
     {
-        ERROR_LOG("S'ha produit un error inicialitzant els parametres de la connexio. AE Title: " + m_pacs.getAETitle() + ", adreca: " +
+        ERROR_LOG("An error occurred initializing the connection parameters. AE Title: " + m_pacs.getAETitle() + ", address: " +
             constructPacsServerAddress(pacsServiceToRequest, m_pacs));
         return false;
     }
@@ -387,15 +387,15 @@ bool PACSConnection::connectToPACS(PACSServiceToRequest pacsServiceToRequest)
     {
         if (ASC_countAcceptedPresentationContexts(m_associationParameters) == 0)
         {
-            ERROR_LOG("El PACS no ens ha acceptat cap dels Presentation Context presentats. AE Title: " + m_pacs.getAETitle() + ", adreca: " +
+            ERROR_LOG("The PACS did not accept any of the Presentation Contexts presented. AE Title: " + m_pacs.getAETitle() + ", address: " +
                 constructPacsServerAddress(pacsServiceToRequest, m_pacs));
             return false;
         }
     }
     else
     {
-        ERROR_LOG("S'ha produit un error al intentar connectar amb el PACS. AE Title: " + m_pacs.getAETitle() + ", adreca: " +
-            constructPacsServerAddress(pacsServiceToRequest, m_pacs) + ". Descripcio error: " + QString(condition.text()));
+        ERROR_LOG("An error occurred trying to connect to the PACS. AE Title: " + m_pacs.getAETitle() + ", address: " +
+            constructPacsServerAddress(pacsServiceToRequest, m_pacs) + ". Error description: " + QString(condition.text()));
 
         // Si no hem pogut connectar al PACS i és una descàrrega haurem obert el port per rebre connexions entrants DICOM, com no que podrem descarregar
         // les imatges perquè no hem pogut connectar amb el PACS per sol·licitar-ne la descarrega, tanquem el port local que espera per connexions entrants.
@@ -431,7 +431,7 @@ void PACSConnection::disconnect()
         OFCondition condition = ASC_releaseAssociation(m_dicomAssociation);
         if (condition.bad())
         {
-            ERROR_LOG("No s'ha pogut desconnectar del PACS, descripcio error: " + QString(condition.text()));
+            ERROR_LOG("Could not disconnect from the PACS, error description: " + QString(condition.text()));
         }
     }
 
@@ -440,7 +440,7 @@ void PACSConnection::disconnect()
         OFCondition condition = ASC_destroyAssociation(&m_dicomAssociation);
         if (condition.bad())
         {
-            ERROR_LOG("Error al destruir la connexio amb el PACS, descripcio error: " + QString(condition.text()));
+            ERROR_LOG("Error destroying the connection with the PACS, error description: " + QString(condition.text()));
         }
     }
 
@@ -450,7 +450,7 @@ void PACSConnection::disconnect()
         OFCondition condition = ASC_dropNetwork(&m_associationNetwork);
         if (condition.bad())
         {
-            ERROR_LOG("Error al tancar el port de connexions entrants, descripcio error: " + QString(condition.text()));
+            ERROR_LOG("Error closing the incoming connections port, error description: " + QString(condition.text()));
         }
     }
 
@@ -484,11 +484,11 @@ QString PACSConnection::constructPacsServerAddress(PACSServiceToRequest pacsServ
             }
             else
             {
-                ERROR_LOG("No s'ha pogut configurar per quin port fer l'echo perque el PACS " + pacsDevice.getAETitle() + " no te cap servei activat");
+                ERROR_LOG("Could not configure which port to use for the echo because the PACS " + pacsDevice.getAETitle() + " has no service enabled");
             }
             break;
         default:
-            ERROR_LOG("No s'ha pogut configurar per quin port fer l'echo al PACS " + pacsDevice.getAETitle() + " perque la modalitat de connexio és invalida");
+            ERROR_LOG("Could not configure which port to use for the echo to the PACS " + pacsDevice.getAETitle() + " because the connection mode is invalid");
     }
 
     INFO_LOG("PACS Adress build:" + pacsServerAddress);
@@ -510,7 +510,7 @@ T_ASC_Network* PACSConnection::initializeAssociationNetwork(PACSServiceToRequest
     OFCondition condition = ASC_initializeNetwork(networkRole, networkPort, timeout, &associationNetwork);
     if (!condition.good())
     {
-        ERROR_LOG("No s'ha pogut inicialitzar l'objecte network, despripcio error" + QString(condition.text()));
+        ERROR_LOG("Could not initialize the network object, error description" + QString(condition.text()));
         return NULL;
     }
 

@@ -115,7 +115,7 @@ bool QInputOutputDicomdirWidget::openDicomdir()
         if (!state.good())
         {
             QMessageBox::warning(this, ApplicationNameString, tr("Error opening DICOMDIR"));
-            ERROR_LOG("Error al obrir el DICOMDIR " + dicomdirPath + state.text());
+            ERROR_LOG("Error opening the DICOMDIR " + dicomdirPath + state.text());
         }
         else
         {
@@ -148,12 +148,12 @@ void QInputOutputDicomdirWidget::queryStudy(DicomMask queryMask)
         {
             // Aquest és l'error quan no tenim un dicomdir obert l'ig
             QMessageBox::warning(this, ApplicationNameString, tr("You must open a DICOMDIR before searching."));
-            ERROR_LOG("No s'ha obert cap directori DICOMDIR " + state.text());
+            ERROR_LOG("No DICOMDIR directory has been opened " + state.text());
         }
         else
         {
             QMessageBox::warning(this, ApplicationNameString, tr("Error querying in DICOMDIR"));
-            ERROR_LOG("Error cercant estudis al DICOMDIR " + state.text());
+            ERROR_LOG("Error searching for studies in the DICOMDIR " + state.text());
         }
         return;
     }
@@ -179,7 +179,7 @@ void QInputOutputDicomdirWidget::requestedSeriesOfStudy(Study *study)
 {
     QList<Series*> seriesList;
 
-    INFO_LOG("Cerca de sèries al DICOMDIR de l'estudi " + study->getInstanceUID());
+    INFO_LOG("Searching for series in the DICOMDIR of the study " + study->getInstanceUID());
 
     // "" pq no busquem cap serie en concret
     m_readDicomdir.readSeries(study->getInstanceUID(), "", seriesList);
@@ -199,7 +199,7 @@ void QInputOutputDicomdirWidget::requestedImagesOfSeries(Series *series)
 {
     QList<Image*> imageList;
 
-    INFO_LOG("Cerca d'imatges al DICOMDIR de l'estudi " + series->getParentStudy()->getInstanceUID() + " i serie " + series->getInstanceUID());
+    INFO_LOG("Searching for images in the DICOMDIR of the study " + series->getParentStudy()->getInstanceUID() + " and series " + series->getInstanceUID());
 
     m_readDicomdir.readImages(series->getInstanceUID(), "", imageList);
 
@@ -279,7 +279,7 @@ void QInputOutputDicomdirWidget::view()
         }
         else
         {
-            DEBUG_LOG("No s'ha pogut obtenir l'estudi amb UID " + selectedDICOMITems.at(index).first.getStudyInstanceUID());
+            DEBUG_LOG("Could not get the study with UID " + selectedDICOMITems.at(index).first.getStudyInstanceUID());
         }
     }
 
@@ -287,7 +287,7 @@ void QInputOutputDicomdirWidget::view()
 
     if (!selectedPatientsList.isEmpty())
     {
-        DEBUG_LOG("Llançat signal per visualitzar estudi del pacient " + patient->getFullName());
+        DEBUG_LOG("Signal emitted to display the study of the patient " + patient->getFullName());
         emit viewPatients(selectedPatientsList);
     }
     else

@@ -36,7 +36,7 @@ void ViewpointIntensityInformationChannel::filterViewpoints(const QVector<bool> 
 {
     if (m_viewpoints.size() != filter.size())
     {
-        DEBUG_LOG(QString("Error: mides dels vectors diferents al filtre de punts de vista: %1 punts de vista, %2 filtres").arg(m_viewpoints.size())
+        DEBUG_LOG(QString("Error: the vector sizes differ in the viewpoint filter: %1 viewpoints, %2 filters").arg(m_viewpoints.size())
                                                                                                                            .arg(filter.size()));
         return;
     }

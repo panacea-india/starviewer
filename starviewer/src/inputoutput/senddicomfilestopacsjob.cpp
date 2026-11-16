@@ -58,8 +58,8 @@ void SendDICOMFilesToPACSJob::run(ThreadWeaver::JobPointer self, ThreadWeaver::T
 
     if (m_imagesToSend.count() > 0)
     {
-        INFO_LOG("S'enviaran fitxers de l' estudi " + m_imagesToSend.at(0)->getParentSeries()->getParentStudy()->getInstanceUID() +
-            " al PACS " + getPacsDevice().getAETitle());
+        INFO_LOG("Files of the study " + m_imagesToSend.at(0)->getParentSeries()->getParentStudy()->getInstanceUID() +
+            " will be sent to the PACS " + getPacsDevice().getAETitle());
 
         // S'ha d'especificar com a DirectConnection, perquè sinó aquest signal l'aten qui ha creat el Job, que és la interfície, per tant
         // no s'atendria fins que la interfície estigui lliure poguent provocar comportaments incorrectes
@@ -79,7 +79,7 @@ void SendDICOMFilesToPACSJob::run(ThreadWeaver::JobPointer self, ThreadWeaver::T
 
 void SendDICOMFilesToPACSJob::requestCancelJob()
 {
-    INFO_LOG(QString("S'ha demanat la cancel.lacio del Job d'enviament d'imatges de l'estudi %1 al PACS %2")
+    INFO_LOG(QString("Cancellation of the job sending the images of study %1 to PACS %2 was requested")
                 .arg(getStudyOfDICOMFilesToSend()->getInstanceUID(), getPacsDevice().getAETitle()));
     m_sendDICOMFilesToPACS->requestCancel();
 }

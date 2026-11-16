@@ -24,7 +24,7 @@ SeedToolData::SeedToolData(QObject *parent)
 {
     m_position = QVector<double> (3, 0);
     m_point = NULL;
-    //DEBUG_LOG("SEED TOOL DATA CREADA ");
+    //DEBUG_LOG("SEED TOOL DATA CREATED ");
 }
 
 SeedToolData::~SeedToolData()
@@ -44,7 +44,7 @@ void SeedToolData::setSeedPosition(QVector<double> pos)
 
     if (!m_point)
     {
-        //DEBUG_LOG("Creem un nou drawerPoint");
+        //DEBUG_LOG("Creating a new drawerPoint");
         m_point = new DrawerPoint;
         QColor color(217, 33, 66);
         m_point->setColor(color);

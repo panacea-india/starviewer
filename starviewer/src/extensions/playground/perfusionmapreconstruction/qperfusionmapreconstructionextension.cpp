@@ -164,14 +164,14 @@ void QPerfusionMapReconstructionExtension::setInput(Volume *input)
         bool ok = dicomReader.setFile(m_DSCVolume->getImage(0,0)->getPath());
         if(!ok)
         {
-            DEBUG_LOG("No s'ha pogut obrir amb el tagReader l'arxiu: " + m_DSCVolume->getImage(0,0)->getPath());
+            DEBUG_LOG("Could not open the file with the tagReader: " + m_DSCVolume->getImage(0,0)->getPath());
             return;
         }else{
             QString s = dicomReader.getValueAttributeAsQString(DICOMRepetitionTime);
-            DEBUG_LOG("Valor RepetitionTime: " + s);
+            DEBUG_LOG("RepetitionTime value: " + s);
             m_newTR = s.toDouble();
             s = dicomReader.getValueAttributeAsQString(DICOMEchoTime);
-            DEBUG_LOG("Valor EchoTime: " + s);
+            DEBUG_LOG("EchoTime value: " + s);
             m_newTE = s.toDouble();
         }
     }
@@ -332,10 +332,10 @@ void QPerfusionMapReconstructionExtension::paintMap()
     time.restart();
     this->computePerfusion();
     computePerfusiontime += time.elapsed();
-    DEBUG_LOG(QString("TEMPS COMPUTANT DELTAR : %1ms ").arg(deltaRtime));
-    DEBUG_LOG(QString("TEMPS COMPUTANT MOMENTS : %1ms ").arg(momentstime));
-    DEBUG_LOG(QString("TEMPS COMPUTANT FINDING AIF : %1ms ").arg(findAiftime));
-    DEBUG_LOG(QString("TEMPS COMPUTANT PERFUSION TIME : %1ms ").arg(computePerfusiontime));
+    DEBUG_LOG(QString("TIME COMPUTING DELTAR : %1ms ").arg(deltaRtime));
+    DEBUG_LOG(QString("TIME COMPUTING MOMENTS : %1ms ").arg(momentstime));
+    DEBUG_LOG(QString("TIME COMPUTING FINDING AIF : %1ms ").arg(findAiftime));
+    DEBUG_LOG(QString("TIME COMPUTING PERFUSION TIME : %1ms ").arg(computePerfusiontime));
 */
 }
 
@@ -1083,7 +1083,7 @@ void QPerfusionMapReconstructionExtension::paintAIFSignal()
             //DEBUG_LOG(QString("Origin Map: [%1,%2]").arg(m_mapCalculator->getCBVVolume()->getOrigin()[0]).arg(m_mapCalculator->getCBVVolume()->getOrigin()[1]));
             DEBUG_LOG(QString("Spacing: [%1,%2]").arg(m_DSCVolume->getSpacing()[0]).arg(m_DSCVolume->getSpacing()[1]));
             DEBUG_LOG(QString("Index: [%1,%2]").arg(index[0]).arg(index[1]));
-            DEBUG_LOG(QString("Valor index inicial:%1").arg(index[2]));
+            DEBUG_LOG(QString("Initial index value:%1").arg(index[2]));
             int t, tend = m_DSCVolume->getNumberOfPhases();
             DEBUG_LOG(QString("tend:%1").arg(tend));
             QVector<double> signal(tend);
@@ -1167,14 +1167,14 @@ void QPerfusionMapReconstructionExtension::setVolume(Volume *volume)
     bool ok = dicomReader.setFile(m_DSCVolume->getImage(0,0)->getPath());
     if(!ok)
     {
-        DEBUG_LOG("No s'ha pogut obrir amb el tagReader l'arxiu: " + m_DSCVolume->getImage(0,0)->getPath());
+        DEBUG_LOG("Could not open the file with the tagReader: " + m_DSCVolume->getImage(0,0)->getPath());
         return;
     }else{
         QString s = dicomReader.getValueAttributeAsQString(DICOMRepetitionTime);
-        DEBUG_LOG("Valor RepetitionTime: " + s);
+        DEBUG_LOG("RepetitionTime value: " + s);
         m_newTR = s.toDouble();
         s = dicomReader.getValueAttributeAsQString(DICOMEchoTime);
-        DEBUG_LOG("Valor EchoTime: " + s);
+        DEBUG_LOG("EchoTime value: " + s);
         m_newTE = s.toDouble();
     }
 }

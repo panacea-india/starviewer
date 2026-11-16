@@ -254,7 +254,7 @@ void QApplicationMainWindow::createActions()
         }
         else
         {
-            ERROR_LOG("Error carregant el mediator de " + name);
+            ERROR_LOG("Error loading the mediator of " + name);
         }
     }
 
@@ -575,7 +575,7 @@ void QApplicationMainWindow::setPatient(Patient *patient)
         this->killBill();
         delete m_patient;
         m_patient = NULL;
-        DEBUG_LOG("Ja teníem un pacient, l'esborrem.");
+        DEBUG_LOG("We already had a patient, deleting it.");
     }
 
     m_patient = patient;
@@ -814,7 +814,7 @@ void QApplicationMainWindow::newCommandLineOptionsToRun()
         switch (optionValue.first)
         {
             case StarviewerApplicationCommandLine::OpenBlankWindow:
-                INFO_LOG("Rebut argument de linia de comandes per obrir nova finestra");
+                INFO_LOG("Received a command line argument to open a new window");
                 openBlankWindow();
                 break;
             case StarviewerApplicationCommandLine::RetrieveStudyByUid:
@@ -822,11 +822,11 @@ void QApplicationMainWindow::newCommandLineOptionsToRun()
                 ExternalStudyRequestMediator::instance()->requestStudyByUid(optionValue.second);
                 break;
             case StarviewerApplicationCommandLine::RetrieveStudyByAccessionNumber:
-                INFO_LOG("Rebut argument de linia de comandes per descarregar un estudi a traves del seu accession number");
+                INFO_LOG("Received a command line argument to retrieve a study through its accession number");
                 ExternalStudyRequestMediator::instance()->requestStudyByAccessionNumber(optionValue.second);
                 break;
             default:
-                INFO_LOG("Argument de linia de comandes invalid");
+                INFO_LOG("Invalid command line argument");
                 break;
         }
     }

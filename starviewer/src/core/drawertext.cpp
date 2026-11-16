@@ -129,7 +129,7 @@ void DrawerText::updateVtkProp()
     }
     else
     {
-        DEBUG_LOG("No es pot actualitzar la línia, ja que encara no s'ha creat!");
+        DEBUG_LOG("The line cannot be updated, because it has not been created yet!");
     }
 }
 
@@ -207,7 +207,7 @@ void DrawerText::updateVtkActorProperties()
     }
     else
     {
-        DEBUG_LOG("Tipus de font no reconegut a l'intentar crear text!!");
+        DEBUG_LOG("Unrecognized font type when trying to create text!!");
     }
 
     // Assignem el tamany de la font
@@ -228,7 +228,7 @@ void DrawerText::updateVtkActorProperties()
     }
     else
     {
-        DEBUG_LOG("Tipus de justificació horitzontal no reconegut a l'intentar crear text!!");
+        DEBUG_LOG("Unrecognized horizontal justification type when trying to create text!!");
     }
 
     // Assignem el tipus de justificació vertical
@@ -246,7 +246,7 @@ void DrawerText::updateVtkActorProperties()
     }
     else
     {
-        DEBUG_LOG("Tipus de justificació vertical no reconegut a l'intentar crear text!!");
+        DEBUG_LOG("Unrecognized vertical justification type when trying to create text!!");
     }
 
     // Mirem la visibilitat de l'actor

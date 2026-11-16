@@ -580,7 +580,7 @@ double QEdemaSegmentationExtension::calculateMaskVolume()
         }
         else
         {
-            DEBUG_LOG("No existeix la editor tool");
+            DEBUG_LOG("The editor tool does not exist");
         }
     }
     volume = volume*(double)cont;

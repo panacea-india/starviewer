@@ -436,7 +436,7 @@ void QMPRExtension::screenShot()
     }
     else
     {
-        DEBUG_LOG("No hi ha tool d'screenshot disponible");
+        DEBUG_LOG("No screenshot tool is available");
     }
 }
 

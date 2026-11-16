@@ -105,7 +105,7 @@ bool TemporalDimensionFillerStep::fillIndividually()
         // En el cas del CT ens interessa saber si és localizer
         if (m_input->getCurrentSeries()->isCTLocalizer())
         {
-            DEBUG_LOG("La serie amb uid " + m_input->getCurrentSeries()->getInstanceUID() + " no és dinàmica (És un CT LOCALIZER)");
+            DEBUG_LOG("The series with UID " + m_input->getCurrentSeries()->getInstanceUID() + " is not dynamic (it is a CT LOCALIZER)");
             volumeInfo->isCTLocalizer = true;
         }
     }
@@ -180,9 +180,9 @@ void TemporalDimensionFillerStep::postProcessing()
                     if (volumeInfo->multipleAcquisitionNumber)
                     {
                         numberOfPhases = 1;
-                        DEBUG_LOG(QString("No totes les imatges tenen el mateix AcquisitionNumber. Considerem que el volume %1 de la sèrie %2 no és dinàmic.")
+                        DEBUG_LOG(QString("Not all images have the same AcquisitionNumber. Considering that volume %1 of series %2 is not dynamic.")
                                      .arg(currentVolume).arg(key->getInstanceUID()));
-                        INFO_LOG(QString("No totes les imatges tenen el mateix AcquisitionNumber. Considerem que el volume %1 de la sèrie %2 no és dinàmic.")
+                        INFO_LOG(QString("Not all images have the same AcquisitionNumber. Considering that volume %1 of series %2 is not dynamic.")
                                     .arg(currentVolume).arg(key->getInstanceUID()));
                     }
                     else
@@ -209,9 +209,9 @@ void TemporalDimensionFillerStep::postProcessing()
                 {
                     numberOfPhases = 1;
 
-                    ERROR_LOG(QString("El volume %1 de la sèrie %2 no ha estat processat! Considerem que no és dinàmic")
+                    ERROR_LOG(QString("Volume %1 of series %2 has not been processed! Considering that it is not dynamic")
                                  .arg(currentVolume).arg(key->getInstanceUID()));
-                    DEBUG_LOG(QString("El volume %1 de la sèrie %2 no ha estat processat! Considerem que no és dinàmic")
+                    DEBUG_LOG(QString("Volume %1 of series %2 has not been processed! Considering that it is not dynamic")
                                  .arg(currentVolume).arg(key->getInstanceUID()));
                 }
 
@@ -219,7 +219,7 @@ void TemporalDimensionFillerStep::postProcessing()
 
                 if (numberOfPhases > 1)
                 {
-                    DEBUG_LOG(QString("El volume %1 de la serie %2 és dinamic").arg(currentVolume).arg(key->getInstanceUID()));
+                    DEBUG_LOG(QString("Volume %1 of series %2 is dynamic").arg(currentVolume).arg(key->getInstanceUID()));
                 }
 
             }

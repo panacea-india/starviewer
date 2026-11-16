@@ -65,7 +65,7 @@ void ExtensionWorkspace::setDarkBackgroundColorEnabled(bool enabled)
 
 void ExtensionWorkspace::addApplication(QWidget *application, QString caption, const QString &extensionIdentifier)
 {
-    INFO_LOG("Afegim l'extensió: " + caption + " al workspace");
+    INFO_LOG("Adding the extension: " + caption + " to the workspace");
     this->addTab(application, caption);
     this->setCurrentIndex(this->indexOf(application));
     // Afegim l'extensió a la llista d'extensions actives
@@ -78,7 +78,7 @@ void ExtensionWorkspace::removeApplication(QWidget *application)
 {
     if (application)
     {
-        INFO_LOG("Tancant extensió: " + application->objectName());
+        INFO_LOG("Closing the extension: " + application->objectName());
         this->removeTab(this->indexOf(application));
         // Eliminem l'extensió de la llista d'extensions actives
         m_activeExtensions.remove(application);
@@ -92,7 +92,7 @@ void ExtensionWorkspace::removeApplication(QWidget *application)
     }
     else
     {
-        DEBUG_LOG("S'ha donat una widget nul per eliminar");
+        DEBUG_LOG("A null widget was given to delete");
     }
 }
 

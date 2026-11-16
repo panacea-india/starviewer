@@ -356,7 +356,7 @@ void MagicROITool::computeRegionMask()
     }
     else
     {
-        DEBUG_LOG("ERROR: extension no comença a 0");
+        DEBUG_LOG("ERROR: extension does not start at 0");
     }
     
     VoxelIndex index = getPickedPositionVoxelIndex();   // slice oriented index

@@ -239,7 +239,7 @@ work runs in the order below. DICOMweb has never been tested from the applicatio
   pixel data shorter than declared.
 - **Lossy marker:** done (A-21). Lossy images show LOSSY and the ratio in the 2D
   viewer.
-- **English only:** done (A-09). Log messages are still partly in Catalan (A-50).
+- **English only:** done (A-09). Log messages are now in English too (A-50).
 - **PACS settings:** login messages, the password placeholder and the delete
   confirmation are fixed (A-36 to A-38), and the log no longer shows false errors
   after a failed connection (A-44).

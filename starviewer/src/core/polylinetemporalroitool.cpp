@@ -265,7 +265,7 @@ double PolylineTemporalROITool::computeTemporalMean()
         }
         else
         {
-            DEBUG_LOG("EL NOMBRE D'INTERSECCIONS ENTRE EL RAIG I LA ROI Ã‰S IMPARELL!!");
+            DEBUG_LOG("THE NUMBER OF INTERSECTIONS BETWEEN THE RAY AND THE ROI IS ODD!!");
         }
 
         // Fem el següent pas en la coordenada que escombrem

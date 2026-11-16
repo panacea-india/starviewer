@@ -179,7 +179,7 @@ void Drawer::erasePrimitive(DrawerPrimitive *primitive)
     // HACK Només esborrarem si ningú és propietari
     if (primitive->hasOwners())
     {
-        DEBUG_LOG("No esborrem la primitiva. Tenim propietaris");
+        DEBUG_LOG("Not deleting the primitive. It has owners");
         return;
     }
 

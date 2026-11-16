@@ -117,7 +117,7 @@ void StatsWatcher::registerSliderAction(int action)
     QAbstractSlider *slider = qobject_cast<QAbstractSlider*>(sender());
     if (!slider)
     {
-        DEBUG_LOG("Aquest slot només s'hauria de connectar amb sliders. Retornem de la funció");
+        DEBUG_LOG("This slot should only be connected to sliders. Returning from the function");
         return;
     }
     QString statMessage;

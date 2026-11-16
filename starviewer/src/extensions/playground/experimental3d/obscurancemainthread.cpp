@@ -139,7 +139,7 @@ void ObscuranceMainThread::run()
     {
         const Vector3 &direction = directions.at(i);
 
-        DEBUG_LOG(QString("Direcció %1: %2").arg(i).arg(direction.toString()));
+        DEBUG_LOG(QString("Direction %1: %2").arg(i).arg(direction.toString()));
 
         // Direcció dominant (0 = x, 1 = y, 2 = z)
         int dominant;

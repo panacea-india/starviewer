@@ -124,7 +124,7 @@ void QOpacityTransferFunctionGraphicalView::mousePressEvent(QMouseEvent *event)
 
     if (m_state != Ready)
     {
-        DEBUG_LOG(QString("Mouse press inesperat (estat %1)").arg(m_state));
+        DEBUG_LOG(QString("Unexpected mouse press (state %1)").arg(m_state));
         return;
     }
 

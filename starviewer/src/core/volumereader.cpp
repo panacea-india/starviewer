@@ -56,7 +56,7 @@ void VolumeReader::executePixelDataReader(Volume *volume)
 {
     if (!volume)
     {
-        DEBUG_LOG("El volum proporcionat és NUL! Retornem.");
+        DEBUG_LOG("The given volume is NULL! Returning.");
         return;
     }
 
@@ -194,19 +194,19 @@ void VolumeReader::logWarningLastError(const QStringList &fileList) const
     switch (m_lastError)
     {
         case VolumePixelDataReader::OutOfMemory:
-            WARN_LOG("No podem carregar els arxius perquè no caben a memòria\n" + fileList.join("\n"));
+            WARN_LOG("The files cannot be loaded because they do not fit in memory\n" + fileList.join("\n"));
             break;
 
         case VolumePixelDataReader::MissingFile:
-            WARN_LOG("No podem carregar els arxius perquè falten fitxers");
+            WARN_LOG("The files cannot be loaded because files are missing");
             break;
 
         case VolumePixelDataReader::CannotReadFile:
-            WARN_LOG("No podem llegir els següents arxius (raó desconeguda)\n" + fileList.join("\n"));
+            WARN_LOG("The following files cannot be read (unknown reason)\n" + fileList.join("\n"));
             break;
 
         case VolumePixelDataReader::UnknownError:
-            WARN_LOG("No podem carregar els arxius perquè ha donat un error desconegut");
+            WARN_LOG("The files cannot be loaded because of an unknown error");
             break;
     }
 }
@@ -215,14 +215,14 @@ void VolumeReader::fixSpacingIssues(Volume *volume)
 {
     if (!volume)
     {
-        DEBUG_LOG("El volum és nul!");
+        DEBUG_LOG("The volume is null!");
         return;
     }
 
     if (volume->getNumberOfPhases() > 1 && volume->getNumberOfSlicesPerPhase() > 1)
     {
         double zSpacing = qAbs(Image::distance(volume->getImage(0)) - Image::distance(volume->getImage(1)));
-        DEBUG_LOG(QString("Arreglem el z-spacing per volum amb fases. z-spacing llegit (mal calculat): %1  - Nou z-spacing ben calculat: %2")
+        DEBUG_LOG(QString("Fixing the z-spacing for a volume with phases. z-spacing read (badly computed): %1  - New correctly computed z-spacing: %2")
             .arg(volume->getSpacing()[2]).arg(zSpacing));
         
         volume->getSpacing()[2] = zSpacing;

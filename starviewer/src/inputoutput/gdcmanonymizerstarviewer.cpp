@@ -668,12 +668,12 @@ bool gdcmAnonymizerStarviewer::BALCPProtect(DataSet &ds, Tag const &tag, IOD con
                 {
                     anonymizedUID = uid.Generate();
                     dummyMapUIDTags[UIDToAnonymize] = anonymizedUID;
-                    //INFO_LOG(QString("Busquem valor per tag %1,%2").arg(tag.GetGroup()).arg(tag.GetElement()) + QString("Genero nou valor per %1 el nou valor es %2").arg(UIDValue.c_str()).arg(anonymizedUID.c_str()));
+                    //INFO_LOG(QString("Looking for a value for tag %1,%2").arg(tag.GetGroup()).arg(tag.GetElement()) + QString("Generating a new value for %1, the new value is %2").arg(UIDValue.c_str()).arg(anonymizedUID.c_str()));
                 }
                 else
                 {
                     anonymizedUID = dummyMapUIDTags[UIDToAnonymize];
-                    //INFO_LOG(QString("Busquem valor per tag %1,%2").arg(tag.GetGroup()).arg(tag.GetElement()) + QString("Trobo valor per %1 el seu valor es %2").arg(UIDValue.c_str()).arg(anonymizedUID.c_str()));
+                    //INFO_LOG(QString("Looking for a value for tag %1,%2").arg(tag.GetGroup()).arg(tag.GetElement()) + QString("Found a value for %1, its value is %2").arg(UIDValue.c_str()).arg(anonymizedUID.c_str()));
                 }
             }
             else

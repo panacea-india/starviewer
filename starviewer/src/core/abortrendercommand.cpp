@@ -31,7 +31,7 @@ void AbortRenderCommand::Execute(vtkObject *caller, unsigned long eventId, void 
 
     if (!renderWindow)
     {
-        DEBUG_LOG("El caller no és una vtkRenderWindow!");
+        DEBUG_LOG("The caller is not a vtkRenderWindow!");
         return;
     }
 

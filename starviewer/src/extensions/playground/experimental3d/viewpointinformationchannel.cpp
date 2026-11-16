@@ -66,12 +66,12 @@ void ViewpointInformationChannel::setColorVomiPalette(const QVector<Vector3Float
 
         if (viewpointSubSets.contains(mapIndex))
         {
-            DEBUG_LOG("índexs precalculats");
+            DEBUG_LOG("precomputed indices");
             bestIndices = viewpointSubSets.value(mapIndex);
         }
         else
         {
-            DEBUG_LOG("calculem els índexs");
+            DEBUG_LOG("computing the indices");
             double maxMinDistance = 0.0;
 
             class Combination
@@ -279,7 +279,7 @@ void ViewpointInformationChannel::filterViewpoints(const QVector<bool> &filter)
 {
     if (m_viewpoints.size() != filter.size())
     {
-        DEBUG_LOG(QString("Error: mides dels vectors diferents al filtre de punts de vista: %1 punts de vista, %2 filtres").arg(m_viewpoints.size())
+        DEBUG_LOG(QString("Error: the vector sizes differ in the viewpoint filter: %1 viewpoints, %2 filters").arg(m_viewpoints.size())
                                                                                                                            .arg(filter.size()));
         return;
     }
@@ -769,7 +769,7 @@ void ViewpointInformationChannel::createVoxelProbabilitiesPerViewFiles()
 
         if (!m_voxelProbabilitiesPerViewFiles.at(i)->open())
         {
-            DEBUG_LOG(QString("No s'ha pogut obrir el fitxer: error %1").arg(m_voxelProbabilitiesPerViewFiles.at(i)->errorString()));
+            DEBUG_LOG(QString("Could not open the file: error %1").arg(m_voxelProbabilitiesPerViewFiles.at(i)->errorString()));
             for (int j = 0; j < i; j++)
             {
                 m_voxelProbabilitiesPerViewFiles.at(j)->close();
@@ -792,7 +792,7 @@ QVector<float> ViewpointInformationChannel::voxelProbabilitiesInViewCpu(int i)
 
 void ViewpointInformationChannel::deleteVoxelProbabilitiesPerViewFiles()
 {
-    DEBUG_LOG("Destruïm p(Z|V)");
+    DEBUG_LOG("Destroying p(Z|V)");
 
     for (int i = 0; i < m_voxelProbabilitiesPerViewFiles.size(); i++)
     {
@@ -2867,15 +2867,15 @@ void ViewpointInformationChannel::computeBestViews()
 
     if (m_fixedNumberOfBestViews)
     {
-        DEBUG_LOG(QString("límit %1 vistes").arg(m_numberOfBestViews));
+        DEBUG_LOG(QString("limit %1 views").arg(m_numberOfBestViews));
     }
     else
     {
-        DEBUG_LOG(QString("límit llindar %1").arg(m_bestViewsThreshold));
+        DEBUG_LOG(QString("threshold limit %1").arg(m_bestViewsThreshold));
     }
 
     DEBUG_LOG(QString("I(V;Z) = %1").arg(m_mi));
-    DEBUG_LOG("Millors vistes:");
+    DEBUG_LOG("Best views:");
     DEBUG_LOG(QString("%1: (v%2) = %3; I(v̂;Z) = %4; I(v̂;Z)/I(V;Z) = %5").arg(0).arg(minVmiIndex + 1).arg(m_viewpoints.at(minVmiIndex).toString()).arg(IvvZ)
                                                                         .arg(IvvZ / m_mi));
 

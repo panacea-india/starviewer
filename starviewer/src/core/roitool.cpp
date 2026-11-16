@@ -261,7 +261,7 @@ void ROITool::addVoxelsFromIntersections(const QList<double*> &intersectionPoint
     }
     else
     {
-        DEBUG_LOG(QString("EL NOMBRE D'INTERSECCIONS ENTRE EL RAIG I LA ROI ÉS IMPARELL!!: %1").arg(intersectionPoints.count()));
+        DEBUG_LOG(QString("THE NUMBER OF INTERSECTIONS BETWEEN THE RAY AND THE ROI IS ODD!!: %1").arg(intersectionPoints.count()));
     }
 }
 

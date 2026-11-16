@@ -430,7 +430,7 @@ double StrokeSegmentationMethod::applyCleanSkullMethod()
         DEBUG_LOG(excep.what());
     }
     t4 = clock();
-    DEBUG_LOG("Estudi temps:");
+    DEBUG_LOG("Study time:");
     DEBUG_LOG(QString("Resample1    : %1").arg((double)(t8 - t7) / 1000000.0));
     DEBUG_LOG(QString("Dilate/Erode : %1").arg((double)(t2 - t1) / 1000000.0));
     DEBUG_LOG(QString("Resample2    : %1").arg((double)(t6 - t5) / 1000000.0));
@@ -982,7 +982,7 @@ double StrokeSegmentationMethod::applyMethodEdema(Volume *lesionMask)
     m_Volume->getSpacing(volspacing);
     DEBUG_LOG(QString("Volume: %1,* %2").arg(m_edemaCont).arg(volspacing[0] * volspacing[1] * volspacing[2]));
     t7 = clock();
-    DEBUG_LOG("Estudi temps:");
+    DEBUG_LOG("Study time:");
     DEBUG_LOG(QString("Dilate          : %1").arg((double)(t2 - t1) / 1000000.0));
     DEBUG_LOG(QString("Resample inicial: %1").arg((double)(t3 - t2) / 1000000.0));
     DEBUG_LOG(QString("Mean i init     : %1").arg((double)(t4 - t3) / 1000000.0));

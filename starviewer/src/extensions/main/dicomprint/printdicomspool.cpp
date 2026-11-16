@@ -61,7 +61,7 @@ void PrintDicomSpool::printBasicGrayscale(DicomPrinter dicomPrinter, DicomPrintJ
 
     if (result.bad())
     {
-        ERROR_LOG(QString("No s'ha pogut connectar amb la impressora amb AE Title: %1, IP: %2, port: %3, descripcio error:%4 ").arg(m_dicomPrinter.getAETitle(),
+        ERROR_LOG(QString("Could not connect to the printer with AE Title: %1, IP: %2, port: %3, error description: %4 ").arg(m_dicomPrinter.getAETitle(),
                            m_dicomPrinter.getHostname(), QString().setNum(m_dicomPrinter.getPort()), result.text()));
 
         m_lastError = PrintDicomSpool::CanNotConnectToDICOMPrinter;
@@ -74,7 +74,7 @@ void PrintDicomSpool::printBasicGrayscale(DicomPrinter dicomPrinter, DicomPrintJ
     result = printerConnection.releaseAssociation();
     if (result.bad())
     {
-        ERROR_LOG(QString("No s'ha pogut desconnectar correctament de la impressora, descripcio error: %1").arg(result.text()));
+        ERROR_LOG(QString("Could not disconnect cleanly from the printer, error description: %1").arg(result.text()));
     }
 
 }
@@ -101,7 +101,7 @@ void PrintDicomSpool::printStoredPrintDcmtkContent(DVPSPrintMessageHandler &prin
     result = storedPrintDcmtk->printSCUgetPrinterInstance(printerConnection);
     if (EC_Normal != result)
     {
-        ERROR_LOG(QString("No s'ha pogut obtenir els settings de la impressora, descripcio error: %1").arg(result.text()));
+        ERROR_LOG(QString("Could not get the printer settings, error description: %1").arg(result.text()));
     }
 
     // Abans de fer un acció amb la impressora comprovem si la última ha anat bé amb EC_NORMAL=result, si ha fallat totes les accions restants no s'executaran
@@ -114,12 +114,12 @@ void PrintDicomSpool::printStoredPrintDcmtkContent(DVPSPrintMessageHandler &prin
         if (EC_Normal != result)
         {
             // Si no s'ha pogut crear el FilmSession possiblement la impressora no ens ha acceptat algun dels paràmetres de configuració del FilmSession
-            ERROR_LOG(QString("No s'ha pogut crear el Basic FilmSession. %1").arg(result.text()));
+            ERROR_LOG(QString("Could not create the Basic FilmSession. %1").arg(result.text()));
             m_lastError = PrintDicomSpool::ErrorCreatingFilmSession;
         }
         else
         {
-            INFO_LOG("S'ha enviat correctament les dades del FilmSession a la impressora DICOM");
+            INFO_LOG("The FilmSession data was sent successfully to the DICOM printer");
         }
     }
 
@@ -128,12 +128,12 @@ void PrintDicomSpool::printStoredPrintDcmtkContent(DVPSPrintMessageHandler &prin
         result = storedPrintDcmtk->printSCUcreateBasicFilmBox(printerConnection, addPLUTAttributesInBasicFilmSession);
         if (EC_Normal != result)
         {
-            ERROR_LOG(QString("No s'ha pogut crear el film box. %1").arg(result.text()));
+            ERROR_LOG(QString("Could not create the film box. %1").arg(result.text()));
             m_lastError = PrintDicomSpool::ErrorCreatingImageBox;
         }
         else
         {
-            INFO_LOG("S'ha enviat correctament les dades del FilmBox a la impressora DICOM");
+            INFO_LOG("The FilmBox data was sent successfully to the DICOM printer");
         }
     }
 
@@ -159,15 +159,15 @@ void PrintDicomSpool::printStoredPrintDcmtkContent(DVPSPrintMessageHandler &prin
     // Donem ordre d'imprimir el BasicFilmBox, no cal donar ordre d'imprimir el FilmSession amb el BasicFilmBox n'hi ha suficent
     if (EC_Normal == result)
     {
-        INFO_LOG("S'ha enviat correctament totes les imatges a la impressora");
+        INFO_LOG("All the images were sent successfully to the printer");
         result = storedPrintDcmtk->printSCUprintBasicFilmBox(printerConnection);
         if (EC_Normal != result)
         {
-            ERROR_LOG(QString("No s'ha pogut imprimir el Filmbox. %1").arg(result.text()));
+            ERROR_LOG(QString("Could not print the Filmbox. %1").arg(result.text()));
         }
         else
         {
-            INFO_LOG("Enviada l'ordre d'imprimir el FilmBox");
+            INFO_LOG("The command to print the FilmBox was sent");
         }
     }
 
@@ -178,11 +178,11 @@ void PrintDicomSpool::printStoredPrintDcmtkContent(DVPSPrintMessageHandler &prin
     result = storedPrintDcmtk->printSCUdelete(printerConnection);
     if (EC_Normal != result)
     {
-        ERROR_LOG(QString("No s'ha pogut fer el delete dels print objects %1.").arg(result.text()));
+        ERROR_LOG(QString("Could not delete the print objects %1.").arg(result.text()));
     }
     else
     {
-        INFO_LOG("Enviada l'ordre de fer delete del les imatges enviades per imprimir");
+        INFO_LOG("The command to delete the images sent for printing was sent");
     }
 
     delete storedPrintDcmtk;
@@ -220,7 +220,7 @@ DcmDataset PrintDicomSpool::getAttributesBasicFilmSession()
     attributeBasicFilmSession->putString(qPrintable(QString().setNum(m_dicomPrintJob.getNumberOfCopies())));
     datasetBasicFilmSession.insert(attributeBasicFilmSession);
 
-    INFO_LOG("Llegits els atributs del FilmSession");
+    INFO_LOG("The FilmSession attributes were read");
 
     return datasetBasicFilmSession;
 }
@@ -239,7 +239,7 @@ OFCondition PrintDicomSpool::createAndSendBasicGrayscaleImageBox(DVPSPrintMessag
 
     if (result != EC_Normal || !studyUID || !seriesUID || !instanceUID)
     {
-        ERROR_LOG(QString("No s'ha trobat la imatge número %1 per imprimir").arg(QString().setNum(imageNumber)));
+        ERROR_LOG(QString("Image number %1 to print was not found").arg(QString().setNum(imageNumber)));
         m_lastError = PrintDicomSpool::ErrorLoadingImageToPrint;
 
         return result;
@@ -258,18 +258,18 @@ OFCondition PrintDicomSpool::createAndSendBasicGrayscaleImageBox(DVPSPrintMessag
             result = storedPrintDcmtk->printSCUsetBasicImageBox(printerConnection, imageNumber, *imageToPrint, isImageMonochrome1);
             if (EC_Normal != result)
             {
-                ERROR_LOG(QString("No s'ha pogut enviar el basic grayscale imagebox, descripcio error: %1").arg(result.text()));
+                ERROR_LOG(QString("Could not send the basic grayscale imagebox, error description: %1").arg(result.text()));
                 m_lastError = PrintDicomSpool::ErrorCreatingImageBox;
             }
             else
             {
-                INFO_LOG("S'ha enviat a imprmir correctament la imatge " + imageToPrintPath);
+                INFO_LOG("The image was sent to print successfully " + imageToPrintPath);
             }
 
         }
         else
         {
-            ERROR_LOG("No s'ha pogut carregar la imatge a imprimir " + imageToPrintPath);
+            ERROR_LOG("Could not load the image to print " + imageToPrintPath);
             m_lastError = PrintDicomSpool::ErrorLoadingImageToPrint;
         }
 
@@ -284,7 +284,7 @@ OFCondition PrintDicomSpool::createAndSendFilmBoxAnnotations(DVPSPrintMessageHan
 {
     OFCondition result;
 
-    INFO_LOG(QString("S'enviaran %1 Annotation Box a la impressora").arg(storedPrintDcmtk->getNumberOfAnnotations()));
+    INFO_LOG(QString("%1 Annotation Boxes will be sent to the printer").arg(storedPrintDcmtk->getNumberOfAnnotations()));
 
     /// Enviem totes les anotacions que tinguem de la film box
     for (size_t currentAnnotation = 0; currentAnnotation < storedPrintDcmtk->getNumberOfAnnotations(); currentAnnotation++)
@@ -319,7 +319,7 @@ DVPSStoredPrint* PrintDicomSpool::loadStoredPrintFileDcmtk(const QString &pathSt
     OFCondition result = DVPSHelper::loadFileFormat(qPrintable(QDir::toNativeSeparators(pathStoredPrintDcmtkFile)), storedPrintDcmtkFile);
     if (EC_Normal != result)
     {
-        ERROR_LOG("No s'ha pogut obrir el fitxer StoredPrint de dcmtk, path:" + pathStoredPrintDcmtkFile);
+        ERROR_LOG("Could not open the dcmtk StoredPrint file, path:" + pathStoredPrintDcmtkFile);
         return NULL;
     }
 
@@ -327,7 +327,7 @@ DVPSStoredPrint* PrintDicomSpool::loadStoredPrintFileDcmtk(const QString &pathSt
 
     if (!datasetStoredPrintDcmtkFile)
     {
-        ERROR_LOG("No s'ha pogut obtenir el dataset del fitxer StoredPrint de dcmtk");
+        ERROR_LOG("Could not get the dataset of the dcmtk StoredPrint file");
         return NULL;
     }
 
@@ -335,13 +335,13 @@ DVPSStoredPrint* PrintDicomSpool::loadStoredPrintFileDcmtk(const QString &pathSt
 
     if (EC_Normal != result)
     {
-        ERROR_LOG("No s'ha pogut carregar les dades del StoredPrint per imprimir");
+        ERROR_LOG("Could not load the StoredPrint data to print");
         return NULL;
     }
 
     delete storedPrintDcmtkFile;
 
-    INFO_LOG("S'ha carregat correctament el fitxer StoredPrint (DVPSStoredPrint)");
+    INFO_LOG("The StoredPrint file (DVPSStoredPrint) was loaded successfully");
 
     return storedPrint;
 }

@@ -127,7 +127,7 @@ bool WindowsFirewallAccess::doesStarviewerHaveAccesThroughFirewall()
     {
         m_errorString = QObject::tr("Error initializing firewall library");
         m_status = FirewallAccess::FirewallError;
-        ERROR_LOG(QString("Error inicialitzant la llibreria COM. CoInitializeEx ha fallat amb el codi %1\n").arg(comInitializationResult));
+        ERROR_LOG(QString("Error initializing the COM library. CoInitializeEx failed with code %1\n").arg(comInitializationResult));
         CleanupWindowsFirewall(firewallProfile);
         return false;
     }
@@ -151,7 +151,7 @@ HRESULT WindowsFirewallAccess::initializeWindowsFirewall(INetFwProfile **firewal
     result = CoCreateInstance(__uuidof(NetFwMgr), NULL, CLSCTX_INPROC_SERVER, __uuidof(INetFwMgr), (void**)&firewallManager);
     if (FAILED(result))
     {
-        ERROR_LOG(QString("CoCreateInstance ha fallat amb codi :%1\n").arg(result));
+        ERROR_LOG(QString("CoCreateInstance failed with code :%1\n").arg(result));
         return result;
     }
 
@@ -159,7 +159,7 @@ HRESULT WindowsFirewallAccess::initializeWindowsFirewall(INetFwProfile **firewal
     result = firewallManager->get_LocalPolicy(&firewallPolicy);
     if (FAILED(result))
     {
-        ERROR_LOG(QString("get_LocalPolicy ha fallat amb codi :%1\n").arg(result));
+        ERROR_LOG(QString("get_LocalPolicy failed with code :%1\n").arg(result));
         return result;
     }
 
@@ -167,7 +167,7 @@ HRESULT WindowsFirewallAccess::initializeWindowsFirewall(INetFwProfile **firewal
     result = firewallPolicy->get_CurrentProfile(firewallProfile);
     if (FAILED(result))
     {
-        ERROR_LOG(QString("get_CurrentProfile ha fallat amb codi :%1\n").arg(result));
+        ERROR_LOG(QString("get_CurrentProfile failed with code :%1\n").arg(result));
         if (firewallManager != NULL)
         {
             firewallManager->Release();

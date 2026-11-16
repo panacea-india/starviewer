@@ -168,7 +168,7 @@ void DrawerPolyline::updateVtkProp()
     }
     else
     {
-        DEBUG_LOG("No es pot actualitzar la polilínia, ja que encara no s'ha creat!");
+        DEBUG_LOG("The polyline cannot be updated, because it has not been created yet!");
     }
 }
 

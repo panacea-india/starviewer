@@ -463,7 +463,7 @@ Patient::PatientsSimilarity Patient::compareTo(const Patient *patient) const
 {
     if (!patient)
     {
-        DEBUG_LOG("El pacient és NUL");
+        DEBUG_LOG("The patient is NULL");
         return Patient::DifferentPatients;
     }
     // Si tenen el mateix ID de pacient ja podem dir que són el mateix i no cal mirar res més.

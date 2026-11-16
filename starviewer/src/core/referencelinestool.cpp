@@ -301,7 +301,7 @@ void ReferenceLinesTool::updateFrameOfReference()
         {
             // Sense sèries, no hi ha frame of reference
             m_myFrameOfReferenceUID.clear();
-            DEBUG_LOG("EL nou volum no té series NUL!");
+            DEBUG_LOG("The new volume has no series (NULL)!");
         }
     }
     // I actualitzem el de les dades en cas que sigui un visor actiu

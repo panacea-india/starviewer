@@ -37,7 +37,7 @@ TransferFunction* TransferFunctionIO::fromFile(QFile &file)
 {
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
-        DEBUG_LOG(qPrintable(QString("No es pot llegir des del fitxer %1").arg(file.fileName())));
+        DEBUG_LOG(qPrintable(QString("Cannot read from the file %1").arg(file.fileName())));
         return 0;
     }
 
@@ -123,7 +123,7 @@ TransferFunction* TransferFunctionIO::fromXmlFile(QFile &file)
 
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {
-        DEBUG_LOG(QString("No es pot llegir des del fitxer %1").arg(file.fileName()));
+        DEBUG_LOG(QString("Cannot read from the file %1").arg(file.fileName()));
         return 0;
     }
 
@@ -133,7 +133,7 @@ TransferFunction* TransferFunctionIO::fromXmlFile(QFile &file)
     if (!xml.setContent(&file, &errorMsg, &errorLine, &errorColumn))
     {
         file.close();
-        DEBUG_LOG(errorMsg + QString(". Línia: %1. Columna: %2.").arg(errorLine).arg(errorColumn));
+        DEBUG_LOG(errorMsg + QString(". Line: %1. Column: %2.").arg(errorLine).arg(errorColumn));
         return 0;
     }
 
@@ -215,7 +215,7 @@ void TransferFunctionIO::toFile(QFile &file, const TransferFunction &transferFun
 {
     if (!file.open(QFile::WriteOnly | QFile::Truncate | QFile::Text))
     {
-        DEBUG_LOG(qPrintable(QString("No es pot escriure al fitxer %1").arg(file.fileName())));
+        DEBUG_LOG(qPrintable(QString("Cannot write to the file %1").arg(file.fileName())));
         return;
     }
 
@@ -257,7 +257,7 @@ void TransferFunctionIO::toXmlFile(QFile &file, const TransferFunction &transfer
 {
     if (!file.open(QFile::WriteOnly | QFile::Truncate | QFile::Text))
     {
-        DEBUG_LOG(qPrintable(QString("No es pot escriure al fitxer %1").arg(file.fileName())));
+        DEBUG_LOG(qPrintable(QString("Cannot write to the file %1").arg(file.fileName())));
         return;
     }
 

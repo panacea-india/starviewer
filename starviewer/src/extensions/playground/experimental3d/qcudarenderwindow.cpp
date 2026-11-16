@@ -12,8 +12,8 @@ QCudaRenderWindow::QCudaRenderWindow(QColor backgroundColor, int renderSize)
     GLenum glew = glewInit();
     if (glew != GLEW_OK)
     {
-        DEBUG_LOG("No s'ha pogut inicialitzar GLEW");
-        ERROR_LOG("No s'ha pogut inicialitzar GLEW");
+        DEBUG_LOG("Could not initialize GLEW");
+        ERROR_LOG("Could not initialize GLEW");
     }
 
     // crear el pbo

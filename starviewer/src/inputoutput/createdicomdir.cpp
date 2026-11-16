@@ -88,7 +88,7 @@ void CreateDicomdir::setStrictMode(bool enabled)
         // Rebutgem imatges que no tinguin PatientID
         m_ddir.enableInventPatientIDMode(OFFalse);
 
-        INFO_LOG("Es creara el DICOMDIR en mode estricte de compliment del DICOM");
+        INFO_LOG("The DICOMDIR will be created in strict DICOM compliance mode");
     }
     else
     {
@@ -103,7 +103,7 @@ void CreateDicomdir::setStrictMode(bool enabled)
         // En cas que una pacient no tingui PatientID se l'inventa
         m_ddir.enableInventPatientIDMode(OFTrue);
 
-        INFO_LOG("Es creara el DICOMDIR en mode permisiu en el compliment del DICOM");
+        INFO_LOG("The DICOMDIR will be created in permissive DICOM compliance mode");
     }
 }
 
@@ -137,7 +137,7 @@ Status CreateDicomdir::create(QString dicomdirPath)
     // Comprovem que el directori no estigui buit
     if (fileNames.empty())
     {
-        ERROR_LOG(QString("El directori destí del DICOMDIR [%1] està buit o no hi tenim accés per llistar-ne el contingut. No podem crear l'arxiu de DICOMDIR.")
+        ERROR_LOG(QString("The destination directory of the DICOMDIR [%1] is empty or we have no access to list its contents. The DICOMDIR file cannot be created.")
             .arg(dicomdirPath));
         state.setStatus("DICOMDIR file destination directory is either empty or not readable.", false, 1301);
         return state;
@@ -148,7 +148,7 @@ Status CreateDicomdir::create(QString dicomdirPath)
 
     if (!result.good())
     {
-        ERROR_LOG("Error al crear el DICOMDIR. ERROR : " + QString(result.text()));
+        ERROR_LOG("Error creating the DICOMDIR. ERROR : " + QString(result.text()));
         state.setStatus(result);
         return state;
     }
@@ -173,7 +173,7 @@ Status CreateDicomdir::create(QString dicomdirPath)
 
         if (!result.good())
         {
-            ERROR_LOG("Error al convertir a DICOMDIR el fitxer : " + dicomdirPath + "/" + (*iter).c_str() + result.text());
+            ERROR_LOG("Error converting the file to DICOMDIR: " + dicomdirPath + "/" + (*iter).c_str() + result.text());
             result = EC_IllegalCall;
         }
         else

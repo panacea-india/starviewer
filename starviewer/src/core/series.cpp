@@ -63,12 +63,12 @@ bool Series::addImage(Image *image)
     if (imageIdentifierKey.isEmpty())
     {
         ok = false;
-        DEBUG_LOG("L'identificador de la imatge està buit! No la podem insertar per inconsistent");
+        DEBUG_LOG("The image identifier is empty! It cannot be inserted because it is inconsistent");
     }
     else if (this->imageExists(imageIdentifierKey))
     {
         ok = false;
-        DEBUG_LOG("Ja existeix una imatge amb aquest mateix identificador:: " + imageIdentifierKey);
+        DEBUG_LOG("An image with this same identifier already exists:: " + imageIdentifierKey);
     }
     else
     {
@@ -312,7 +312,7 @@ bool Series::setDate(QDate date)
     }
     else
     {
-        DEBUG_LOG("La data està en un mal format: " + date.toString(Qt::LocaleDate));
+        DEBUG_LOG("The date is badly formatted: " + date.toString(Qt::LocaleDate));
         return false;
     }
 }
@@ -349,7 +349,7 @@ bool Series::setTime(QTime time)
     }
     else
     {
-        DEBUG_LOG("El time està en un mal format");
+        DEBUG_LOG("The time is badly formatted");
         return false;
     }
 }
@@ -630,8 +630,8 @@ bool Series::isCTLocalizer() const
         {
             // TODO aquesta comprovació s'ha afegit perquè hem trobat un cas en que aquestes dades apareixen incoherents
             // tot i així, lo seu seria disposar d'alguna eina que comprovés si les dades són consistents o no.
-            DEBUG_LOG("ERROR: Inconsistència DICOM: La imatge " + currentImage->getSOPInstanceUID() + " de la serie " + getInstanceUID() +
-                        " té el camp ImageType que és tipus 1, amb un nombre incorrecte d'elements: Valor del camp:: [" + value + "]");
+            DEBUG_LOG("ERROR: DICOM inconsistency: the image " + currentImage->getSOPInstanceUID() + " of the series " + getInstanceUID() +
+                        " has an ImageType field of type 1 with a wrong number of elements: field value:: [" + value + "]");
         }
     }
     return isLocalizer;

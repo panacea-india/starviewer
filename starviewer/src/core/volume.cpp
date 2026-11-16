@@ -620,13 +620,13 @@ void Volume::getStackDirection(double direction[3], int stack)
     Image *secondImage = this->getImage(1);
     if (!firstImage)
     {
-        DEBUG_LOG("Error gravísim. No hi ha 'primera' imatge!");
+        DEBUG_LOG("Very serious error. There is no 'first' image!");
         return;
     }
 
     if (!secondImage)
     {
-        DEBUG_LOG("Només hi ha una imatge per stack! Retornem la normal del pla");
+        DEBUG_LOG("There is only one image per stack! Returning the plane normal");
         QVector3D normalVector = firstImage->getImageOrientationPatient().getNormalVector();
         direction[0] = normalVector.x();
         direction[1] = normalVector.y();

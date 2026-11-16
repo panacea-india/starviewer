@@ -46,7 +46,7 @@ ScreenShotTool::ScreenShotTool(QViewer *viewer, QObject *parent)
     m_fileExtensionFilters = PngFileFilter + ";;" + JpegFileFilter + ";;" + BmpFileFilter + ";;" + TiffFileFilter;
     if (!viewer)
     {
-        DEBUG_LOG("El viewer proporcionat és NUL!");
+        DEBUG_LOG("The given viewer is NULL!");
     }
 }
 
@@ -183,7 +183,7 @@ void ScreenShotTool::screenShot(bool singleShot)
         }
         else
         {
-            DEBUG_LOG("No coincideix cap patró, no es pot desar la imatge! Assignem PNG, per defecte. Aquest error no hauria de passar MAI! ");
+            DEBUG_LOG("No pattern matches, the image cannot be saved! Assigning PNG by default. This error should NEVER happen! ");
             fileExtension = QViewer::PNG;
             m_lastScreenShotExtensionFilter = PngFileFilter;
         }

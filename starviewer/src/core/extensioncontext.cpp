@@ -80,7 +80,7 @@ Volume *ExtensionContext::getDefaultVolume() const
         }
         if (!ok)
         {
-            ERROR_LOG("No hi ha cap serie de l'actual pacient que sigui visualitzable. Retornem volum NUL.");
+            ERROR_LOG("The current patient has no displayable series. Returning a NULL volume.");
         }
     }
 

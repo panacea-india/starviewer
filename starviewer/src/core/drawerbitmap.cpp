@@ -112,7 +112,7 @@ vtkProp* DrawerBitmap::getAsVtkProp()
         }
         else
         {
-            DEBUG_LOG("Error al passar les dades del bitmap a format vtkImageActor o bé no hi ha dades");
+            DEBUG_LOG("Error converting the bitmap data to vtkImageActor format, or there is no data");
         }
     }
 
@@ -208,7 +208,7 @@ void DrawerBitmap::updateVtkProp()
     }
     else
     {
-        DEBUG_LOG("No es pot actualitzar el bitmap, ja que l'actor encara no s'ha creat");
+        DEBUG_LOG("The bitmap cannot be updated, because the actor has not been created yet");
     }
 }
 

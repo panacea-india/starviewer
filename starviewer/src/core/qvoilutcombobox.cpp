@@ -118,7 +118,7 @@ void QVoiLutComboBox::addPreset(const VoiLut &preset)
     }
     else
     {
-        DEBUG_LOG("El preset " + preset.getExplanation() + " no està present en les dades de window level proporcionades");
+        DEBUG_LOG("The preset " + preset.getExplanation() + " is not present in the given window level data");
     }
 
     this->selectPreset(m_currentSelectedPreset);

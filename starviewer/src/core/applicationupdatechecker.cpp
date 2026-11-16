@@ -177,7 +177,7 @@ void ApplicationUpdateChecker::parseWebServiceReply(QNetworkReply *reply)
     }
     else
     {
-        ERROR_LOG(QString("Error buscant noves versions al servidor. La resposta del webservice és del tipus ") +
+        ERROR_LOG(QString("Error looking for new versions on the server. The web service response is of type ") +
                   QString::number(reply->error()) + QString(": ") + reply->errorString());
         m_errorDescription = tr("Error connecting to the server. Server response is: %1").arg(reply->errorString());
     }
@@ -191,7 +191,7 @@ void ApplicationUpdateChecker::parseJSON(const QString &json)
     if (result.value("error").isObject())
     {
         QJsonObject errorObject = result.value("error").toObject();
-        ERROR_LOG(QString("Error llegint la resposta del servidor (error en el json) ") + 
+        ERROR_LOG(QString("Error reading the server response (error in the JSON) ") + 
                   errorObject.value("code").toString() +
                   QString(": ") + errorObject.value("message").toString());
         m_errorDescription = tr("Error parsing JSON.");
@@ -209,7 +209,7 @@ void ApplicationUpdateChecker::parseJSON(const QString &json)
                     m_checkedVersion = result.value("version").toString();
                     m_releaseNotesURL = result.value("releaseNotesURL").toString();
 
-                    INFO_LOG(QString("S'ha trobat una nova versió en el servidor, %1.").arg(m_checkedVersion));
+                    INFO_LOG(QString("A new version was found on the server, %1.").arg(m_checkedVersion));
                 }
                 else
                 {
@@ -219,7 +219,7 @@ void ApplicationUpdateChecker::parseJSON(const QString &json)
             }
             else
             {
-                INFO_LOG("Starviewer està actualitzat. No s'ha trobat cap versió nova al servidor.");
+                INFO_LOG("Starviewer is up to date. No new version was found on the server.");
             }
         }
         else
@@ -264,7 +264,7 @@ void ApplicationUpdateChecker::checkForUpdatesReplyTimeout()
    
     m_checkOk = false;
     m_errorDescription = tr("Error requesting release notes: timeout");
-    ERROR_LOG("Error en la petició de les release notes. El servidor no respon: Timeout");
+    ERROR_LOG("Error requesting the release notes. The server does not respond: Timeout");
     
     delete m_manager;
 

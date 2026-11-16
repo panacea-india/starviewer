@@ -107,7 +107,7 @@ void DICOMDIRImporter::import(QString dicomdirPath, QString studyUID, QString se
         // Comprovem que s'hagi inserit correctament el nou estudi a la base de dades
         if (localDatabaseManager.getLastError() == LocalDatabaseManager::Ok)
         {
-            INFO_LOG("Estudi " + studyUID + " importat");
+            INFO_LOG("Study " + studyUID + " imported");
             m_lastError = Ok;
         }
         else
@@ -153,7 +153,7 @@ void DICOMDIRImporter::importStudy(QString studyUID, QString seriesUID, QString 
 
         if (seriesListToImport.isEmpty())
         {
-            ERROR_LOG("No s'han trobat series per l'estudi");
+            ERROR_LOG("No series were found for the study");
             m_lastError = DicomdirInconsistent;
             return;
         }
@@ -169,7 +169,7 @@ void DICOMDIRImporter::importStudy(QString studyUID, QString seriesUID, QString 
     }
     else
     {
-        ERROR_LOG("No s'ha trobat estudi per importar");
+        ERROR_LOG("No study was found to import");
         m_lastError = DicomdirInconsistent;
     }
 }
@@ -185,7 +185,7 @@ void DICOMDIRImporter::importSeries(QString studyUID, QString seriesUID, QString
 
     if (imageListToImport.isEmpty())
     {
-        ERROR_LOG("No s'han trobat imatges per la serie");
+        ERROR_LOG("No images were found for the series");
         m_lastError = DicomdirInconsistent;
         return;
     }
@@ -223,22 +223,22 @@ void DICOMDIRImporter::importImage(Image *image, QString pathToImportImage)
                 // Hem esborrar el fitxer que ja existia, ara l'intentem copiar
                 if (!copyDicomdirImageToLocal(dicomdirImagePath, cacheImagePath))
                 {
-                    ERROR_LOG("El fitxer: <" + dicomdirImagePath + "> no s'ha pogut copiar a <" + cacheImagePath +
-                              ">, el fitxer ja existia al destí, s'ha esborrat amb èxit, però alhora de copiar-lo ha fallat l'operació");
+                    ERROR_LOG("The file: <" + dicomdirImagePath + "> could not be copied to <" + cacheImagePath +
+                              ">, the file already existed at the destination and was deleted successfully, but copying it failed");
                     m_lastError = ErrorCopyingFiles;
                 }
             }
             else
             {
-                ERROR_LOG("El fitxer: <" + dicomdirImagePath + "> no s'ha pogut copiar a <" + cacheImagePath + ">, ja que el fitxer ja existeix al destí, " +
-                          "s'ha intentat esborrar el fitxer local però ha fallat, podria ser que no tinguis permisos d'escriptura al direcctori destí");
+                ERROR_LOG("The file: <" + dicomdirImagePath + "> could not be copied to <" + cacheImagePath + ">, because the file already exists at the destination, " +
+                          "an attempt to delete the local file was made but failed, you may not have write permissions in the destination directory");
                 m_lastError = ErrorCopyingFiles;
             }
         }
         else
         {
-            ERROR_LOG("El fitxer: <" + dicomdirImagePath + "> no s'ha pogut copiar a <" + cacheImagePath +
-                      ">, podria ser que no tinguis permisos en el directori destí");
+            ERROR_LOG("The file: <" + dicomdirImagePath + "> could not be copied to <" + cacheImagePath +
+                      ">, you may not have permissions in the destination directory");
             m_lastError = ErrorCopyingFiles;
         }
     }
@@ -251,7 +251,7 @@ bool DICOMDIRImporter::copyDicomdirImageToLocal(QString dicomdirImagePath, QStri
         // Donem permisos per si l'arxiu encara és read only al provenir d'un CD
         if (!QFile::setPermissions(localImagePath, QFile::WriteOwner | QFile::ReadOwner | QFile::ReadGroup | QFile::ReadOther))
         {
-                WARN_LOG("No hem pogut canviar els permisos de lectura/escriptura pel fitxer importat [" + localImagePath + "]");
+                WARN_LOG("Could not change the read/write permissions of the imported file [" + localImagePath + "]");
         }
         // TODO perquè cal fer aquest DICOMTagReader? Encara es fa servir la cache de dicom tag reader????
         DICOMTagReader *dicomTagReader = new DICOMTagReader(localImagePath);
@@ -283,7 +283,7 @@ QString DICOMDIRImporter::getDicomdirImagePath(Image *image)
     }
     else
     {
-        ERROR_LOG("DICOMDIR inconsistent: La imatge [" + image->getPath() + "] no existeix");
+        ERROR_LOG("Inconsistent DICOMDIR: the image [" + image->getPath() + "] does not exist");
         return "";
     }
 
@@ -312,7 +312,7 @@ void DICOMDIRImporter::deleteFailedImportedStudy(QString studyInstanceUID)
     DirectoryUtilities delDirectory;
     LocalDatabaseManager localDatabaseManager;
 
-    INFO_LOG("S'esborrarà de la caché les imatges importades de l'estudi " + studyInstanceUID + " ja que la seva importació ha fallat");
+    INFO_LOG("The imported images of the study " + studyInstanceUID + " will be deleted from the cache because their import failed");
     delDirectory.deleteDirectory(localDatabaseManager.getStudyPath(studyInstanceUID), true);
 }
 

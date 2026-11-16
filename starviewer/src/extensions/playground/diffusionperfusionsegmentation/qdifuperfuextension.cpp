@@ -784,7 +784,7 @@ void QDifuPerfuSegmentationExtension::computeBlackpointEstimation()
 //     resultat->setData(perfuEstimatorImageResult);
 //     DEBUG_LOG("data set");
 //     Q2DViewerExtension * win = new Q2DViewerExtension();
-//     DEBUG_LOG("extensió creada");
+//     DEBUG_LOG("extension created");
 //     win->setInput(resultat);
 //     DEBUG_LOG("input set");
 //     win->show();
@@ -1172,7 +1172,7 @@ double QDifuPerfuSegmentationExtension::calculateDiffusionMaskVolume()
     }
     else
     {
-        DEBUG_LOG("No existeix la editor tool");
+        DEBUG_LOG("The editor tool does not exist");
         cont = 0;
     }
 
@@ -1203,7 +1203,7 @@ double QDifuPerfuSegmentationExtension::calculatePerfusionMaskVolume()
     }
     else
     {
-        DEBUG_LOG("No existeix la editor tool");
+        DEBUG_LOG("The editor tool does not exist");
         cont = 0;
     }
 

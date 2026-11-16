@@ -46,10 +46,10 @@ QString CreateDicomPrintSpool::createPrintSpool(DicomPrinter dicomPrinter, Dicom
     // TODO: S'ha de fer aquí ? Comprovem si existeix el directori on s'ha de generar l'spool
     if (!spoolDir.exists(spoolDirectoryPath))
     {
-        INFO_LOG("Es crearà el directori d'spool " + spoolDirectoryPath);
+        INFO_LOG("The spool directory will be created: " + spoolDirectoryPath);
         if (!spoolDir.mkdir(spoolDirectoryPath))
         {
-            ERROR_LOG("No s'ha pogut crear el directori d'spool");
+            ERROR_LOG("Could not create the spool directory");
             m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
             return "";
         }
@@ -169,7 +169,7 @@ void CreateDicomPrintSpool::setBasicFilmBoxAttributes()
 
     //m_storedPrint->setRequestedDecimateCropBehaviour(DVPSI_decimate);
 
-    INFO_LOG("Emplenats els tags del FilmBox a l'objecte DVPStoredPrint");
+    INFO_LOG("The FilmBox tags were filled in the DVPStoredPrint object");
 }
 
 bool CreateDicomPrintSpool::transformImageForPrinting(Image *imageToPrint, DICOMPrintPresentationStateImage dicomPrintPresentationStateImage, const QString &spoolDirectoryPath)
@@ -194,13 +194,13 @@ bool CreateDicomPrintSpool::transformImageForPrinting(Image *imageToPrint, DICOM
     // 6è, 7è - Resolució per la previsualització de la imatge, com que no en farem previsualització deixem els valors standards.
     m_dcmtkPresentationState = new DVPresentationState(NULL, 1024, 1024, 8192, 8192, 256, 256);
 
-    INFO_LOG(QString("Es transformara la imatge %1 frame %2 per imprimir.").arg(imageToPrint->getPath()).arg(imageToPrint->getFrameNumber()));
+    INFO_LOG(QString("Image %1 frame %2 will be transformed for printing.").arg(imageToPrint->getPath()).arg(imageToPrint->getFrameNumber()));
 
     // Carreguem la imatge que hem d'imprimor
     status = DVPSHelper::loadFileFormat(qPrintable(imageToPrint->getPath()), imageToPrintDcmFileFormat);
     if (status != EC_Normal)
     {
-        ERROR_LOG("No s'ha pogut carregar la imatge " + imageToPrint->getPath() + " . Descripcio error: " + QString(status.text()));
+        ERROR_LOG("Could not load the image " + imageToPrint->getPath() + " . Error description: " + QString(status.text()));
         m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
         return false;
     }
@@ -211,7 +211,7 @@ bool CreateDicomPrintSpool::transformImageForPrinting(Image *imageToPrint, DICOM
     status = m_dcmtkPresentationState->createFromImage(*imageToPrintDataset);
     if (status != EC_Normal)
     {
-        ERROR_LOG("No s'ha pogut el Presentation State a partir del dataSet de l'imatge. Descripcio error: " + QString(status.text()));
+        ERROR_LOG("Could not get the Presentation State from the image dataset. Error description: " + QString(status.text()));
         m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
         return false;
     }
@@ -234,7 +234,7 @@ bool CreateDicomPrintSpool::transformImageForPrinting(Image *imageToPrint, DICOM
     status = m_dcmtkPresentationState->getPrintBitmapWidthHeight(bitmapWidth, bitmapHeight);
     if (status != EC_Normal)
     {
-        ERROR_LOG("No s'ha pogut obtenir l'amplada\alçada de la imatge. Descripcio error: " + QString(status.text()));
+        ERROR_LOG("Could not get the width/height of the image. Error description: " + QString(status.text()));
         m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
         return false;
     }
@@ -251,7 +251,7 @@ bool CreateDicomPrintSpool::transformImageForPrinting(Image *imageToPrint, DICOM
     }
     else
     {
-        ERROR_LOG("No s'ha pogut obtenir el pixelData de la imatge transformada. Descripcio del error: " + QString(status.text()));
+        ERROR_LOG("Could not get the pixelData of the transformed image. Error description: " + QString(status.text()));
         m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
     }
 
@@ -278,7 +278,7 @@ bool CreateDicomPrintSpool::createHardcopyGrayscaleImage(Image *imageToPrint, co
     status = m_dcmtkPresentationState->writeHardcopyImageAttributes(*transformedImageDatasetToPrint);
     if (status != EC_Normal)
     {
-        ERROR_LOG("No s'han pogut gravar a la imatge per imprimir les dades del pacient");
+        ERROR_LOG("Could not write the patient data onto the image to print");
         m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
         return false;
     }
@@ -287,7 +287,7 @@ bool CreateDicomPrintSpool::createHardcopyGrayscaleImage(Image *imageToPrint, co
     status = m_storedPrint->writeHardcopyImageAttributes(*transformedImageDatasetToPrint);
     if (status != EC_Normal)
     {
-        ERROR_LOG("No s'han pogut gravar a la imatge per imprimir les dades de l'estudi i la serie");
+        ERROR_LOG("Could not write the study and series data onto the image to print");
         m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
         return false;
     }
@@ -347,7 +347,7 @@ bool CreateDicomPrintSpool::createHardcopyGrayscaleImage(Image *imageToPrint, co
             status = m_dcmtkPresentationState->writePresentationLUTforPrint(*transformedImageDatasetToPrint);
             if (status != EC_Normal)
             {
-                ERROR_LOG("No s'ha pogut gravar el presentation LUT. Descripcio error" + QString(status.text()));
+                ERROR_LOG("Could not write the presentation LUT. Error description" + QString(status.text()));
             }
         }
 
@@ -358,7 +358,7 @@ bool CreateDicomPrintSpool::createHardcopyGrayscaleImage(Image *imageToPrint, co
 
         if (status == EC_Normal)
         {
-            INFO_LOG("Creada imatge per imprimir al path " + transformedImagePath);
+            INFO_LOG("Image to print created at path " + transformedImagePath);
 
             m_dcmtkPresentationState->getPrintBitmapRequestedImageSize(requestedImageSizeAsOFString);
             // Afegim la imatge al Image Box
@@ -369,7 +369,7 @@ bool CreateDicomPrintSpool::createHardcopyGrayscaleImage(Image *imageToPrint, co
             if (status != EC_Normal)
             {
                 m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
-                ERROR_LOG("No s'ha pogut afegir l'imatge al ImageBox de l'objecte DVPSStoredPrint. Descripcio error: " + QString(status.text()));
+                ERROR_LOG("Could not add the image to the ImageBox of the DVPSStoredPrint object. Error description: " + QString(status.text()));
             }
             else
             {
@@ -379,13 +379,13 @@ bool CreateDicomPrintSpool::createHardcopyGrayscaleImage(Image *imageToPrint, co
         else
         {
             m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
-            ERROR_LOG("No s'ha pogut gravar la imatge preparada per imprimir " + transformedImagePath + " . Descripcio error " + QString(status.text()));
+            ERROR_LOG("Could not write the image prepared for printing " + transformedImagePath + " . Error description " + QString(status.text()));
         }
     }
     else
     {
         m_lastError = CreateDicomPrintSpool::ErrorCreatingImageSpool;
-        ERROR_LOG("No s'ha pogut crear l'objecte DcmPolymorphOBOW, l'error sol venir perque no hi ha suficent memòria RAM lliure");
+        ERROR_LOG("Could not create the DcmPolymorphOBOW object, usually because there is not enough free RAM");
     }
 
     delete transformedImageToPrint;
@@ -447,7 +447,7 @@ QString CreateDicomPrintSpool::createStoredPrintDcmtkFile(const QString &spoolDi
     // Si tenim anotacions les enviem
     if (m_annotationBoxes->size() > 0)
     {
-        INFO_LOG("Hi ha anotacions per imprimir al FilmSession, creem les AnnotationBox");
+        INFO_LOG("There are annotations to print in the FilmSession, creating the AnnotationBoxes");
         // HACK: DVPSStoredPrint només permet afegir una anotació al FilmBox a través del mètode setSingleAnnotation, com que la majoria de DICOMPrinters
         // permeten fins a 6 anotacions ens interessa evitar aquesta limitació. El que hem fet és guardar en la mateixa estructura que DVPSStoredPrint les
         // anotacions DVPSAnnotationContent_PList i llavors en el dataSet on gravem les dades de l'impressió de l'objecte m_storedPrint també hi gravem
@@ -475,12 +475,12 @@ QString CreateDicomPrintSpool::createStoredPrintDcmtkFile(const QString &spoolDi
 
     if (!status.good())
     {
-        ERROR_LOG(QString("Error al gravar el fitxer storedPrint a %1. Descripció error: %2").arg(storedPrintDcmtkFilePath, status.text()));
+        ERROR_LOG(QString("Error writing the storedPrint file to %1. Error description: %2").arg(storedPrintDcmtkFilePath, status.text()));
         storedPrintDcmtkFilePath = "";
     }
     else
     {
-        INFO_LOG("Es guadar el fitxer del storedPrint(DVPSStoredPrint) al path " + QString(storedPrintDcmtkFilePath));
+        INFO_LOG("Saving the storedPrint (DVPSStoredPrint) file to the path " + QString(storedPrintDcmtkFilePath));
     }
 
     delete fileFormat;
@@ -544,7 +544,7 @@ void CreateDicomPrintSpool::setToDCMTKPresentationStateWindowLevelFromDICOMPrint
 
     if (!cond.good())
     {
-        ERROR_LOG(QString("No s'ha pogut aplicar el WL a la imatge a imprimir WC:%1, WL:%2, Descripcio error: %3").
+        ERROR_LOG(QString("Could not apply the WL to the image to print WC:%1, WL:%2, Error description: %3").
                   arg(QString::number(windowCenter), QString::number(windowWidth), QString(cond.text())));
     }
 }
@@ -558,7 +558,7 @@ void CreateDicomPrintSpool::setToDCMTKPresentationStateFlipFromDICOMPrintPresent
 
     if (!condition.good())
     {
-        ERROR_LOG(QString("No s'ha pogut aplicar el flip a , Descripcio error: %3").arg(QString(condition.text())));
+        ERROR_LOG(QString("Could not apply the flip to , Error description: %3").arg(QString(condition.text())));
     }
 }
 
@@ -585,7 +585,7 @@ void CreateDicomPrintSpool::setToDCMTKPresentationStateRotationFromDICOMPrintPre
 
     if (!condition.good())
     {
-        ERROR_LOG(QString("No s'ha pogut aplicar la rotacio a la imatge de %1 graus, Descripcio error: %3").
+        ERROR_LOG(QString("Could not apply the rotation of %1 degrees to the image, Error description: %3").
                   arg(QString::number(dicomPrintPresentationStateImage.getRotateClockWise()*90), QString(condition.text())));
     }
 }

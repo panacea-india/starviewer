@@ -224,7 +224,7 @@ void Cursor3DTool::updateFrameOfReference()
     }
     else
     {
-        DEBUG_LOG("EL nou volum no té series NUL!");
+        DEBUG_LOG("The new volume has no series (NULL)!");
     }
 }
 

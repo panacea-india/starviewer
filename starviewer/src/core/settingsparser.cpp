@@ -106,7 +106,7 @@ QString SettingsParser::parse(const QString &stringToParse)
             }
             else
             {
-                DEBUG_LOG("EP! Hem comés algun error de sintaxi amb l'expressió regular!");
+                DEBUG_LOG("WATCH OUT! We made a syntax error in the regular expression!");
             }
         }
         // Altrament, substituim únicament la clau
@@ -154,7 +154,7 @@ void SettingsParser::initializeParseableStringsTable()
         m_parseableStringsTable["IP.2"] = "[N/A]";
         m_parseableStringsTable["IP.3"] = "[N/A]";
         m_parseableStringsTable["IP.4"] = "[N/A]";
-        WARN_LOG("No s'ha recongeut cap adreça IPv4 en l'equip.");
+        WARN_LOG("No IPv4 address was recognized on this computer.");
     }
 
     // Home path
@@ -200,11 +200,11 @@ QStringList SettingsParser::getLocalHostIPv4Addresses()
         if (isIPv4Address(ipString))
         {
             ipV4List << ipString;
-            DEBUG_LOG(ipString + " -> És una adreça IPv4 vàlida");
+            DEBUG_LOG(ipString + " -> It is a valid IPv4 address");
         }
         else
         {
-            DEBUG_LOG(ipString + " -> NO és una adreça IPv4 vàlida");
+            DEBUG_LOG(ipString + " -> It is NOT a valid IPv4 address");
         }
     }
 

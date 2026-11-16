@@ -119,7 +119,7 @@ bool Obscurance::load(const QString &fileName)
 
     if (!file.open(QFile::ReadOnly))
     {
-        ERROR_LOG("No es pot llegir el fitxer " + fileName);
+        ERROR_LOG("Cannot read the file " + fileName);
         return false;
     }
 
@@ -131,7 +131,7 @@ bool Obscurance::load(const QString &fileName)
         {
             if (in.atEnd())
             {
-                ERROR_LOG("No hi ha prou dades al fitxer " + fileName);
+                ERROR_LOG("Not enough data in the file " + fileName);
                 file.close();
                 return false;
             }
@@ -147,7 +147,7 @@ bool Obscurance::load(const QString &fileName)
 
         if (!in.atEnd())
         {
-            WARN_LOG("Hi ha més dades del compte al fitxer " + fileName);
+            WARN_LOG("There is more data than expected in the file " + fileName);
         }
     }
     else
@@ -156,7 +156,7 @@ bool Obscurance::load(const QString &fileName)
         {
             if (in.atEnd())
             {
-                ERROR_LOG("No hi ha prou dades al fitxer " + fileName);
+                ERROR_LOG("Not enough data in the file " + fileName);
                 file.close();
                 return false;
             }
@@ -171,7 +171,7 @@ bool Obscurance::load(const QString &fileName)
 
             if (in.atEnd())
             {
-                ERROR_LOG("No hi ha prou dades al fitxer " + fileName);
+                ERROR_LOG("Not enough data in the file " + fileName);
                 file.close();
                 return false;
             }
@@ -186,7 +186,7 @@ bool Obscurance::load(const QString &fileName)
 
             if (in.atEnd())
             {
-                ERROR_LOG("No hi ha prou dades al fitxer " + fileName);
+                ERROR_LOG("Not enough data in the file " + fileName);
                 file.close();
                 return false;
             }
@@ -202,7 +202,7 @@ bool Obscurance::load(const QString &fileName)
 
         if (!in.atEnd())
         {
-            WARN_LOG("Hi ha més dades del compte al fitxer " + fileName);
+            WARN_LOG("There is more data than expected in the file " + fileName);
         }
     }
 
@@ -217,7 +217,7 @@ bool Obscurance::save(const QString &fileName) const
 
     if (!file.open(QFile::WriteOnly | QFile::Truncate))
     {
-        ERROR_LOG("No es pot escriure el fitxer " + fileName);
+        ERROR_LOG("Cannot write the file " + fileName);
         return false;
     }
 

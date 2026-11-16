@@ -43,7 +43,7 @@ DicomMask ParseXmlRisPIERRequest::parseXml(QString xmlRisPIERRequest)
     // Comprovem que sigui un document xml, esperem tag tipus  <?xml version="1.0" encoding="UTF-8"?>
     if (!xmlReader->isStartDocument())
     {
-        ERROR_LOG("Sembla que no es tracta d'un document Xml");
+        ERROR_LOG("It does not seem to be an XML document");
         return mask;
     }
 
@@ -62,7 +62,7 @@ DicomMask ParseXmlRisPIERRequest::parseXml(QString xmlRisPIERRequest)
             }
             else
             {
-                ERROR_LOG("S'esperava el tag Msg i s'ha trobat el tag " + xmlReader->name().toString());
+                ERROR_LOG("The Msg tag was expected and the tag found was " + xmlReader->name().toString());
                 xmlReader->readNext();
             }
         }
@@ -74,7 +74,7 @@ DicomMask ParseXmlRisPIERRequest::parseXml(QString xmlRisPIERRequest)
 
     if (xmlReader->error())
     {
-        ERROR_LOG("S'ha produït un error parsejant el Xml: " + xmlReader->errorString());
+        ERROR_LOG("An error occurred parsing the XML: " + xmlReader->errorString());
     }
 
     return mask;
@@ -92,7 +92,7 @@ void ParseXmlRisPIERRequest::parseTagMsg(QXmlStreamReader *xmlReader, DicomMask 
     // Només contemplem un valor per  l'element name "OpenStudies" si en trobem un de diferent avisem
     if (xmlReader->attributes().value("Name").toString().compare("OpenStudies", Qt::CaseInsensitive) != 0)
     {
-        ERROR_LOG("Es demana una acció no contemplada " + xmlReader->attributes().value("Name").toString());
+        ERROR_LOG("An action that is not handled was requested " + xmlReader->attributes().value("Name").toString());
     }
 
     xmlReader->readNext();
@@ -110,7 +110,7 @@ void ParseXmlRisPIERRequest::parseTagMsg(QXmlStreamReader *xmlReader, DicomMask 
             }
             else
             {
-                ERROR_LOG("S'esperava el tag Param i s'ha trobat el tag " + xmlReader->name().toString());
+                ERROR_LOG("The Param tag was expected and the tag found was " + xmlReader->name().toString());
                 xmlReader->readNext();
             }
         }
@@ -135,7 +135,7 @@ void ParseXmlRisPIERRequest::parseTagParam(QXmlStreamReader *xmlReader, DicomMas
         xmlReader->readNext();
         if (xmlReader->isCharacters())
         {
-            INFO_LOG("L'accession number que conté el xml es: " + xmlReader->text().toString());
+            INFO_LOG("The accession number contained in the XML is: " + xmlReader->text().toString());
             mask->setAccessionNumber(xmlReader->text().toString());
             // Indiquem que no s'ha produït cap error parsejant perquè hem trobat el paràmetre que esperàvem
             setErrorParsing(false);
@@ -143,7 +143,7 @@ void ParseXmlRisPIERRequest::parseTagParam(QXmlStreamReader *xmlReader, DicomMas
     }
     else
     {
-        ERROR_LOG("El xml conté un paràmetre que no tractem" + xmlReader->attributes().value("Name").toString());
+        ERROR_LOG("The XML contains a parameter that we do not handle" + xmlReader->attributes().value("Name").toString());
         xmlReader->readNext();
     }
 }

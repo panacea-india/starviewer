@@ -237,7 +237,7 @@ bool Study::setDate(QDate date)
     }
     else
     {
-        DEBUG_LOG("La data està en un mal format");
+        DEBUG_LOG("The date is badly formatted");
         return false;
     }
 }
@@ -274,7 +274,7 @@ bool Study::setTime(QTime time)
     }
     else
     {
-        DEBUG_LOG("El time està en un mal format");
+        DEBUG_LOG("The time is badly formatted");
         return false;
     }
 }
@@ -351,12 +351,12 @@ bool Study::addSeries(Series *series)
     if (uid.isEmpty())
     {
         ok = false;
-        DEBUG_LOG("L'uid de la sèrie està buida! No la podem insertar per inconsistent");
+        DEBUG_LOG("The series UID is empty! It cannot be inserted because it is inconsistent");
     }
     else if (this->seriesExists(uid))
     {
         ok = false;
-        DEBUG_LOG("Ja existeix una sèrie amb aquest mateix UID:: " + uid);
+        DEBUG_LOG("A series with this same UID already exists:: " + uid);
     }
     else
     {

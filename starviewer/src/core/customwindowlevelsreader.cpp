@@ -44,7 +44,7 @@ QList<WindowLevel*> CustomWindowLevelsReader::readFile(const QString &path)
 
     if (!m_customWindowLevelsSchemaValidator.validate(QUrl::fromLocalFile(file.fileName())))
     {
-        DEBUG_LOG("No es processa perquè es invalid");
+        DEBUG_LOG("Not processed because it is invalid");
         return QList<WindowLevel*>();
     }
 

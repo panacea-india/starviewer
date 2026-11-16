@@ -263,7 +263,7 @@ void Q2DViewerWidget::enableSynchronization(bool enable)
         }
         else
         {
-            DEBUG_LOG("El viewer no té registrada l'eina de sincronització, per tant no es pot activar la sincronització");
+            DEBUG_LOG("The viewer has no synchronization tool registered, so synchronization cannot be activated");
             // TODO deixar el botó en estat "un-checked"?
         }
     }

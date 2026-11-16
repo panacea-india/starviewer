@@ -121,7 +121,7 @@ Status ConvertToDicomdir::convert(const QString &dicomdirPath, CreateDicomdir::r
     QString pathFolderContentToCopyToDICOMDIR = Settings().getValue(InputOutputSettings::DICOMDIRFolderPathToCopy).toString();
     if (copyFolderContent && !AreValidRequirementsOfFolderContentToCopyToDICOMDIR(pathFolderContentToCopyToDICOMDIR))
     {
-        ERROR_LOG(QString("No es pot crear el DICOMDIR perquè el path %1 conte un element amb el nom DICOM o DICOMDIR")
+        ERROR_LOG(QString("The DICOMDIR cannot be created because the path %1 contains an element named DICOM or DICOMDIR")
                      .arg(pathFolderContentToCopyToDICOMDIR));
         state.setStatus("", false, 4003);
         return state;
@@ -138,7 +138,7 @@ Status ConvertToDicomdir::convert(const QString &dicomdirPath, CreateDicomdir::r
         Patient *patient = localDatabaseManager.retrieve(studyMask);
         if (localDatabaseManager.getLastError() != LocalDatabaseManager::Ok)
         {
-            ERROR_LOG(QString("No s'han trobat les dades del estudi %1 a la base de dades ").arg(studyToConvert.studyUID));
+            ERROR_LOG(QString("The data of study %1 was not found in the database ").arg(studyToConvert.studyUID));
             QString error = QString("Error al fer un retrieve study per generar un DICOMDIR; Error: %1; StudyUID: %2")
                     .arg(localDatabaseManager.getLastError())
                     .arg(studyToConvert.studyUID);
@@ -259,7 +259,7 @@ Status ConvertToDicomdir::createDicomdir(const QString &dicomdirPath, CreateDico
     // Ha fallat crear el dicomdir, ara intentem crear-lo en mode no estricte
     if (!state.good())
     {
-        WARN_LOG("Algunes de les imatges no compleixen l'estandard DICOM al 100% es provara de crear el DICOMDIR sense el mode estricte");
+        WARN_LOG("Some of the images do not fully comply with the DICOM standard, an attempt will be made to create the DICOMDIR without strict mode");
         createDicomdir.setStrictMode(false);
         state = createDicomdir.create(dicomdirPath);
         if (state.good())
@@ -280,11 +280,11 @@ void ConvertToDicomdir::setConvertDicomdirImagesToLittleEndian(bool convertDicom
 
     if (convertDicomdirImagesToLittleEndian)
     {
-        INFO_LOG("Les imatges del dicomdir es transformaran a LittleEndian");
+        INFO_LOG("The images of the DICOMDIR will be converted to LittleEndian");
     }
     else
     {
-        INFO_LOG("Les imatges del dicomdir mantindran la seva transfer syntax");
+        INFO_LOG("The images of the DICOMDIR will keep their transfer syntax");
     }
 }
 
@@ -524,7 +524,7 @@ void ConvertToDicomdir::createReadmeTxt()
 
     if (file.exists())
     {
-        INFO_LOG("Ja s'ha trobat un fitxer readme.txt al DICOMDIR provinent del contingut de la carpeta a copiar");
+        INFO_LOG("A readme.txt file was already found in the DICOMDIR, coming from the contents of the folder to copy");
         // Si el fitxer ja existeix vol dir que l'hem copiat del contingut la carpeta que s'ha copiar al crear un DICOMDIR
         // en aquest cas mantenim el Readme.txt existent i no generem el nostre
         return;
@@ -579,11 +579,11 @@ bool ConvertToDicomdir::copyFolderContentToDICOMDIR()
     QString folderToCopyPath = Settings().getValue(InputOutputSettings::DICOMDIRFolderPathToCopy).toString();
     bool ok = true;
 
-    INFO_LOG("Es copiara al DICOMDIR el contingut de la carpeta " + folderToCopyPath);
+    INFO_LOG("The contents of the folder will be copied to the DICOMDIR: " + folderToCopyPath);
 
     if (!DirectoryUtilities::copyDirectory(folderToCopyPath, m_dicomDirPath))
     {
-        ERROR_LOG(QString("No s'ha pogut copiar el visor DICOM %1 al DICOMDIR %2").arg(folderToCopyPath, m_dicomDirPath));
+        ERROR_LOG(QString("Could not copy the DICOM viewer %1 to the DICOMDIR %2").arg(folderToCopyPath, m_dicomDirPath));
         ok = false;
     }
 
