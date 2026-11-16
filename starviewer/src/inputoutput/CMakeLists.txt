@@ -46,6 +46,7 @@ set(SOURCES
     pacsdevicemodel.cpp
     pacsjob.cpp
     pacsmanager.cpp
+    pacsoauthtokenprovider.cpp
     parsexmlrispierrequest.cpp
     portinuse.cpp
     portinusebyanotherapplication.cpp

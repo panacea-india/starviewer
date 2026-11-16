@@ -103,6 +103,12 @@ Settings::SettingsListItemType pacsDeviceToSettingsListItem(const PacsDevice &pa
         item["CaCertificateFile"] = pacsDevice.getCaCertificateFile();
     }
 
+    if (pacsDevice.isOAuthEnabled() && pacsDevice.getType() != PacsDevice::Type::Dimse)
+    {
+        item["OAuthTokenUri"] = pacsDevice.getOAuthTokenUri();
+        item["OAuthClientId"] = pacsDevice.getOAuthClientId();
+    }
+
     if (pacsDevice.getType() != PacsDevice::Type::Wado && pacsDevice.isDicomTlsEnabled())
     {
         item["DicomTlsEnabled"] = true;
@@ -179,6 +185,8 @@ PacsDevice settingsListItemToPacsDevice(const Settings::SettingsListItemType &it
     }
 
     pacsDevice.setCaCertificateFile(item.value("CaCertificateFile").toString());
+    // The client secret is not here: it is kept in PacsCredentialStore under the token URI
+    pacsDevice.setOAuth(item.value("OAuthTokenUri").toUrl(), item.value("OAuthClientId").toString(), QString());
     pacsDevice.setDicomTlsEnabled(item.value("DicomTlsEnabled", false).toBool());
     pacsDevice.setClientCertificate(item.value("ClientCertificateFile").toString(), item.value("ClientPrivateKeyFile").toString());
     pacsDevice.setCGetEnabled(item.value("CGetEnabled", false).toBool());
@@ -217,6 +225,11 @@ bool PacsDeviceManager::addPacs(PacsDevice &pacs)
     pacs.setID(QString::number(newId));
 
     Settings().addListItem(InputOutputSettings::PacsListConfigurationSectionName, pacsDeviceToSettingsListItem(pacs));
+
+    if (pacs.isOAuthEnabled() && !pacs.getOAuthClientSecret().isEmpty())
+    {
+        PacsCredentialStore::save(pacs.getOAuthTokenUri(), PacsLogin{pacs.getOAuthClientId(), pacs.getOAuthClientSecret()});
+    }
 
     if (pacs.isLoginSpecified())
     {

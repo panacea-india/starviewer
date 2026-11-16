@@ -74,9 +74,10 @@ public:
     /// Returns the login to use with the given PACS: its own if it has one specified and the stored one for its base URI otherwise.
     static PacsLogin getLoginFor(const PacsDevice &pacs);
 
-    /// Returns the value of the Authorization header for a request to the given URL of the given PACS. It's empty if the PACS has no login or if the URL is not
-    /// on the host, port and scheme of the base URI of the PACS, so that a login never reaches another server.
-    static QByteArray getAuthorizationHeader(const PacsDevice &pacs, const QUrl &url);
+    /// Returns the value of the Authorization header for a request to the given URL of the given PACS: a bearer token if the PACS uses OAuth and Basic with
+    /// its login otherwise. It's empty if the PACS has no login or if the URL is not on the host, port and scheme of the base URI of the PACS, so that a login
+    /// never reaches another server. If no OAuth token could be got and the given error text is not null, it's filled with the reason.
+    static QByteArray getAuthorizationHeader(const PacsDevice &pacs, const QUrl &url, QString *errorText = nullptr);
 
     /// Returns the key under which the login for the given base URI is kept. It doesn't depend on a trailing slash and never contains a login.
     static QString getKey(const QUrl &baseUri);

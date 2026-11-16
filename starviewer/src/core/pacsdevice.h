@@ -100,6 +100,19 @@ public:
     /// Sets the file of CA certificates that identify this PACS.
     void setCaCertificateFile(QString caCertificateFile);
 
+    /// Returns true if requests to this PACS use an OAuth 2 bearer token, which is got from the token endpoint with the client credentials grant. It then
+    /// replaces the login. Only applicable to WADO and hybrid PACS.
+    bool isOAuthEnabled() const;
+    /// Returns the URI of the OAuth 2 token endpoint, or an empty one if this PACS doesn't use OAuth.
+    const QUrl& getOAuthTokenUri() const;
+    /// Returns the client ID that identifies this application to the token endpoint.
+    const QString& getOAuthClientId() const;
+    /// Returns the client secret specified in this instance, which stays in memory: this class doesn't save it anywhere.
+    const QString& getOAuthClientSecret() const;
+    /// Sets the OAuth 2 token endpoint, the client ID and the client secret to use. An empty token URI turns OAuth off. A login in the token URI is taken as
+    /// the client ID and secret if no ID is given.
+    void setOAuth(QUrl tokenUri, QString clientId, QString clientSecret);
+
     /// Returns true if DIMSE operations with this PACS use DICOM TLS. Not applicable to WADO PACS.
     bool isDicomTlsEnabled() const;
     /// Sets whether DIMSE operations with this PACS use DICOM TLS. Not applicable to WADO PACS.
@@ -183,6 +196,12 @@ private:
     QString m_password;
     /// File of CA certificates that identify this PACS.
     QString m_caCertificateFile;
+    /// URI of the OAuth 2 token endpoint. Empty if OAuth is not used. Only applicable to WADO and hybrid PACS.
+    QUrl m_oauthTokenUri;
+    /// Client ID for the token endpoint.
+    QString m_oauthClientId;
+    /// Client secret for the token endpoint, if specified.
+    QString m_oauthClientSecret;
     /// Whether DIMSE operations use DICOM TLS. Only applicable to DIMSE and hybrid PACS.
     bool m_isDicomTlsEnabled;
     /// File with the client certificate for DICOM TLS. Only applicable to DIMSE and hybrid PACS.

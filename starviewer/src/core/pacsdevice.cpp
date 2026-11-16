@@ -157,6 +157,44 @@ void PacsDevice::setCaCertificateFile(QString caCertificateFile)
     m_caCertificateFile = std::move(caCertificateFile);
 }
 
+bool PacsDevice::isOAuthEnabled() const
+{
+    return !m_oauthTokenUri.isEmpty();
+}
+
+const QUrl& PacsDevice::getOAuthTokenUri() const
+{
+    return m_oauthTokenUri;
+}
+
+const QString& PacsDevice::getOAuthClientId() const
+{
+    return m_oauthClientId;
+}
+
+const QString& PacsDevice::getOAuthClientSecret() const
+{
+    return m_oauthClientSecret;
+}
+
+void PacsDevice::setOAuth(QUrl tokenUri, QString clientId, QString clientSecret)
+{
+    if (!tokenUri.userInfo().isEmpty())
+    {
+        if (clientId.isEmpty())
+        {
+            clientId = tokenUri.userName(QUrl::FullyDecoded);
+            clientSecret = tokenUri.password(QUrl::FullyDecoded);
+        }
+
+        tokenUri.setUserInfo(QString());
+    }
+
+    m_oauthTokenUri = std::move(tokenUri);
+    m_oauthClientId = m_oauthTokenUri.isEmpty() ? QString() : std::move(clientId);
+    m_oauthClientSecret = m_oauthTokenUri.isEmpty() ? QString() : std::move(clientSecret);
+}
+
 bool PacsDevice::isDicomTlsEnabled() const
 {
     return m_isDicomTlsEnabled;
@@ -299,6 +337,9 @@ bool PacsDevice::operator==(const PacsDevice &pacsDevice) const
         && m_username == pacsDevice.m_username
         && m_password == pacsDevice.m_password
         && m_caCertificateFile == pacsDevice.m_caCertificateFile
+        && m_oauthTokenUri == pacsDevice.m_oauthTokenUri
+        && m_oauthClientId == pacsDevice.m_oauthClientId
+        && m_oauthClientSecret == pacsDevice.m_oauthClientSecret
         && m_isDicomTlsEnabled == pacsDevice.m_isDicomTlsEnabled
         && m_clientCertificateFile == pacsDevice.m_clientCertificateFile
         && m_clientPrivateKeyFile == pacsDevice.m_clientPrivateKeyFile

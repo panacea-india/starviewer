@@ -7,6 +7,7 @@ set(SOURCES
     test_echotopacs.cpp
     test_echotopacstest.cpp
     test_echotowadopacs.cpp
+    test_echotowadopacsoauth.cpp
     test_firewallaccesstest.cpp
     test_localdatabasebasedal.cpp
     test_localdatabasepacsretrievedimagesdal.cpp
@@ -16,6 +17,7 @@ set(SOURCES
     test_pacsdevice.cpp
     test_pacsdevicemanager.cpp
     test_pacsjob.cpp
+    test_pacsoauthtokenprovider.cpp
     test_portinuse.cpp
     test_portinusetest.cpp
     test_qstudytreewidget.cpp

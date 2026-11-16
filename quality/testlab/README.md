@@ -64,6 +64,29 @@ The server certificate names `localhost` and not `127.0.0.1`, so connecting by
 `127.0.0.1` must fail the host name check. It holds only the synthetic corpus, and Orthanc
 rejects its `broken` and `deflated` files.
 
+## OAuth mock
+
+Orthanc has no OAuth of its own, so `oauth_mock.py` stands in front of the test PACS. It needs only Python 3
+and the test PACS running. It issues bearer tokens at `/oauth/token` (client credentials grant), and forwards every
+other request to Orthanc, with Orthanc's test login added, only when it carries a valid token. Without one it answers
+401, as RFC 6750 says.
+
+```sh
+python3 -I oauth_mock.py --ttl 60                # add --refresh to also issue refresh tokens
+```
+
+| Setting | Value |
+| --- | --- |
+| DICOMweb (needs a token) | `http://127.0.0.1:18044/dicom-web/` |
+| Token endpoint | `http://127.0.0.1:18044/oauth/token` |
+| Client ID and secret | `starviewer-qa` and `qa-only-secret` (test only) |
+| `POST /mock/revoke` | Invalidates every token, to see how a client recovers from a 401 |
+| `GET /mock/stats` | Counts of tokens issued, and of requests accepted and refused |
+
+`test_EchoToWadoPacsOAuth` runs against it when these variables are set:
+`STARVIEWER_TESTLAB_OAUTH_URI` (the DICOMweb URI above) and `STARVIEWER_TESTLAB_OAUTH_TOKEN_URI` (the token endpoint).
+It is not run by Docker: start the mock on the host, with Orthanc published on `127.0.0.1:18042`.
+
 ## Retrieve test
 
 `test_RetrieveDICOMFilesFromPACS` is skipped unless these are set, and retrieves one study

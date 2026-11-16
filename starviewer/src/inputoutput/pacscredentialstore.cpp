@@ -16,6 +16,7 @@
 
 #include "logging.h"
 #include "pacsdevice.h"
+#include "pacsoauthtokenprovider.h"
 
 #include <QHash>
 #include <QMutex>
@@ -225,13 +226,18 @@ PacsLogin PacsCredentialStore::getLoginFor(const PacsDevice &pacs)
     return load(pacs.getBaseUri());
 }
 
-QByteArray PacsCredentialStore::getAuthorizationHeader(const PacsDevice &pacs, const QUrl &url)
+QByteArray PacsCredentialStore::getAuthorizationHeader(const PacsDevice &pacs, const QUrl &url, QString *errorText)
 {
     const QUrl &baseUri = pacs.getBaseUri();
 
     if (url.scheme() != baseUri.scheme() || url.host() != baseUri.host() || url.port() != baseUri.port())
     {
         return QByteArray();
+    }
+
+    if (pacs.isOAuthEnabled())
+    {
+        return PacsOAuthTokenProvider::getAuthorizationHeader(pacs, errorText);
     }
 
     PacsLogin login = getLoginFor(pacs);

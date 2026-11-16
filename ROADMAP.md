@@ -224,7 +224,7 @@ work runs in the order below. DICOMweb has never been tested from the applicatio
   DCMTK and should restore WADO over HTTPS (A-03, A-40).
 - **DICOMweb authentication:** basic authentication, which Orthanc has built in,
   is in place with logins in Windows Credential Manager, and passed on a local
-  build in run 5 (A-28, A-29). OAuth 2 bearer tokens are next, and a secure store on Linux
+  build in run 5 (A-28, A-29). OAuth 2 bearer tokens work with the client credentials grant, against the OAuth mock of the test lab, with the settings only in the configuration for now (A-53). A secure store on Linux
   (A-35) comes with Linux support.
 - **DICOM TLS:** in PACS configuration and all DIMSE operations (AD-06). C-GET over
   TLS works against the TLS test PACS, and bad certificates are refused. HTTPS can

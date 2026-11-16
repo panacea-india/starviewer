@@ -16,6 +16,7 @@
 
 #include "logging.h"
 #include "pacscredentialstore.h"
+#include "pacsoauthtokenprovider.h"
 
 #include <QApplication>
 #include <QNetworkReply>
@@ -66,11 +67,17 @@ const PacsDevice& WadoRequest::getPacsDevice() const
 QNetworkRequest WadoRequest::createNetworkRequest(const QUrl &url) const
 {
     QNetworkRequest request(url);
-    QByteArray authorization = PacsCredentialStore::getAuthorizationHeader(m_pacs, url);
+    QString authorizationError;
+    QByteArray authorization = PacsCredentialStore::getAuthorizationHeader(m_pacs, url, &authorizationError);
 
     if (!authorization.isEmpty())
     {
         request.setRawHeader("Authorization", authorization);
+    }
+    else if (!authorizationError.isEmpty())
+    {
+        // So that getErrorString() can say why there was no token, instead of that the PACS wants a login
+        request.setAttribute(QNetworkRequest::User, authorizationError);
     }
 
     if (!m_sslConfiguration.isNull())
@@ -100,9 +107,25 @@ QString WadoRequest::getErrorString(const QNetworkReply *reply)
     // Qt says "Host requires authentication" both when no login was sent and when it was refused
     if (reply->error() == QNetworkReply::AuthenticationRequiredError)
     {
-        if (reply->request().hasRawHeader("Authorization"))
+        QByteArray authorization = reply->request().rawHeader("Authorization");
+
+        if (authorization.startsWith("Bearer "))
+        {
+            // The token may have been revoked before it expired. The next request gets a new one.
+            PacsOAuthTokenProvider::forget(authorization);
+            return tr("The PACS refused the access token. Try again, and check the OAuth settings in the PACS settings if it persists.");
+        }
+
+        if (!authorization.isEmpty())
         {
             return tr("The PACS refused the login. Check the user name and password in the PACS settings.");
+        }
+
+        QString tokenError = reply->request().attribute(QNetworkRequest::User).toString();
+
+        if (!tokenError.isEmpty())
+        {
+            return tr("No access token could be got for the PACS. %1").arg(tokenError);
         }
 
         return tr("The PACS requires a login. Enter a user name and password in the PACS settings.");
