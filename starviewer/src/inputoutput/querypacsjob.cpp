@@ -53,14 +53,14 @@ void QueryPacsJob::run(ThreadWeaver::JobPointer self, ThreadWeaver::Thread *thre
 
     Settings settings;
 
-    INFO_LOG("Thread iniciat per cercar al PACS: AELocal= " + settings.getValue(InputOutputSettings::LocalAETitle).toString() + "; AEPACS= " +
+    INFO_LOG("Thread started to query the PACS: LocalAE= " + settings.getValue(InputOutputSettings::LocalAETitle).toString() + "; AEPACS= " +
         getPacsDevice().getAETitle() + "; PACS Adr= " + getPacsDevice().getAddress() + "; PACS Port= " +
         QString().setNum(getPacsDevice().getQueryRetrieveServicePort()) + ";");
 
     // Busquem els estudis
     m_queryRequestStatus = m_queryPacs->query(m_mask);
 
-    INFO_LOG(QString("Consulta al PACS %1 finalitzada").arg(getPacsDevice().getAETitle()));
+    INFO_LOG(QString("Query to PACS %1 finished").arg(getPacsDevice().getAETitle()));
 }
 
 DicomMask QueryPacsJob::getDicomMask()

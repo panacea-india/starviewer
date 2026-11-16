@@ -370,6 +370,31 @@ The tester's file dialog allowed only one file to be chosen, so each folder open
 That was enough for the overlay checks. The decompressed file, the marker after reloading from the
 local database, a cancel during a transfer and the A-51 message go to run 9.
 
+### Run 9
+
+Run 9 repeats the checks that run 8 left open, on a build from `6eb0640cf` plus the uncommitted `phase1`
+change to the two log lines of `querypacsjob.cpp`. It ran on a Windows 10 VM with no graphics card, so the
+viewer needed a software OpenGL driver (Mesa 26.2.6 from `pal1000/mesa-dist-win`, MinGW package, SHA-256
+checked against the published digest, `opengl32.dll` and `libgallium_wgl.dll` beside the executable,
+`GALLIUM_DRIVER=llvmpipe`). Claude drove the interface in Claude Desktop, and I checked the log
+afterwards. The local PACS was the native Orthanc 1.12.6 of the test lab, with no Docker. It is not a CI package.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Settings | Passed | The PACS list was empty at the start, as the settings were new. Adding ORTHANC (127.0.0.1:14242, `QA lab`) and Test passed. The local AE title was the machine name and was changed to `STARVIEWER`, with incoming port 4006 |
+| 2. Viewer without a GPU | Failed | Opening the viewer crashed Starviewer with `GLEW could not be initialized: Missing GL version` (A-54). With the Mesa driver it opened |
+| 3. Retrieve | Passed | `QA-TS-jpeg-2000-lossy` and `QA-TS-jpeg-lossless`, 10 files each, over C-MOVE (the log shows the incoming connection on port 4006) |
+| 4. Lossy marker after reload | Passed | After a restart, the study was opened from the local database and the overlay read `LOSSY 10.1:1` for JPEG 2000 lossy. The lossless study shows no marker |
+| 5. A-51 message | Passed | The error reads "Query failed: Unable to connect to PACS NOBODY.", then the advice, then "If the problem persists, contact an administrator." on separate lines. The log shows the connection error and no NULL key error |
+| 6. Delete confirmation | Passed | "Delete the PACS NOBODY?" and Yes removed it. ORTHANC stays |
+| 7. Log language | Failed | Two Catalan lines remained in the log (A-50), and the timeout text said "The operation completed successfully" (A-55) |
+| 8. HTTPS certificate error (A-46) | Not done | The TLS test PACS is not running here, as it needs Docker or a native setup |
+| 9. Cancel during a transfer (A-44, A-49) | Not done | The 1,049-slice CT is not on this machine, and the viewer needs a software driver here |
+| 10. Decompressed file with the lossy flag | Not done | Not exercised |
+
+The run left Starviewer with an ORTHANC entry and the two retrieved studies in the local database. The Mesa
+files stay beside `C:\sv\build\bin\starviewer.exe` and are not part of the project.
+
 ### Baseline timings
 
 | Date | Machine | Application and version | Data | First image (s) | All loaded (s) | Memory (MB) | MPR (s) | 3D (s) |
