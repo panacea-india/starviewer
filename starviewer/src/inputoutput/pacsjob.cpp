@@ -29,6 +29,7 @@ PACSJob::PACSJob(PacsDevice pacsDevice)
     m_pacsDevice = pacsDevice;
     m_jobID = m_jobIDCounter++;
     m_abortIsRequested = false;
+    m_isUninterruptible = false;
 }
 
 PacsDevice PACSJob::getPacsDevice()
@@ -50,13 +51,33 @@ void PACSJob::aboutToBeDequeued(ThreadWeaver::QueueAPI *)
 
 void PACSJob::requestAbort()
 {
-    m_abortIsRequested = true;
+    {
+        QMutexLocker locker(&m_abortMutex);
+        if (m_isUninterruptible)
+        {
+            // The job is past the point where it can be stopped, so it ends with its own outcome
+            return;
+        }
+        m_abortIsRequested = true;
+    }
     requestCancelJob();
 }
 
 bool PACSJob::isAbortRequested()
 {
+    QMutexLocker locker(&m_abortMutex);
     return m_abortIsRequested;
+}
+
+bool PACSJob::beginUninterruptiblePhase()
+{
+    QMutexLocker locker(&m_abortMutex);
+    if (m_abortIsRequested)
+    {
+        return false;
+    }
+    m_isUninterruptible = true;
+    return true;
 }
 
 void PACSJob::defaultBegin(const ThreadWeaver::JobPointer &job, ThreadWeaver::Thread *thread)
@@ -69,7 +90,7 @@ void PACSJob::defaultEnd(const ThreadWeaver::JobPointer &job, ThreadWeaver::Thre
 {
     Q_UNUSED(thread)
 
-    if (!m_abortIsRequested)
+    if (!isAbortRequested())
     {
         emit PACSJobFinished(job.dynamicCast<PACSJob>());
     }

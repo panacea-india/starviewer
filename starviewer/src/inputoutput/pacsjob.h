@@ -15,6 +15,7 @@
 #ifndef UDGPACSJOB_H
 #define UDGPACSJOB_H
 
+#include <QMutex>
 #include <QObject>
 #include <ThreadWeaver/Job>
 #include <ThreadWeaver/Thread>
@@ -63,6 +64,10 @@ public:
     /// Retorna si s'ha sol·licitat abortar el job
     bool isAbortRequested();
 
+    /// Marks the point of no return of a job: from here on an abort request no longer stops it, and the job ends with the outcome it reaches (finished,
+    /// not cancelled). Returns false, and the job must then stop, if an abort was requested before this point. Call it at most once per run.
+    bool beginUninterruptiblePhase();
+
     /// Mètode heredat de Job, s'executa just abans de desencuar el job, si ens densencuen vol dir que el job no s'executarà per tant
     /// des d'aquest mètode emetem el signal PACSJobCancelled
     void aboutToBeDequeued(ThreadWeaver::QueueAPI *weaver);
@@ -90,6 +95,8 @@ private:
     int m_jobID;
     PacsDevice m_pacsDevice;
     bool m_abortIsRequested;
+    bool m_isUninterruptible;
+    QMutex m_abortMutex;
 };
 
 };

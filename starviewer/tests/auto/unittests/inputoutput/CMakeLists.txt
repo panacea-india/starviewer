@@ -15,6 +15,7 @@ set(SOURCES
     test_retrievedicomfilesfrompacs.cpp
     test_pacsdevice.cpp
     test_pacsdevicemanager.cpp
+    test_pacsjob.cpp
     test_portinuse.cpp
     test_portinusetest.cpp
     test_qstudytreewidget.cpp
