@@ -155,7 +155,7 @@ Decided on 2026-10-31:
 | --- | --- | --- |
 | Users | Internal users for now | No market launch to plan for; feedback comes from real internal workflows |
 | Certification | Not now, but later | Build to certification-ready practices from the start |
-| Business model | Open core | The GPL shapes the architecture (see [Open core](#open-core)) |
+| Business model | Open source only; no commercial modules (revised 2026-11-15, replacing open core) | The GPL is not a constraint on architecture; see the note in [Open core](#open-core) |
 | Language | English only | No translation work (see below) |
 | macOS | Low priority | Moved to [Later](#later-low-priority) |
 | Receiving pushed studies | Low priority | Moved to [Later](#later-low-priority) |
@@ -390,6 +390,10 @@ Code rules that follow from this:
 
 ## Open core
 
+> **Superseded 2026-11-15:** the project is open source only, with no commercial
+> modules, so the open core split below is not being pursued. The GPL analysis is
+> kept for reference, in case this changes.
+
 This needs legal review before any commercial module is built. The main
 constraint comes from the existing licence:
 
@@ -422,15 +426,22 @@ Other actions:
 - Decide on a contributor agreement before accepting outside contributions.
 - Confirm rights to the "Starviewer" name before any external release.
 
-## Decisions still needed
+## Decisions
 
-| Decision | Recommendation | Affects |
+Decided, so they are not asked again (answered by the project owner, recorded 2026-11-15):
+
+| Decision | Answer | Consequence |
 | --- | --- | --- |
-| Do internal users make diagnostic or treatment decisions with it? | Assume not; get advice if they do | Labelling, rollout |
-| Commercial module boundary | Separate processes, reviewed by a lawyer | Phase 5 |
-| Video decoder | Choose with licence and patent review | Phase 2 |
-| Product name | Confirm rights or rename before any external release | Branding, packaging |
-| Safety class | Assume Class B or higher until a specialist confirms | Depth of verification |
+| Do internal users make diagnostic or treatment decisions with it? | Not yet, but possibly later | Keep the not-for-diagnostic label for now. Make architecture and documentation choices as if diagnostic use may come: keep the certification-ready practices, and treat the safety class as at least B |
+| Commercial module boundary | Not applicable. Everything is open source, with no commercial options | Open core is dropped. No separate-process boundary is needed for licensing reasons. The Phase 5 extension API is still worth having for modularity, but it is no longer driven by the GPL |
+| Product name and rights | Rights holders were contacted and replied by email with no concern. Continue as open source under the Starviewer name | Rebrand only if that changes. Keep the email on file (A-06 still lists the original project's constants) |
+
+Still open, with a default so work is not blocked:
+
+| Decision | Default until decided | Affects |
+| --- | --- | --- |
+| Video decoder (Phase 2): which library decodes MPEG-2 and MPEG-4 DICOM video | Use an open-source decoder that is compatible with GPL-3.0+, such as FFmpeg built without GPL-incompatible or non-free parts. MPEG codecs have patent questions in some countries, so confirm before the first external release | Phase 2 |
+| Safety class (IEC 62304) | Assume Class B or higher until a specialist confirms. This follows from possible diagnostic use | Depth of verification |
 
 ## Sources
 
