@@ -395,6 +395,26 @@ afterwards. The local PACS was the native Orthanc 1.12.6 of the test lab, with n
 The run left Starviewer with an ORTHANC entry and the two retrieved studies in the local database. The Mesa
 files stay beside `C:\sv\build\bin\starviewer.exe` and are not part of the project.
 
+### Fuzzing runs
+
+The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
+(under 300 KB) of the synthetic corpus as seeds, with libFuzzer and AddressSanitizer from Visual
+Studio 2022 and the libraries of the SDK (DCMTK, and GDCM 3.0.21 as built for Starviewer).
+
+| Run | Target | Length | Result |
+| --- | --- | --- | --- |
+| 1 | `fuzz_dcmtk` | 2 min | Stopped at once by a 4 GB allocation for an element length in a file of a few kilobytes, which DCMTK survives. The run was changed so that huge allocations return null, as `new` does when memory is short |
+| 1 | `fuzz_gdcm` | 2 min | Stopped at once by an exception; the harness now ignores exceptions, as Starviewer's reader catches them |
+| 2 | `fuzz_dcmtk` | 2 x 5 min | About 106,000 inputs, no error. The corpus grew to 19 files and 340 coverage points |
+| 2 | `fuzz_gdcm` (3.0.21) | under 5 min | **Heap-buffer-overflow** in `gdcm::RAWCodec::DecodeBytes` (A-56). It reproduces from the single saved file |
+| 3 | `fuzz_gdcm` (3.0.24) | 5 min | The reproducer runs clean. The run stopped at the 2 GB memory limit after many inputs. The input that was running at that point runs fine alone (8 ms), so the memory grew over the run. I did not find the cause, and I do not know whether it is a leak in GDCM or in the harness |
+
+GDCM 3.0.24 is the vcpkg build on this machine (`C:\dev\vcpkg_installed`), which the SDK's DLLs
+shadow unless its `bin` folder comes first on the path.
+
+These runs are short. They show that the harnesses work and that the readers are not trivially
+safe, not that the readers are free of memory errors.
+
 ### Baseline timings
 
 | Date | Machine | Application and version | Data | First image (s) | All loaded (s) | Memory (MB) | MPR (s) | 3D (s) |
