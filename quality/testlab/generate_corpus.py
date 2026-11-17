@@ -711,6 +711,57 @@ def generate_gantry_tilt(writer):
     }
 
 
+DYNAMIC_CURVE_HU = [0.0, 40.0, 120.0, 200.0, 150.0]
+DYNAMIC_DISC = {"x_mm": 0.0, "y_mm": 0.0, "radius_mm": 12.0}
+
+
+def generate_dynamic(writer):
+    """A dynamic CT: 6 slices of 5 phases (same positions repeated, one acquisition). A disc of 12 mm radius takes up contrast: its mean HU in the phases is DYNAMIC_CURVE_HU,
+    over a body of 0 HU. The images are stored slice by slice, phase by phase."""
+    case = "dynamic-ct"
+    size = 64
+    spacing = 2.0
+    slices = 6
+    phases = len(DYNAMIC_CURVE_HU)
+    frame = uid(case, "frame")
+    origin = -(size - 1) * spacing / 2.0
+    xs = origin + np.arange(size) * spacing
+    x, y = np.meshgrid(xs, xs)
+    disc = (x - DYNAMIC_DISC["x_mm"]) ** 2 + (y - DYNAMIC_DISC["y_mm"]) ** 2 <= DYNAMIC_DISC["radius_mm"] ** 2
+    body = x ** 2 + y ** 2 <= 55.0 ** 2
+    for s in range(slices):
+        for p in range(phases):
+            hu = np.full((size, size), -1000.0)
+            hu[body] = 0.0
+            hu[disc] = DYNAMIC_CURVE_HU[p]
+            index = s * phases + p
+            ds = writer.base(case, "dynamic", index, CT_STORAGE, "CT", "PHANTOM^DYNAMIC", "QA-DYN-001", "Dynamic CT with contrast uptake")
+            ds.ImageType = ["ORIGINAL", "PRIMARY", "AXIAL"]
+            ds.KVP = 120
+            ds.AcquisitionNumber = 1
+            ds.TemporalPositionIdentifier = p + 1
+            ds.NumberOfTemporalPositions = phases
+            monochrome(ds)
+            axial_plane(ds, (origin, origin), spacing, 5.0, s * 5.0, frame)
+            ds.RescaleIntercept = -1024
+            ds.RescaleSlope = 1
+            ds.RescaleType = "HU"
+            ds.WindowCenter = 100
+            ds.WindowWidth = 400
+            stored = np.clip(np.rint(hu + 1024), 0, 4095).astype(np.uint16)
+            set_pixels(ds, stored, 12)
+            writer.save(ds, case, f"DY{index:04d}.dcm")
+    writer.cases[case] = {
+        "modality": "CT",
+        "instances": slices * phases,
+        "phases": phases,
+        "pixel_spacing_mm": [spacing, spacing],
+        "disc": DYNAMIC_DISC,
+        "curve_hu": DYNAMIC_CURVE_HU,
+        "expected": "a series with 5 phases; the time-intensity curve of a point in the disc (radius 5 mm) is 0, 40, 120, 200, 150 HU, peak at phase 4; a point in the body outside the disc is flat at 0",
+    }
+
+
 RT_STRUCTURE_SET_STORAGE = "1.2.840.10008.5.1.4.1.1.481.3"
 
 
@@ -1293,7 +1344,7 @@ def main():
     root.mkdir(parents=True)
     writer = Writer(root)
     video_file = arguments.video
-    for generator in (generate_ct, generate_rtstruct, generate_curved_tube, generate_gantry_tilt, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_rtstruct, generate_curved_tube, generate_gantry_tilt, generate_dynamic, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         if generator is generate_videos:
             generator(writer, video_file)

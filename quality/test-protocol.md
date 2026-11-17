@@ -726,6 +726,21 @@ Tools > Keyboard shortcuts... was opened (and cancelled: no setting was changed)
 
 Automatic tests: 5,166 passed, 0 failed, 9 skipped, which is 11 more than before (`test_ShortcutConfiguration`: 10, and `test_ZipArchive`: 1 for the cleanup of old unpacked folders).
 
+### Run 28: Time-intensity curve (Phase 4)
+
+Case `dynamic-ct` (new: 6 slices of 5 phases, a disc that takes up contrast: 0, 40, 120, 200, 150 HU).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Load | Passed | "Slice: 1/6 Phase: 1/5"; the disc is invisible in phase 1 because it is 0 HU like the body |
+| 2. Tool | Passed | "Time-intensity curve" is in the drawing menu |
+| 3. Curve in the disc (radius 5 mm) | Passed | 20 pixels; means 0, 40, 120, 200, 150 (the truth), deviation 0; peak at phase 4, half the rise at phase 3 |
+| 4. Radius 20 mm | Passed | 318 pixels (pi r^2 / pixel area = 314); the disc and the body are mixed, so the deviation is large (95.5 in phase 4) and the band is drawn |
+| 5. CSV | Not tried on screen | The text is covered by a unit test; the file dialog is not |
+| 6. Series without phases | Not tried on screen | The message is in the code; the condition (fewer than 2 phases, or not the axial view) is not covered by a test |
+
+Automatic tests: 5,175 passed, 0 failed, 9 skipped (`test_TimeIntensityCurve`, 9 more); the corpus has 1 case more and `verify_corpus.py` checks it.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

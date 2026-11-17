@@ -243,6 +243,19 @@ def verify_curved_tube(root, cases):
     check(worst < 30.0, "curved tube: the center line is tube and beside it is body")
 
 
+def verify_dynamic(root, cases):
+    truth = cases["dynamic-ct"]
+    series = {int(d.InstanceNumber): d for d in read_series(root / "dynamic-ct")}
+    check(len(series) == truth["instances"], "dynamic CT has 30 images")
+    phases = truth["phases"]
+    ok = True
+    for index, ds in series.items():
+        phase = (index - 1) % phases
+        hu = ds.pixel_array.astype(float) * float(ds.RescaleSlope) + float(ds.RescaleIntercept)
+        ok = ok and abs(hu[32, 32] - truth["curve_hu"][phase]) < 1.0 and int(ds.TemporalPositionIdentifier) == phase + 1
+    check(ok, "dynamic CT: the center of the disc follows the curve in every phase and every slice")
+
+
 def verify_gantry_tilt(root, cases):
     truth = cases["gantry-tilt"]
     series = read_series(root / "gantry-tilt")
@@ -309,6 +322,7 @@ def main():
     verify_structured_reports(root, cases)
     verify_registration_pair(root, cases)
     verify_curved_tube(root, cases)
+    verify_dynamic(root, cases)
     verify_gantry_tilt(root, cases)
     verify_rtstruct(root, cases)
     verify_videos(root, cases)
