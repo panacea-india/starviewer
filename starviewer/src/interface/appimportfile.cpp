@@ -17,7 +17,10 @@
 #include "interfacesettings.h"
 #include "starviewerapplication.h"
 // Qt
+#include <QDateTime>
 #include <QFileDialog>
+#include "starviewerapplication.h"
+#include "ziparchive.h"
 #include <QFileInfo>
 #include <QMessageBox>
 // itk
@@ -49,7 +52,7 @@ void AppImportFile::open()
     openDialog->setWindowTitle(tr("Select files to open..."));
     openDialog->setDirectory(m_workingDirectory);
     openDialog->setNameFilters({tr("DICOM images (*.dcm)"), tr("MetaImages (*.mhd *.mha)"), tr("TIFF images (*.tif *.tiff)"), tr("JPEG images (*.jpg *.jpeg)"),
-                                tr("PNG images (*.png)"), tr("All files (*)")});
+                                tr("PNG images (*.png)"), tr("ZIP archives with DICOM (*.zip)"), tr("All files (*)")});
     openDialog->selectNameFilter (m_lastExtension);
     openDialog->setFileMode(QFileDialog::ExistingFiles);
     openDialog->setAcceptMode(QFileDialog::AcceptOpen);
@@ -57,6 +60,23 @@ void AppImportFile::open()
     if (openDialog->exec() == QDialog::Accepted)
     {
         QStringList fileNames = openDialog->selectedFiles();
+
+        if (fileNames.size() == 1 && fileNames.first().endsWith(".zip", Qt::CaseInsensitive))
+        {
+            // The ZIP is unpacked in a folder of its own, and what it holds is opened like the files of a folder
+            QString folder = UserDataRootPath + "zip-import/" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss_zzz");
+            ZipArchive::Result result = ZipArchive::extract(fileNames.first(), folder);
+
+            if (!result.success)
+            {
+                QMessageBox::warning(0, ApplicationNameString, tr("The ZIP file could not be opened: %1").arg(result.message));
+                delete openDialog;
+                return;
+            }
+
+            INFO_LOG(QString("Unpacked %1 files (%2 bytes) of a ZIP file to %3").arg(result.files.size()).arg(result.bytes).arg(folder));
+            fileNames = result.files;
+        }
 
         emit selectedFiles(fileNames);
 

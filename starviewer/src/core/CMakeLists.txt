@@ -27,6 +27,7 @@ set(SOURCES
     colortransferfunction.cpp
     computezspacingpostprocessor.cpp
     gantrytiltcorrector.cpp
+    ziparchive.cpp
     rtstructureset.cpp
     rtstructurefillerstep.cpp
     q2dviewerrtstructurehandler.cpp
