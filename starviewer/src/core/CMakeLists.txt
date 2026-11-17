@@ -30,6 +30,8 @@ set(SOURCES
     shortcutconfiguration.cpp
     timeintensitycurve.cpp
     digitalsubtraction.cpp
+    hangingprotocolxmlwriter.cpp
+    hangingprotocolfiles.cpp
     timeintensitycurvetool.cpp
     qtimeintensitycurvedialog.cpp
     calibrationtool.cpp

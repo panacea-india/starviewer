@@ -29,6 +29,9 @@ public:
 
     ~HangingProtocolsLoader();
 
+    /// The directory of the hanging protocols that come with the program (the first of the usual places that exists, or the last of them if none does).
+    static QString defaultsDirectory();
+
     /// Càrrega de hanging protocols per defecte
     void loadDefaults();
 

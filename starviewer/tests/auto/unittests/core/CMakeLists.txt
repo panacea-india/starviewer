@@ -73,6 +73,8 @@ set(SOURCES
     test_shortcutconfiguration.cpp
     test_timeintensitycurve.cpp
     test_digitalsubtraction.cpp
+    test_hangingprotocolxmlwriter.cpp
+    test_hangingprotocolfiles.cpp
     test_calibrationtool.cpp
     test_imagefilters.cpp
     test_ziparchive.cpp
@@ -126,6 +128,9 @@ add_library(test_core OBJECT ${SOURCES})
 ################ Internal library dependencies ################
 
 target_link_libraries(test_core core)
+
+# The shipped hanging protocols, for the tests that read them (the path of sourcePath() assumes a build directory next to the sources)
+target_compile_definitions(test_core PRIVATE HANGING_PROTOCOLS_SOURCE_DIR="${CMAKE_SOURCE_DIR}/hangingprotocols")
 
 
 ################ External library dependencies ################

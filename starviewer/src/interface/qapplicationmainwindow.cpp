@@ -21,6 +21,7 @@
 #include "patient.h"
 #include "qconfigurationdialog.h"
 #include "qshortcutsdialog.h"
+#include "qhangingprotocolsdialog.h"
 #include "volume.h"
 #include "settings.h"
 #include "extensionfactory.h"
@@ -429,6 +430,7 @@ void QApplicationMainWindow::createMenus()
     m_toolsMenu = menuBar()->addMenu(tr("&Tools"));
     m_toolsMenu->addAction(m_configurationAction);
     m_toolsMenu->addAction(tr("&Keyboard shortcuts..."), this, [this]() { QShortcutsDialog dialog(this); dialog.exec(); });
+    m_toolsMenu->addAction(tr("&Hanging protocols..."), this, [this]() { QHangingProtocolsDialog dialog(this); dialog.exec(); });
     m_toolsMenu->addAction(m_runDiagnosisTestsAction);
     m_externalApplicationsMenu = 0;
     createExternalApplicationsMenu();

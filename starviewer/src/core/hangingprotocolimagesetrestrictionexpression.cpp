@@ -65,6 +65,24 @@ bool HangingProtocolImageSetRestrictionExpression::test(Image *image) const
     return evaluate(results);
 }
 
+QString HangingProtocolImageSetRestrictionExpression::getExpression() const
+{
+    if (m_expression == "true")
+    {
+        return QString();
+    }
+
+    // The reverse of prepareForEvaluation: "!%1&%2" is "not 1 and 2"
+    QString expression = m_expression;
+    expression.replace(QRegularExpression("%(\\d+)"), "\\1").replace("&", " and ").replace("|", " or ").replace("!", "not ");
+    return expression.simplified();
+}
+
+const QMap<int, HangingProtocolImageSetRestriction>& HangingProtocolImageSetRestrictionExpression::getRestrictions() const
+{
+    return m_restrictions;
+}
+
 bool HangingProtocolImageSetRestrictionExpression::operator==(const HangingProtocolImageSetRestrictionExpression &that) const
 {
     return this->m_expression == that.m_expression && this->m_restrictions == that.m_restrictions;

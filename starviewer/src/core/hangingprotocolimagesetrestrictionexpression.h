@@ -42,6 +42,11 @@ public:
     /// Evaluates the expression for the given image and returns the result.
     bool test(Image *image) const;
 
+    /// The expression as it is written in a hanging protocol file ("not 1 and 2"), or an empty string if it is always true.
+    QString getExpression() const;
+    /// The restrictions that the expression uses, by number.
+    const QMap<int, HangingProtocolImageSetRestriction>& getRestrictions() const;
+
     /// Returns true if this and that have the expression and restrictions and false otherwise.
     bool operator==(const HangingProtocolImageSetRestrictionExpression &that) const;
 

@@ -22,7 +22,7 @@
 namespace udg {
 
 HangingProtocolImageSet::HangingProtocolImageSet()
- : m_type(Type::Series), m_abstractPriorValue(0)
+ : m_type(Type::Series), m_imageToDisplay(0), m_abstractPriorValue(0)
 {
     m_hangingProtocol = NULL;
     m_previousStudyToDisplay = NULL;

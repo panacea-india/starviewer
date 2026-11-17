@@ -8,6 +8,7 @@ set(SOURCES
     qapplicationmainwindow.cpp
     qconfigurationdialog.cpp
     qshortcutsdialog.cpp
+    qhangingprotocolsdialog.cpp
     qlicensedialog.cpp
     starviewerapplicationcommandline.cpp
 )
