@@ -831,6 +831,20 @@ Downloaded for this run: the CT (130 slices of 3 mm, 512 x 512) and the structur
 
 Not verified by anyone with clinical training: the contours were only looked at on a few slices.
 
+### Run 35: Real chest CT from LIDC-IDRI
+
+LIDC-IDRI-0365 (Siemens, 101 slices of 3 mm, 0.63 mm pixels, kernel B31f), opened from its folder.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Load | Passed | 101 slices, 512 x 512; the lung window (WW 1600, WL -600) of the file is offered and used |
+| 2. Elliptical ROI on the descending aorta | Passed | 108.8 mm2, mean 133.9 HU, standard deviation 11.5 HU (contrast-enhanced blood: plausible); no reference measurement was available |
+| 3. Automatic path, from the left main bronchus (slice 64) to the trachea (slice 79) | Passed | From the first point the range was wide (-1167 to -757 HU) and the structure leaked through the airways into both lungs and the outside air (1,278,976 voxels, 51.4 mm); from the second point it was the airway only (17,998 voxels). The smaller one is used: 51.3 mm for about 45 mm between the slices plus the sideways distance to the bronchus. The straightened views show the airway as a dark band in the middle with the branch at the carina |
+| 4. Second real case of the same result | Passed | In run 34 (LCTSC) both ranges gave the airway; here one of them leaked, so the choice of the smaller structure is needed and worked on real data |
+| 5. Time | Acceptable | The path was found within a couple of seconds of Enter on the test VM |
+
+Limits: the path of a structure with branches is the shortest way between the two points (it went through the carina to the left bronchus as clicked); the path was not compared with a reference centerline.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
