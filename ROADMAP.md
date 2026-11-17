@@ -261,7 +261,7 @@ Orthanc, every transfer syntax in the corpus decodes, and fuzzing runs regularly
 - **Key images:** implement key image notes (`keyimagenotefillerstep.cpp`). **Started:** Key Object Selection Documents are read (`KeyObjectSelection`), kept in their study, and the images they refer to show "KEY IMAGE: <title>" or "REJECTED: <title>" in the 2D viewer. A document that refers to images that are not loaded gives a warning. Still to do: the frames of a multiframe reference, a more prominent marker for rejections, a list of the key images to jump between, and key images from the other studies of the patient.
 - **DICOM video:** play MPEG-2 and MPEG-4 objects. Choosing a decoder is a
   licence and patent decision as well as a technical one, because it affects
-  open core distribution later.
+  open core distribution later. **Started:** the transfer syntaxes MPEG-2 and H.264 and HEVC (1.2.840.10008.1.2.4.100 to .108) are recognised (`VideoObject`), the image filler leaves such files alone, and the new `video` extension writes the bitstream to a temporary file and plays it with Qt Multimedia, so the decoding is done by the operating system and no codec is shipped. Where there is no decoder or media service it says so. **Not verified:** playback itself, because this test machine is a Windows N edition without media services and has no video encoder. Still to do: run the corpus case `videos/video-real` (`generate_corpus.py --video file.mp4`) on a machine with decoders, on Windows and on Linux.
 
 DCMTK includes SR and presentation state modules (`dcmsr`, `dcmpstat`), so check
 that the SDK builds them before writing new parsing code.
@@ -440,7 +440,7 @@ Still open, with a default so work is not blocked:
 
 | Decision | Default until decided | Affects |
 | --- | --- | --- |
-| Video decoder (Phase 2): which library decodes MPEG-2 and MPEG-4 DICOM video | Use an open-source decoder that is compatible with GPL-3.0+, such as FFmpeg built without GPL-incompatible or non-free parts. MPEG codecs have patent questions in some countries, so confirm before the first external release | Phase 2 |
+| Video decoder (Phase 2): which library decodes MPEG-2 and MPEG-4 DICOM video | **Decided for now: use the decoders of the operating system through Qt Multimedia** (Windows Media Foundation or DirectShow, GStreamer on Linux), and ship no codec. This avoids bundling FFmpeg and its licence and patent questions, and Starviewer carries no codec that a patent holder could claim. The cost is that playback depends on the machine: a Windows N edition needs the Media Feature Pack and a Linux machine needs the GStreamer plugins, and the viewer says so when it cannot play. Revisit if internal users meet machines without decoders. Confirm with legal before the first external release that relying on the platform's decoders is enough | Phase 2 |
 | Safety class (IEC 62304) | Assume Class B or higher until a specialist confirms. This follows from possible diagnostic use | Depth of verification |
 
 ## Sources

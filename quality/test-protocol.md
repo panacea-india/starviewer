@@ -485,6 +485,26 @@ run passed.
 Not tried: a report from a PACS (the code that reads it again from the cache is the one that is tried for key objects and presentation states),
 following the links in a report, a report with characters outside Latin 1, the specialised SR types, and Linux.
 
+### Run 14: DICOM video (Phase 2)
+
+DICOM video was tried on the same VM, from a folder with the case `videos/video-undecodable` (a DICOM video, with the transfer syntax MPEG-4 AVC/H.264
+and 4,096 bytes that no decoder can play). The VM has no media service (Windows 10 Enterprise N, without the Media Feature Pack), and there is no video encoder
+on this machine, so **playing a real video was not tried**.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Open the folder | Passed | One tab, Video, and no 2D Viewer: the image filler left the file alone, as it has no pixels. The list shows "Not a bitstream, MPEG-4 AVC/H.264, 320 x 240, 2.0 s" |
+| 2. Notice | Passed | At once, a yellow notice: "This computer cannot play this MPEG-4 AVC/H.264 video: it has no media player service. The decoder for the format is part of the operating system or a package to install (on Windows N editions, the Media Feature Pack)." Before the change it appeared only after Play, with Qt's own text |
+| 3. Log | Passed | `Video ... (MPEG-4 AVC/H.264, 50 frames)` and the extension activated; no error for the file |
+
+Automatic tests: 5,002 passed, 0 failed, 9 skipped, which is 28 more than before (`test_VideoObject`: the transfer syntaxes, the extension and the
+name of each format, the description and duration read from the file, the cine rate when there is no frame time, a file that is not a video, and
+the bitstream written back byte by byte from two fragments).
+
+Not tried: playing MPEG-2, H.264 or HEVC, seeking and the controls on a playing video, a video from a PACS (the database path is the one of the other
+auxiliary objects: a series with no images is read again from the cache), a video of many megabytes (the whole file is read into memory to take the bitstream
+out), and Linux, where the extension is built only if Qt Multimedia is installed.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
