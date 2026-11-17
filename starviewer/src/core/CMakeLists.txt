@@ -132,6 +132,7 @@ set(SOURCES
     structuredreport.cpp
     structuredreportfillerstep.cpp
     structuredreportrenderer.cpp
+    surfaceexporter.cpp
     videofillerstep.cpp
     videoobject.cpp
     graphicpresentationstate.cpp
@@ -358,6 +359,7 @@ set(SOURCES
     volumefillerstep.cpp
     volumehelper.cpp
     volumepixeldata.cpp
+    volumeroistatistics.cpp
     volumepixeldataiterator.cpp
     volumepixeldatareader.cpp
     volumepixeldatareaderfactory.cpp
@@ -473,6 +475,7 @@ target_link_vtk(core
     GUISupportQt
     ImagingCore
     InteractionWidgets
+    IOGeometry
     IOImage
     RenderingAnnotation
     RenderingCore

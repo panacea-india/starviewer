@@ -13,6 +13,13 @@
  *************************************************************************************/
 
 #include "q3dviewerextension.h"
+#include <QApplication>
+#include <QDir>
+#include <QToolButton>
+#include <QMessageBox>
+#include <QInputDialog>
+#include <QBoxLayout>
+#include "surfaceexporter.h"
 #include "volume.h"
 #include "toolmanager.h"
 #include "transferfunctionio.h"
@@ -35,6 +42,38 @@
 #include <vtkRenderWindowInteractor.h>
 
 namespace udg {
+
+namespace {
+
+// Returns the box layout that holds the widget, looking inside the layouts of the layout
+QBoxLayout* findBoxLayoutOf(QLayout *layout, QWidget *widget)
+{
+    if (!layout)
+    {
+        return nullptr;
+    }
+
+    QBoxLayout *box = qobject_cast<QBoxLayout*>(layout);
+
+    if (box && box->indexOf(widget) >= 0)
+    {
+        return box;
+    }
+
+    for (int i = 0; i < layout->count(); i++)
+    {
+        QBoxLayout *found = findBoxLayoutOf(layout->itemAt(i)->layout(), widget);
+
+        if (found)
+        {
+            return found;
+        }
+    }
+
+    return nullptr;
+}
+
+}
 
 Q3DViewerExtension::Q3DViewerExtension(QWidget *parent)
  : QWidget(parent)
@@ -91,6 +130,20 @@ void Q3DViewerExtension::initializeTools()
     m_toolManager->triggerTools(defaultTools);
 
     // Registrem al manager les tools que van amb el viewer principal
+    // A button to export the surface of the volume, next to the one of the screen shot
+    QToolButton *stlButton = new QToolButton(this);
+    stlButton->setText(tr("STL"));
+    stlButton->setToolTip(tr("Export the surface of the volume as an STL file, for 3D printing"));
+    stlButton->setStatusTip(stlButton->toolTip());
+    stlButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    connect(stlButton, &QToolButton::clicked, this, &Q3DViewerExtension::exportStl);
+    QBoxLayout *buttonsLayout = findBoxLayoutOf(m_screenShotToolButton->parentWidget()->layout(), m_screenShotToolButton);
+
+    if (buttonsLayout)
+    {
+        buttonsLayout->insertWidget(buttonsLayout->indexOf(m_screenShotToolButton) + 1, stlButton);
+    }
+
     m_toolManager->setupRegisteredTools(m_3DView);
     m_toolManager->enableRegisteredActionTools(m_3DView);
 
@@ -318,6 +371,69 @@ void Q3DViewerExtension::createConnections()
 
     // Per mostrar exportació
     connect(m_screenshotsExporterToolButton, SIGNAL(clicked()), SLOT(showScreenshotsExporterDialog()));
+}
+
+void Q3DViewerExtension::exportStl()
+{
+    if (!m_input || !m_input->getVtkData())
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("There is no volume to export."));
+        return;
+    }
+
+    double range[2];
+    m_input->getVtkData()->GetScalarRange(range);
+
+    bool accepted = false;
+    double threshold = QInputDialog::getDouble(this, tr("Export a surface as STL"),
+                                               tr("The surface goes where the value of the volume is (the values go from %1 to %2):").arg(range[0]).arg(range[1]),
+                                               range[0] + 0.35 * (range[1] - range[0]), range[0], range[1], 1, &accepted);
+
+    if (!accepted)
+    {
+        return;
+    }
+
+    QString path = QFileDialog::getSaveFileName(this, tr("Export a surface as STL"), QString(), tr("STL files (*.stl)"));
+
+    if (path.isEmpty())
+    {
+        return;
+    }
+
+    if (!path.endsWith(".stl", Qt::CaseInsensitive))
+    {
+        path += ".stl";
+    }
+
+    SurfaceExporter::Options options;
+    options.threshold = threshold;
+    // The small pieces that noise makes are of no use in a model, and a little smoothing takes the staircase of the voxels away
+    options.largestPieceOnly = true;
+    options.smoothingIterations = 10;
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    SurfaceExporter::Result result = SurfaceExporter::exportStl(m_input->getVtkData(), path, options);
+    QApplication::restoreOverrideCursor();
+
+    if (!result.success)
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The surface could not be exported: %1").arg(result.message));
+        return;
+    }
+
+    INFO_LOG(QString("Exported a surface to %1: %2 triangles, %3 mL, closed: %4").arg(path).arg(result.triangles).arg(result.volumeMilliliters).arg(result.closed));
+
+    QString text = tr("The surface was written to %1.\n\n%2 triangles, a volume of %3 mL and an area of %4 cm2, in millimeters.\n\n"
+                      "Only the largest piece was kept, and the surface was smoothed. A model of a patient is personal data: keep the file as such.")
+                   .arg(QDir::toNativeSeparators(path)).arg(result.triangles).arg(result.volumeMilliliters, 0, 'f', 1).arg(result.areaSquareCentimeters, 0, 'f', 1);
+
+    if (!result.closed)
+    {
+        text += "\n\n" + result.message;
+    }
+
+    QMessageBox::information(this, ApplicationNameString, text);
 }
 
 void Q3DViewerExtension::setInput(Volume *input)

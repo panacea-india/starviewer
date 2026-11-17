@@ -45,6 +45,10 @@ public:
     void setInput(Volume *input);
 
 public slots:
+    /// Asks for a threshold and a file, and writes the surface of the volume at that threshold as an STL file.
+    void exportStl();
+
+public slots:
     /// Aplica una funció de transferència predefinida a la visualització.
     void applyPresetClut(const QString &clutName);
 

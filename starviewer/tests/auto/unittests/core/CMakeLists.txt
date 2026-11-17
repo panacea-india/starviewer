@@ -76,6 +76,7 @@ set(SOURCES
     test_standardizeduptakevaluebodyweightformulacalculator.cpp
     test_standardizeduptakevalueleanbodymassformulacalculator.cpp
     test_structuredreport.cpp
+    test_surfaceexporter.cpp
     test_study.cpp
     test_studylayoutconfigsettingsconverter.cpp
     test_syncactionsconfiguration.cpp
@@ -93,6 +94,7 @@ set(SOURCES
     test_volumepixeldataiterator.cpp
     test_videoobject.cpp
     test_volumepixeldatareaderfactory.cpp
+    test_volumeroistatistics.cpp
     test_voxel.cpp
     test_vtkdcmtkimagereader.cpp
     test_vtkimagedatacreator.cpp
