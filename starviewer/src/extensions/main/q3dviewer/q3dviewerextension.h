@@ -20,9 +20,12 @@
 #include <QDir>
 #include <QMap>
 
+#include "savedview.h"
 #include "transferfunction.h"
 
 class QAction;
+class QMenu;
+class QToolButton;
 class QModelIndex;
 class QStandardItemModel;
 
@@ -47,6 +50,19 @@ public:
 public slots:
     /// Asks for a threshold and a file, and writes the surface of the volume at that threshold as an STL file.
     void exportStl();
+
+    /// Asks for a name and saves the camera of the 3D view with it, for this series of images.
+    void saveCurrentView();
+    /// Puts the camera of the 3D view where the saved view (by position in the list) has it.
+    void applyView(int index);
+    /// Asks which saved view to forget.
+    void deleteSavedView();
+    /// Makes a movie of the 3D view: pictures (and a video, if ffmpeg is on the computer) of the camera turning around the volume or going through the saved views.
+    void exportMovie();
+    /// Takes out of the 3D view everything at or above a value that is not the largest piece (the table, the loose spots). The loaded volume is not changed.
+    void sculptKeepLargestPiece();
+    /// Shows the volume as it was loaded, before any sculpting.
+    void sculptRestore();
 
 public slots:
     /// Aplica una funció de transferència predefinida a la visualització.
@@ -93,10 +109,28 @@ private slots:
     void changeViewerTransferFunction();
     void applyRenderingStyle(const QModelIndex &index);
     void showScreenshotsExporterDialog();
+    void fillViewsMenu();
+    void fillSculptMenu();
+
+private:
+    QString savedViewsFilePath() const;
+    void loadSavedViews();
+    void storeSavedViews();
+    SavedView currentView() const;
+    void showView(const SavedView &view);
+    void showVolume(Volume *volume);
 
 private:
     /// El volum d'input
     Volume *m_input;
+
+    /// The volume as it was loaded, and the volume that has parts taken out of it (if any) that is shown in its place
+    Volume *m_originalInput;
+    Volume *m_sculptedInput;
+
+    QMenu *m_viewsMenu;
+    QMenu *m_sculptMenu;
+    QList<SavedView> m_savedViews;
 
     /// Gestor de tools
     ToolManager *m_toolManager;

@@ -145,6 +145,10 @@ set(SOURCES
     machineinformation.cpp
     magicroitool.cpp
     curvedreformation.cpp
+    savedview.cpp
+    savedviewstore.cpp
+    volumesculptor.cpp
+    movieencoder.cpp
     curvedmprtool.cpp
     qcurvedmprdialog.cpp
     measurement3d.cpp

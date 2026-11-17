@@ -20,6 +20,19 @@
 #include <QInputDialog>
 #include <QBoxLayout>
 #include "surfaceexporter.h"
+#include <algorithm>
+#include "movieencoder.h"
+#include "savedviewstore.h"
+#include "volumesculptor.h"
+#include "series.h"
+#include "logging.h"
+#include <QDateTime>
+#include <QMenu>
+#include <QProgressDialog>
+#include <vtkCamera.h>
+#include <vtkPNGWriter.h>
+#include <vtkRenderer.h>
+#include <vtkWindowToImageFilter.h>
 #include "volume.h"
 #include "toolmanager.h"
 #include "transferfunctionio.h"
@@ -79,6 +92,11 @@ Q3DViewerExtension::Q3DViewerExtension(QWidget *parent)
  : QWidget(parent)
 {
     setupUi(this);
+    m_input = nullptr;
+    m_originalInput = nullptr;
+    m_sculptedInput = nullptr;
+    m_viewsMenu = nullptr;
+    m_sculptMenu = nullptr;
     Q3DViewerExtensionSettings().init();
 
     // Creem el temporitzador (s'ha de fer abans del createConnections())
@@ -139,9 +157,38 @@ void Q3DViewerExtension::initializeTools()
     connect(stlButton, &QToolButton::clicked, this, &Q3DViewerExtension::exportStl);
     QBoxLayout *buttonsLayout = findBoxLayoutOf(m_screenShotToolButton->parentWidget()->layout(), m_screenShotToolButton);
 
+    // Buttons for saved views, sculpting and the movie, next to the one of the STL
+    QToolButton *viewsButton = new QToolButton(this);
+    viewsButton->setText(tr("Views"));
+    viewsButton->setToolTip(tr("Save the point of view of the 3D image with a name, and come back to it later"));
+    viewsButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    viewsButton->setPopupMode(QToolButton::InstantPopup);
+    m_viewsMenu = new QMenu(viewsButton);
+    viewsButton->setMenu(m_viewsMenu);
+    connect(m_viewsMenu, &QMenu::aboutToShow, this, &Q3DViewerExtension::fillViewsMenu);
+
+    QToolButton *sculptButton = new QToolButton(this);
+    sculptButton->setText(tr("Sculpt"));
+    sculptButton->setToolTip(tr("Take parts out of the 3D image, such as the table, without changing the volume that was loaded"));
+    sculptButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    sculptButton->setPopupMode(QToolButton::InstantPopup);
+    m_sculptMenu = new QMenu(sculptButton);
+    sculptButton->setMenu(m_sculptMenu);
+    connect(m_sculptMenu, &QMenu::aboutToShow, this, &Q3DViewerExtension::fillSculptMenu);
+
+    QToolButton *movieButton = new QToolButton(this);
+    movieButton->setText(tr("Movie"));
+    movieButton->setToolTip(tr("Make a movie of the 3D image turning around, or going through the saved views"));
+    movieButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    connect(movieButton, &QToolButton::clicked, this, &Q3DViewerExtension::exportMovie);
+
     if (buttonsLayout)
     {
-        buttonsLayout->insertWidget(buttonsLayout->indexOf(m_screenShotToolButton) + 1, stlButton);
+        int next = buttonsLayout->indexOf(m_screenShotToolButton) + 1;
+        buttonsLayout->insertWidget(next, stlButton);
+        buttonsLayout->insertWidget(next + 1, viewsButton);
+        buttonsLayout->insertWidget(next + 2, sculptButton);
+        buttonsLayout->insertWidget(next + 3, movieButton);
     }
 
     m_toolManager->setupRegisteredTools(m_3DView);
@@ -438,11 +485,341 @@ void Q3DViewerExtension::exportStl()
 
 void Q3DViewerExtension::setInput(Volume *input)
 {
-    m_input = input;
+    // A new volume is shown as it was loaded: what was sculpted belongs to the one before
+    delete m_sculptedInput;
+    m_sculptedInput = nullptr;
+    m_originalInput = input;
+    showVolume(input);
+    loadSavedViews();
+}
+
+void Q3DViewerExtension::showVolume(Volume *volume)
+{
+    // Another volume of the same grid (a sculpted one, or the original again) is seen from where the camera was, not from the default view
+    bool keepCamera = m_input && volume && m_input != volume && m_input->getVtkData() && volume->getVtkData()
+                      && std::equal(m_input->getVtkData()->GetDimensions(), m_input->getVtkData()->GetDimensions() + 3, volume->getVtkData()->GetDimensions());
+    SavedView camera;
+
+    if (keepCamera)
+    {
+        camera = currentView();
+    }
+
+    m_input = volume;
     m_3DView->setInput(m_input);
 
     applyClut(m_currentClut);
+
+    if (keepCamera)
+    {
+        showView(camera);
+    }
+
     this->render();
+}
+
+QString Q3DViewerExtension::savedViewsFilePath() const
+{
+    if (!m_originalInput || !m_originalInput->getSeries())
+    {
+        return QString();
+    }
+
+    return UserDataRootPath + "views/" + SavedViewStore::fileNameForSeries(m_originalInput->getSeries()->getInstanceUID());
+}
+
+void Q3DViewerExtension::loadSavedViews()
+{
+    QString path = savedViewsFilePath();
+    m_savedViews = path.isEmpty() ? QList<SavedView>() : SavedViewStore::load(path);
+}
+
+void Q3DViewerExtension::storeSavedViews()
+{
+    QString path = savedViewsFilePath();
+
+    if (path.isEmpty() || !SavedViewStore::save(path, m_savedViews))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The views could not be saved."));
+    }
+}
+
+SavedView Q3DViewerExtension::currentView() const
+{
+    vtkCamera *camera = m_3DView->getRenderer()->GetActiveCamera();
+    SavedView view;
+
+    for (int i = 0; i < 3; i++)
+    {
+        view.position[i] = camera->GetPosition()[i];
+        view.focalPoint[i] = camera->GetFocalPoint()[i];
+        view.viewUp[i] = camera->GetViewUp()[i];
+    }
+
+    view.viewAngle = camera->GetViewAngle();
+    view.parallelProjection = camera->GetParallelProjection() != 0;
+    view.parallelScale = camera->GetParallelScale();
+    return view;
+}
+
+void Q3DViewerExtension::showView(const SavedView &view)
+{
+    vtkCamera *camera = m_3DView->getRenderer()->GetActiveCamera();
+    camera->SetPosition(view.position.data());
+    camera->SetFocalPoint(view.focalPoint.data());
+    camera->SetViewUp(view.viewUp.data());
+    camera->SetViewAngle(view.viewAngle);
+    camera->SetParallelProjection(view.parallelProjection ? 1 : 0);
+    camera->SetParallelScale(view.parallelScale);
+    m_3DView->getRenderer()->ResetCameraClippingRange();
+    m_3DView->render();
+}
+
+void Q3DViewerExtension::fillViewsMenu()
+{
+    m_viewsMenu->clear();
+    m_viewsMenu->addAction(tr("Save this view..."), this, &Q3DViewerExtension::saveCurrentView);
+
+    if (!m_savedViews.isEmpty())
+    {
+        m_viewsMenu->addSeparator();
+
+        for (int i = 0; i < m_savedViews.size(); i++)
+        {
+            m_viewsMenu->addAction(m_savedViews.at(i).name, this, [this, i]() { applyView(i); });
+        }
+
+        m_viewsMenu->addSeparator();
+        m_viewsMenu->addAction(tr("Forget a view..."), this, &Q3DViewerExtension::deleteSavedView);
+    }
+}
+
+void Q3DViewerExtension::saveCurrentView()
+{
+    if (!m_input)
+    {
+        return;
+    }
+
+    bool accepted = false;
+    QString name = QInputDialog::getText(this, tr("Save this view"), tr("Name of the view:"), QLineEdit::Normal, tr("View %1").arg(m_savedViews.size() + 1), &accepted).trimmed();
+
+    if (!accepted || name.isEmpty())
+    {
+        return;
+    }
+
+    SavedView view = currentView();
+    view.name = name;
+    m_savedViews << view;
+    storeSavedViews();
+}
+
+void Q3DViewerExtension::applyView(int index)
+{
+    if (index >= 0 && index < m_savedViews.size())
+    {
+        showView(m_savedViews.at(index));
+    }
+}
+
+void Q3DViewerExtension::deleteSavedView()
+{
+    QStringList names;
+
+    foreach (const SavedView &view, m_savedViews)
+    {
+        names << view.name;
+    }
+
+    bool accepted = false;
+    QString chosen = QInputDialog::getItem(this, tr("Forget a view"), tr("View to forget:"), names, 0, false, &accepted);
+
+    if (accepted)
+    {
+        m_savedViews.removeAt(names.indexOf(chosen));
+        storeSavedViews();
+    }
+}
+
+void Q3DViewerExtension::fillSculptMenu()
+{
+    m_sculptMenu->clear();
+    m_sculptMenu->addAction(tr("Keep the largest piece..."), this, &Q3DViewerExtension::sculptKeepLargestPiece);
+    QAction *restore = m_sculptMenu->addAction(tr("Show the volume as it was loaded"), this, &Q3DViewerExtension::sculptRestore);
+    restore->setEnabled(m_sculptedInput != nullptr);
+}
+
+void Q3DViewerExtension::sculptKeepLargestPiece()
+{
+    if (!m_originalInput || !m_originalInput->getVtkData())
+    {
+        return;
+    }
+
+    double range[2];
+    m_originalInput->getVtkData()->GetScalarRange(range);
+
+    bool accepted = false;
+    double threshold = QInputDialog::getDouble(this, tr("Keep the largest piece"),
+                                               tr("Everything at or above this value (the values go from %1 to %2) that is not part of the largest piece is taken out of the 3D image. "
+                                                  "The volume that was loaded is not changed.").arg(range[0]).arg(range[1]),
+                                               range[0] + 0.35 * (range[1] - range[0]), range[0], range[1], 1, &accepted);
+
+    if (!accepted)
+    {
+        return;
+    }
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    VolumeSculptor::Result result = VolumeSculptor::keepLargestPiece(m_originalInput->getVtkData(), threshold);
+    QApplication::restoreOverrideCursor();
+
+    if (!result.image)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Nothing in the volume reaches that value, or the volume cannot be sculpted."));
+        return;
+    }
+
+    Volume *sculpted = new Volume(this);
+    sculpted->setImages(m_originalInput->getImages());
+    sculpted->setData(result.image);
+
+    Volume *previous = m_sculptedInput;
+    m_sculptedInput = sculpted;
+    showVolume(sculpted);
+    delete previous;
+
+    INFO_LOG(QString("Sculpted the 3D view: kept the largest piece above %1 (%2 voxels kept, %3 taken out)").arg(threshold).arg(result.keptVoxels).arg(result.removedVoxels));
+    QMessageBox::information(this, ApplicationNameString, tr("%1 voxels were taken out of the 3D image and %2 were kept. This is a view only: the images of the study are not changed, "
+                                                             "and a measurement or an export should not be made from it.").arg(result.removedVoxels).arg(result.keptVoxels));
+}
+
+void Q3DViewerExtension::sculptRestore()
+{
+    if (!m_sculptedInput)
+    {
+        return;
+    }
+
+    Volume *previous = m_sculptedInput;
+    m_sculptedInput = nullptr;
+    showVolume(m_originalInput);
+    delete previous;
+}
+
+void Q3DViewerExtension::exportMovie()
+{
+    if (!m_input)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("There is no volume to make a movie of."));
+        return;
+    }
+
+    QStringList kinds;
+    kinds << tr("Turn once around the volume");
+
+    if (m_savedViews.size() >= 2)
+    {
+        kinds << tr("Go through the saved views, in order");
+    }
+
+    bool accepted = false;
+    QString kind = QInputDialog::getItem(this, tr("Movie"), tr("The camera will:"), kinds, 0, false, &accepted);
+
+    if (!accepted)
+    {
+        return;
+    }
+
+    int frames = QInputDialog::getInt(this, tr("Movie"), tr("Number of pictures (25 make a second of video):"), 100, 2, 2000, 1, &accepted);
+
+    if (!accepted)
+    {
+        return;
+    }
+
+    QString parent = QFileDialog::getExistingDirectory(this, tr("Folder for the movie"));
+
+    if (parent.isEmpty())
+    {
+        return;
+    }
+
+    QDir folder(parent);
+    QString subfolder = "movie_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+
+    if (!folder.mkpath(subfolder))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The folder for the pictures could not be created."));
+        return;
+    }
+
+    folder.cd(subfolder);
+
+    SavedView start = currentView();
+    QList<SavedView> views = kind == kinds.first() ? start.turntable(frames) : SavedView::path(m_savedViews, frames);
+
+    QProgressDialog progress(tr("Making the pictures..."), tr("Cancel"), 0, views.size(), this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(0);
+
+    // A picture of the full quality for each frame
+    updateView(false);
+    bool failed = false;
+    int written = 0;
+
+    for (int i = 0; i < views.size() && !progress.wasCanceled(); i++)
+    {
+        progress.setValue(i);
+        showView(views.at(i));
+
+        vtkSmartPointer<vtkWindowToImageFilter> grabber = vtkSmartPointer<vtkWindowToImageFilter>::New();
+        grabber->SetInput(m_3DView->getRenderWindow());
+        grabber->ReadFrontBufferOff();
+        grabber->Update();
+
+        vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+        writer->SetFileName(qPrintable(folder.filePath(MovieEncoder::frameFileName(i))));
+        writer->SetInputConnection(grabber->GetOutputPort());
+        writer->Write();
+
+        if (writer->GetErrorCode() != 0)
+        {
+            failed = true;
+            break;
+        }
+
+        written++;
+    }
+
+    progress.setValue(views.size());
+    showView(start);
+
+    if (failed)
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("A picture could not be written to %1.").arg(QDir::toNativeSeparators(folder.absolutePath())));
+        return;
+    }
+
+    QString text = tr("%1 pictures were written to %2.").arg(written).arg(QDir::toNativeSeparators(folder.absolutePath()));
+
+    if (written == views.size() && !MovieEncoder::findFfmpeg().isEmpty())
+    {
+        QString problem = MovieEncoder::encode(folder.absolutePath(), 25, folder.filePath("movie.mp4"));
+        text += problem.isEmpty() ? "\n\n" + tr("The video movie.mp4 was made in the same folder.") : "\n\n" + problem;
+    }
+    else if (written == views.size())
+    {
+        text += "\n\n" + tr("ffmpeg was not found on this computer, so there is no video: any video editor can join the pictures, which are in order.");
+    }
+    else
+    {
+        text += "\n\n" + tr("The movie was cancelled before the last picture.");
+    }
+
+    text += "\n\n" + tr("The pictures show the patient: keep them as such.");
+    QMessageBox::information(this, ApplicationNameString, text);
 }
 
 void Q3DViewerExtension::setScalarRange(double min, double max)

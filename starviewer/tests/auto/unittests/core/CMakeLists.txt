@@ -69,6 +69,8 @@ set(SOURCES
     test_rigidregistration.cpp
     test_qspherevoidialog.cpp
     test_curvedreformation.cpp
+    test_savedview.cpp
+    test_volumesculptor.cpp
     test_roidata.cpp
     test_screen.cpp
     test_screenlayout.cpp
