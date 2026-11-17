@@ -639,6 +639,23 @@ face or an edge, the original left unchanged, nothing above the threshold, the s
 
 Not tried: a real CT with a table, the video made by ffmpeg, a movie through saved views on screen, and Linux.
 
+### Run 21: Gantry tilt correction and RT structure sets (Phase 3)
+
+Two cases were added to the corpus (`gantry-tilt` and `rt-structure-sets`) and opened with the folder opener (software OpenGL).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Tilted CT | Passed | The log has "Corrected a gantry tilt of 20.0 degrees in a volume of 40 slices", and the images load and scroll. The first slice is empty, as it is outside the sphere |
+| 2. Structure set | Passed | In the study of the reference CT, slice 51 (z = 125 mm) shows a red circle round the soft sphere and a green one round the bone sphere, each on its sphere, with no offset that can be seen |
+
+Automatic tests: 5,122 passed, 0 failed, 9 skipped, which is 22 more than before (`test_GantryTiltCorrector`: 10, for no tilt, a tilt of 20 degrees (the offsets, the angle, the distances along the
+normal), the rounding of positions that is not a tilt, one slice or no pixel size, a straight line put back in place, an untilted volume left as it was, the lowest value where a slice had
+no data and the mismatch of slices; `test_RtStructureSet`: 12, for reading the regions, colors and contours, a file that is not a structure set or has no contours, the frames of reference,
+the pixels and depth of a point, the contours at a depth with the tolerance, polygons closed and open outlines left open, a tilted plane, and the study keeping each set once).
+
+Not tried: the draw of the contours in the 3D viewer or in the sagittal and coronal views (they are not drawn there), the tilt correction on a real head CT (the test is synthetic: a
+sphere and a bar, with the shift worked out from the positions), the pairing of a structure set with a series by the frame of reference when the study has several, and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

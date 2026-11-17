@@ -293,8 +293,14 @@ In priority order:
    through the saved views (on arcs, with `SavedView::path`), in a folder of its own, with a progress dialog that can cancel, and makes an MP4 as well when ffmpeg is on the computer
    (`MovieEncoder`; Starviewer ships no encoder). **Not done:** a flythrough inside a structure (virtual endoscopy, item 10), a choice of the size of the pictures, and an MP4 with no
    ffmpeg.
-9. RTSTRUCT display and gantry tilt correction (`imageplane.cpp:280` has a
-   workaround rather than a real correction).
+9. RTSTRUCT display and gantry tilt correction. **Started, both:** `RtStructureSet` reads the regions, their colors and their contours (closed and open outlines; single
+   points are left out), `RtStructureFillerStep` keeps them in the study (also when loaded from the local database), and the 2D viewer draws each contour in the color of its region
+   on the slice that is nearest to it, in the plane of the acquisition, for the images of the same frame of reference (the "Presentation state" switch of the layers menu turns them
+   off and on together with the presentation states). `GantryTiltCorrector` finds the shift of the slices along the plane from their positions and shifts each slice back with linear
+   interpolation, as a post-processing step of the volume reader (`GantryTiltPostprocessor`), so the stack is straight; the contours are mapped through the first image, so they follow
+   the corrected volume. The workaround of `ImagePlane::projectPoint` (`vtkReconstructionHack`) is still there for the cursor. **Not done:** RT dose, plan and image objects; a list of
+   the regions to turn them on and off one by one; contours in the sagittal and coronal views; filled regions; the volume and statistics of a region; a setting to turn the tilt
+   correction off; and a check of both on a real radiotherapy study and on a real tilted head CT.
 10. Virtual endoscopy and 4D volume rendering, if internal users ask for them.
 
 Measurement and registration errors can mislead a reader, so these features
