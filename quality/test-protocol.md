@@ -457,6 +457,7 @@ which also checks that the drawings are on the fiducial dots and the sphere).
 | 4. Slice 71 | Passed | A rectangle from 25% to 75% of the image in both directions (display units) |
 | 5. Slice 31 | Passed | `PS: ROTATED_WITH_A_S` and `PS NOT FULLY APPLIED: Display shutter, Rotation or flip` |
 | 6. Layers menu | Passed | "Presentation state" hides the line and the text, and shows them again. The label in the corner stays |
+| 7. From the PACS | Passed | The key object and presentation state files were put in the lab Orthanc. In the query the study showed the modalities CT/KO/PR. "Retrieve & View" saved it in the local database and opened it: the three warnings came together, and slice 21 showed `KEY IMAGE: Of Interest`, `PS: ANNOTATIONS`, the line and the text. The database keeps the series of these objects but not their instances, so they are read again from the cache folder of the study (`loadAuxiliaryObjects` in `LocalDatabaseManager`) |
 
 Automatic tests: 4,954 passed, 0 failed, 9 skipped, which is 22 more than before (`test_GraphicPresentationState`).
 

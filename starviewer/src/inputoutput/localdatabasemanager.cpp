@@ -17,9 +17,12 @@
 #include "databaseconnection.h"
 #include "dicommask.h"
 #include "directoryutilities.h"
+#include "dicomtagreader.h"
 #include "encapsulateddocument.h"
+#include "graphicpresentationstate.h"
 #include "harddiskinformation.h"
 #include "image.h"
+#include "keyobjectselection.h"
 #include "inputoutputsettings.h"
 #include "localdatabasedisplayshutterdal.h"
 #include "localdatabaseencapsulateddocumentdal.h"
@@ -35,6 +38,7 @@
 #include "thumbnailcreator.h"
 
 #include <QDir>
+#include <QFileInfo>
 
 namespace udg {
 
@@ -158,6 +162,40 @@ void saveImages(DatabaseConnection &databaseConnection, const QList<Image*> &ima
 }
 
 // Saves to the database the given encapsulated document, doing an insert or an update as necessary.
+// The Key Object Selection Documents and the presentation states are not in the database, but their files are in the cache of the study,
+// in the folder of their series. They are read again when the study is loaded.
+void loadAuxiliaryObjects(Study *study, const Series *series)
+{
+    if (series->getModality() != "KO" && series->getModality() != "PR")
+    {
+        return;
+    }
+
+    QDir directory(LocalDatabaseManager::getStudyPath(study->getInstanceUID()) + "/" + series->getInstanceUID());
+
+    for (const QFileInfo &file : directory.entryInfoList(QDir::Files))
+    {
+        DICOMTagReader reader(file.absoluteFilePath());
+
+        if (!reader.canReadFile())
+        {
+            continue;
+        }
+
+        QString sopClass = reader.getValueAttributeAsQString(DICOMSOPClassUID);
+
+        if (sopClass == UIDKeyObjectSelectionDocumentStorage)
+        {
+            study->addKeyObjectSelection(KeyObjectSelection::fromDICOM(reader));
+        }
+        else if (sopClass == UIDGrayscaleSoftcopyPresentationStateStorage || sopClass == UIDColorSoftcopyPresentationStateStorage
+                 || sopClass == UIDPseudoColorSoftcopyPresentationStateStorage)
+        {
+            study->addPresentationState(GraphicPresentationState::fromDICOM(reader));
+        }
+    }
+}
+
 void saveEncapsulatedDocument(DatabaseConnection &databaseConnection, const EncapsulatedDocument *document)
 {
     LocalDatabaseEncapsulatedDocumentDAL encapsulatedDocumentDAL(databaseConnection);
@@ -699,6 +737,7 @@ Patient* LocalDatabaseManager::retrieve(const DicomMask &mask)
         }
 
         patient->getStudy(mask.getStudyInstanceUID())->addSeries(series);
+        loadAuxiliaryObjects(patient->getStudy(mask.getStudyInstanceUID()), series);
     }
 
     // Update last access date in study
