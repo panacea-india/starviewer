@@ -76,7 +76,7 @@ if mode == "cancelable":
 if mode == "outside":
     send({"type": "result", "outputs": [{"path": os.path.join(os.path.dirname(out), "escaped.txt"), "kind": "file"}]}); sys.exit(0)
 if mode == "relative":
-    send({"type": "result", "outputs": [{"path": "..\\..\\x.txt", "kind": "file"}]}); sys.exit(0)
+    send({"type": "result", "outputs": [{"path": "../../x.txt", "kind": "file"}]}); sys.exit(0)
 
 # ok: counts the files of the input, writes a summary in the output
 names = sorted(os.listdir(inp))
