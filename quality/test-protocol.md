@@ -787,6 +787,20 @@ Second part (the styles "Inside: air" and "Inside: contrast", listed first among
 
 Automatic tests: 5,240 passed, 0 failed, 9 skipped (`test_EndoscopyTransferFunction`, 7 more, and `test_FlythroughPath`, 11 more: even speed, look ahead, up direction perpendicular and turning little, vertical paths, repeated points, invalid input, length).
 
+### Run 32: Radiotherapy regions list and filled contours (Phase 3, item 9)
+
+Case `rt-structure-sets` with the CT of `ct-reference` (slice 50, through both spheres).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Without a structure set | Passed | "Radiotherapy regions..." says the images have none |
+| 2. List | Passed | SoftSphere (red, 15 contours) and BoneSphere (green, 7 contours), as in the truth of the case |
+| 3. Hide a region | Passed | Unchecking SoftSphere removes the red circle only |
+| 4. Fill | Passed | BoneSphere is filled with translucent green; the hidden SoftSphere stays hidden after the redraw |
+| 5. Two structure sets with the same region numbers | Not tried | They would share one entry (by design, documented) |
+
+No new automatic tests (the handler is tied to the viewer): 5,240 passed, 0 failed, 9 skipped, as before.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
