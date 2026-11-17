@@ -527,6 +527,24 @@ shrinking it, and to look at every voxel when the level is small, so that there 
 Not tried: real acquisitions (MR T1 with T2, CT with PET) and large volumes (512 x 512 x 300, where the sampling and the time matter), a start that is far from the
 answer (the centers of the volumes are aligned first, and nothing else), and what a user sees.
 
+### Run 15: registration in the viewer (Phase 3)
+
+The reference CT and the case `registration-pair` (the same CT moved by 6, -4, 3 mm in another frame of reference, with the contrast inverted) were opened in the 2D
+viewer, and "Register and fuse..." was chosen in the layers menu.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. First try | Failed, then fixed | The registration reported 5.6 degrees of rotation, where there was none, although the start (the centers of the volumes) was already the answer. The fused images showed the second volume turned. The tests of the earlier slice had not caught it, because their phantoms had no noise and cubic voxels |
+| 2. Cause | Found | On a body that is nearly round, with noise inside, the metric hardly changes with the rotation, and the large first steps of the optimizer moved the volume away from the right place and stopped there |
+| 3. Fix | Passed | Smaller steps at the fine levels, and each level is only kept if the metric on the same voxels is better than where the level started. Two tests were added with the geometry of the corpus (voxels of 1.6 x 1.6 x 6 mm, a body with noise, spheres, the L marker, air, inverted contrast and a shift): the first one failed with 4.6 degrees before the fix and passes |
+| 4. Second try | Passed | Rotation 0.0 degrees, translation 7.81025 mm (the true length is 7.81025 mm). The black L of the registered volume sits on the white L of the reference |
+| 5. Label | Passed after a fix | "REGISTERED: rotation 0.0 deg, translation 7.8 mm" shows in the upper left of the fused viewer. The first version stored the note in the viewers, and the layout replaces them, so it did not show. It is now kept with the volume (`RegisteredVolumes`) |
+
+Automatic tests: 5,016 passed, 0 failed, 9 skipped (the registration suite now has 14 checks, including `resample`).
+
+Not tried: real acquisitions, volumes with a rotation between them in a viewer (the unit tests have them), a large volume (the window is frozen while it runs, about
+40 s here for 256 x 256 x 100), cancelling, and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
