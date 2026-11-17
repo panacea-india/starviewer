@@ -13,6 +13,7 @@
  *************************************************************************************/
 
 #include "defaultmeasurementtypeselector.h"
+#include "image.h"
 
 namespace udg {
 
@@ -28,6 +29,12 @@ DefaultMeasurementTypeSelector::~DefaultMeasurementTypeSelector()
 
 MeasurementManager::MeasurementType DefaultMeasurementTypeSelector::getDefaultMeasurementType(const Image *image)
 {
+    // Pixels that the user sized by hand are calibrated, whatever the modality
+    if (image && image->isManuallyCalibrated())
+    {
+        return MeasurementManager::Calibrated;
+    }
+
     execute(image);
     return m_defaultMeasurementType;
 }

@@ -27,6 +27,7 @@ set(SOURCES
     colortransferfunction.cpp
     computezspacingpostprocessor.cpp
     gantrytiltcorrector.cpp
+    calibrationtool.cpp
     imagefilters.cpp
     ziparchive.cpp
     rtstructureset.cpp

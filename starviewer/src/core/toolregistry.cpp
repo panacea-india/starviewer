@@ -46,6 +46,7 @@
 #include "ellipticalroitool.h"
 #include "spherevoitool.h"
 #include "distance3dtool.h"
+#include "calibrationtool.h"
 #include "curvedmprtool.h"
 #include "automaticsynchronizationtool.h"
 #include "magnifyingglasstool.h"
@@ -191,6 +192,10 @@ Tool* ToolRegistry::getTool(const QString &toolName, QViewer *viewer)
     else if (toolName == "CurvedMprTool")
     {
         tool = new CurvedMprTool(viewer);
+    }
+    else if (toolName == "CalibrationTool")
+    {
+        tool = new CalibrationTool(viewer);
     }
     else if (toolName == "AutomaticSynchronizationTool")
     {
@@ -428,6 +433,13 @@ QAction* ToolRegistry::getToolAction(const QString &toolName)
         toolAction->setShortcuts(ShortcutManager::getShortcuts(Shortcuts::TransDifferenceTool));
         statusTip = tr("Enable/Disable the translation difference tool");
         toolTip = toolAction->text();
+    }
+    else if (toolName == "CalibrationTool")
+    {
+        toolAction->setText(tr("Calibrate"));
+        toolAction->setIcon(QIcon(":/images/icons/kruler-west.svg"));
+        statusTip = tr("Click the two ends of something of known size, in images that have no pixel size, and give its length in mm");
+        toolTip = tr("Calibrate: set the size of the pixels by hand");
     }
     else if (toolName == "CurvedMprTool")
     {

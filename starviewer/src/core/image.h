@@ -67,6 +67,10 @@ public:
     /// Assignar/Obtenir l'espaiat dels pixels
     void setPixelSpacing(double x, double y);
     void setPixelSpacing(const PixelSpacing2D &spacing);
+
+    /// True if the user gave the size of the pixels by measuring something of known size (see CalibrationTool). The measurements are then "calibrated".
+    bool isManuallyCalibrated() const { return m_manuallyCalibrated; }
+    void setManuallyCalibrated(bool calibrated) { m_manuallyCalibrated = calibrated; }
     PixelSpacing2D getPixelSpacing() const;
 
     /// Set/Get Imager Pixel Spacing
@@ -317,6 +321,7 @@ private:
     // Image Plane Module C.6.7.2
     /// Distància física entre el centre de cada píxel (row,column) en mm. Veure 10.7.1.3. (0028,0030) Tipus 1
     PixelSpacing2D m_pixelSpacing;
+    bool m_manuallyCalibrated = false;
     
     /// Imager Pixel spacing (0018,1164)
     /// Physical distance measured at the front plane of the Image Receptor housing between the center of each pixel.
