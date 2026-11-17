@@ -124,6 +124,7 @@ truth for each case.
 | `enhanced-ct` | Enhanced multi-frame geometry |
 | `encapsulated-pdf` | Document display |
 | `presentation-states` | Grayscale softcopy presentation states in the study of `ct-reference`: Annotations (a line between the fiducial dots of image 20, a circle on the soft tissue sphere of image 50, and a rectangle at 25% to 75% of image 70 in display units), and one with a shutter, a rotation and a missing image, which must give a warning |
+| `structured-reports` | Enhanced SR documents in the study of `ct-reference`: a final report (complete and verified) and a draft (partial, unverified) whose text has markup in it, which must be shown as text. Both have a measurement and a reference to image 50 |
 | `key-objects` | Key Object Selection Documents in the study of `ct-reference`: Of Interest (images 20 and 45), Rejected for Quality Reasons (60), and For Teaching with one missing image (10 and a CT that does not exist), which must give a warning |
 | `transfer-syntaxes/*` | Decoding: 14 variants, with lossless ones checked for exact round trip by another decoder |
 | `broken/*` | Failing visibly: missing slices, truncated data, wrong pixel length, not DICOM |

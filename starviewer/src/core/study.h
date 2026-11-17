@@ -22,6 +22,7 @@
 #include "dicomsource.h"
 #include "keyobjectselection.h"
 #include "graphicpresentationstate.h"
+#include "structuredreport.h"
 
 namespace udg {
 
@@ -152,6 +153,12 @@ public:
     /// Returns the Softcopy Presentation States of the study that refer to the instance with the given SOP Instance UID.
     QList<GraphicPresentationState> getPresentationStatesReferencing(const QString &sopInstanceUid) const;
 
+    /// Adds a Structured Report to the study. It returns false, and does not add it, if it is null or the study has it already.
+    bool addStructuredReport(const StructuredReport &report);
+
+    /// Returns the Structured Reports of the study.
+    const QList<StructuredReport>& getStructuredReports() const;
+
     /// Ens diu si existeix una serie amb aquest uid a la llista
     /// @param uid l'uid que busquem
     /// @return Cert si existeix, fals altrament
@@ -255,6 +262,9 @@ private:
 
     /// The Softcopy Presentation States of the study
     QList<GraphicPresentationState> m_presentationStates;
+
+    /// The Structured Reports of the study
+    QList<StructuredReport> m_structuredReports;
 
     /// L'entitat Patient a la qual pertany aquest estudi
     Patient *m_parentPatient;

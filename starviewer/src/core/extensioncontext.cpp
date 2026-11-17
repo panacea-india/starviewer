@@ -101,6 +101,11 @@ DicomEntityFlags ExtensionContext::getDicomEntities(QList<Study*> studies) const
 
     foreach (Study *study, studies)
     {
+        if (!study->getStructuredReports().isEmpty())
+        {
+            entities.setFlag(DicomEntity::StructuredReport);
+        }
+
         foreach (Series *series, study->getSeries())
         {
             if (series->hasImages())

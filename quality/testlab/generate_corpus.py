@@ -32,6 +32,7 @@ MG_PRESENTATION_STORAGE = "1.2.840.10008.5.1.4.1.1.1.2"
 ENCAPSULATED_PDF_STORAGE = "1.2.840.10008.5.1.4.1.1.104.1"
 KEY_OBJECT_SELECTION_STORAGE = "1.2.840.10008.5.1.4.1.1.88.59"
 GRAYSCALE_PRESENTATION_STATE_STORAGE = "1.2.840.10008.5.1.4.1.1.11.1"
+ENHANCED_SR_STORAGE = "1.2.840.10008.5.1.4.1.1.88.22"
 
 STUDY_DATE = "20260101"
 INJECTION_TIME = "090000"
@@ -418,6 +419,94 @@ def generate_presentation_states(writer):
                 "overlay": "PS: ROTATED_WITH_A_S, then PS NOT FULLY APPLIED: Display shutter, Rotation or flip",
                 "warning": "refers to 1 of its 2 images that are not loaded, and asks for what is not applied: Display shutter, Rotation or flip",
             },
+        },
+    }
+
+
+def text_item(meaning, code, text, scheme="LN"):
+    item = Dataset()
+    item.RelationshipType = "CONTAINS"
+    item.ValueType = "TEXT"
+    item.ConceptNameCodeSequence = Sequence([code_item(code, meaning, scheme)])
+    item.TextValue = text
+    return item
+
+
+def code_item(value, meaning, scheme="DCM"):
+    item = Dataset()
+    item.CodeValue = value
+    item.CodingSchemeDesignator = scheme
+    item.CodeMeaning = meaning
+    return item
+
+
+def write_structured_report(writer, name, title, findings, completion, verified):
+    """An Enhanced SR in the study of the reference CT: text findings, one measurement and one image reference."""
+    case = "ct-reference"
+    ds = writer.base(case, name, 0, ENHANCED_SR_STORAGE, "SR", "PHANTOM^CT", "QA-CT-001", title)
+    ds.SeriesNumber = 970 + len(name)
+    ds.CompletionFlag = completion
+    ds.VerificationFlag = "VERIFIED" if verified else "UNVERIFIED"
+    if verified:
+        observer = Dataset()
+        observer.VerificationDateTime = "20260101120000"
+        observer.VerifyingObserverName = "VERIFIER^SYNTHETIC"
+        observer.VerifyingObserverIdentificationCodeSequence = Sequence([])
+        observer.VerifyingOrganization = "SYNTHETIC"
+        ds.VerifyingObserverSequence = Sequence([observer])
+    ds.ReferencedRequestSequence = Sequence([])
+    ds.PerformedProcedureCodeSequence = Sequence([])
+    ds.ReferencedPerformedProcedureStepSequence = Sequence([])
+    ds.ValueType = "CONTAINER"
+    ds.ConceptNameCodeSequence = Sequence([code_item("11528-7", title, "LN")])
+    ds.ContinuityOfContent = "SEPARATE"
+    content = [text_item("Findings", "121070", findings, "DCM")]
+
+    measurement = Dataset()
+    measurement.RelationshipType = "CONTAINS"
+    measurement.ValueType = "NUM"
+    measurement.ConceptNameCodeSequence = Sequence([code_item("M-02550", "Diameter", "SRT")])
+    value = Dataset()
+    value.NumericValue = "40"
+    value.MeasurementUnitsCodeSequence = Sequence([code_item("mm", "millimeter", "UCUM")])
+    measurement.MeasuredValueSequence = Sequence([value])
+    content.append(measurement)
+
+    image = Dataset()
+    image.RelationshipType = "CONTAINS"
+    image.ValueType = "IMAGE"
+    image.ConceptNameCodeSequence = Sequence([code_item("121112", "Source of Measurement", "DCM")])
+    reference = Dataset()
+    reference.ReferencedSOPClassUID = CT_STORAGE
+    reference.ReferencedSOPInstanceUID = uid("ct-reference", "ct", 50)
+    image.ReferencedSOPSequence = Sequence([reference])
+    content.append(image)
+    ds.ContentSequence = Sequence(content)
+    evidence_series = Dataset()
+    evidence_series.SeriesInstanceUID = uid("ct-reference", "ct", "series")
+    evidence_series.ReferencedSOPSequence = Sequence([reference])
+    evidence_study = Dataset()
+    evidence_study.StudyInstanceUID = uid("ct-reference", "study")
+    evidence_study.ReferencedSeriesSequence = Sequence([evidence_series])
+    ds.CurrentRequestedProcedureEvidenceSequence = Sequence([evidence_study])
+    writer.save(ds, "structured-reports", f"{name}.dcm")
+
+
+def generate_structured_reports(writer):
+    write_structured_report(writer, "sr-final", "Radiology Report",
+                            "Soft tissue sphere on the patient right, 40 mm. No other finding.", "COMPLETE", True)
+    # The text has markup in it, which has to be shown as text and never obeyed
+    write_structured_report(writer, "sr-draft", "Radiology Report Draft",
+                            "DRAFT: <b>not final</b> <script>alert(1)</script> & more", "PARTIAL", False)
+    writer.cases["structured-reports"] = {
+        "modality": "SR",
+        "instances": 2,
+        "study": "the study of ct-reference",
+        "documents": {
+            "sr-final": {"title": "Radiology Report", "final": True, "text": "Soft tissue sphere on the patient right, 40 mm. No other finding.",
+                         "measurement": "Diameter 40 mm"},
+            "sr-draft": {"title": "Radiology Report Draft", "final": False, "text": "DRAFT: <b>not final</b> <script>alert(1)</script> & more",
+                         "notice": "This report is not final: completion PARTIAL, verification UNVERIFIED."},
         },
     }
 
@@ -925,7 +1014,7 @@ def main():
         shutil.rmtree(root)
     root.mkdir(parents=True)
     writer = Writer(root)
-    for generator in (generate_ct, generate_key_objects, generate_presentation_states, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         generator(writer)
         print(f"generated {generator.__name__.removeprefix('generate_')}", flush=True)

@@ -26,7 +26,7 @@ namespace udg {
  */
 struct DicomEntity
 {
-    enum Flag { Image = 0x1, EncapsulatedDocument = 0x2 };
+    enum Flag { Image = 0x1, EncapsulatedDocument = 0x2, StructuredReport = 0x4 };
 };
 
 Q_DECLARE_FLAGS(DicomEntityFlags, DicomEntity::Flag)

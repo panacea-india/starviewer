@@ -1,0 +1,4 @@
+<RCC>
+    <qresource prefix="/extensions/StructuredReportExtension">
+    </qresource>
+</RCC>

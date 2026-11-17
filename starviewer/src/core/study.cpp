@@ -656,4 +656,28 @@ QList<GraphicPresentationState> Study::getPresentationStatesReferencing(const QS
     return states;
 }
 
+bool Study::addStructuredReport(const StructuredReport &report)
+{
+    if (report.isNull())
+    {
+        return false;
+    }
+
+    for (const StructuredReport &existing : m_structuredReports)
+    {
+        if (existing.getSopInstanceUid() == report.getSopInstanceUid())
+        {
+            return false;
+        }
+    }
+
+    m_structuredReports << report;
+    return true;
+}
+
+const QList<StructuredReport>& Study::getStructuredReports() const
+{
+    return m_structuredReports;
+}
+
 }

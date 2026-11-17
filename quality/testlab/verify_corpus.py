@@ -8,6 +8,8 @@ means nothing. Values are read back from the DICOM files and recomputed.
 import argparse
 import json
 import math
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -169,6 +171,22 @@ def verify_presentation_states(root, cases):
     check(edge_inside > 1080 and edge_outside < 1070, "gsps circle follows the edge of the soft tissue sphere")
 
 
+def verify_structured_reports(root, cases):
+    case = cases["structured-reports"]
+    study_uid = str(read_series(root / "ct-reference")[0].StudyInstanceUID)
+    dsr2html = shutil.which("dsr2html")
+    for name, truth in case["documents"].items():
+        path = root / "structured-reports" / f"{name}.dcm"
+        ds = pydicom.dcmread(path)
+        check(ds.Modality == "SR" and str(ds.StudyInstanceUID) == study_uid, f"{name}: an SR in the study of the reference CT")
+        check(ds.ConceptNameCodeSequence[0].CodeMeaning == truth["title"], f"{name}: title {truth['title']}")
+        check((ds.CompletionFlag == "COMPLETE" and ds.VerificationFlag == "VERIFIED") == truth["final"], f"{name}: final is {truth['final']}")
+        if dsr2html:
+            result = subprocess.run([dsr2html, str(path)], capture_output=True, text=True)
+            check(result.returncode == 0 and "Findings" in result.stdout, f"{name}: DCMTK renders it")
+            check("<script>" not in result.stdout, f"{name}: the markup in the text is escaped")
+
+
 def verify_broken(root):
     missing = read_series(root / "broken" / "missing-slice")
     positions = [float(s.ImagePositionPatient[2]) for s in missing]
@@ -193,6 +211,7 @@ def main():
     verify_transfer_syntaxes(root, cases)
     verify_key_objects(root, cases)
     verify_presentation_states(root, cases)
+    verify_structured_reports(root, cases)
     verify_broken(root)
     print(f"\n{'FAILED: ' + str(len(failures)) if failures else 'All checks passed'}")
     sys.exit(1 if failures else 0)

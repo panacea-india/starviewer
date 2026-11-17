@@ -129,6 +129,9 @@ set(SOURCES
     itemmenu.cpp
     keyimagenotefillerstep.cpp
     keyobjectselection.cpp
+    structuredreport.cpp
+    structuredreportfillerstep.cpp
+    structuredreportrenderer.cpp
     graphicpresentationstate.cpp
     leanbodymassformula.cpp
     leanbodymassformulacalculator.cpp
@@ -479,6 +482,7 @@ target_link_dcmtk(core
     dcmdata
     dcmimage
     dcmimgle
+    dcmsr
     ofstd
 )
 

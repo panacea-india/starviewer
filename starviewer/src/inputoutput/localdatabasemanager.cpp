@@ -23,6 +23,7 @@
 #include "harddiskinformation.h"
 #include "image.h"
 #include "keyobjectselection.h"
+#include "structuredreport.h"
 #include "inputoutputsettings.h"
 #include "localdatabasedisplayshutterdal.h"
 #include "localdatabaseencapsulateddocumentdal.h"
@@ -166,7 +167,7 @@ void saveImages(DatabaseConnection &databaseConnection, const QList<Image*> &ima
 // in the folder of their series. They are read again when the study is loaded.
 void loadAuxiliaryObjects(Study *study, const Series *series)
 {
-    if (series->getModality() != "KO" && series->getModality() != "PR")
+    if (series->getModality() != "KO" && series->getModality() != "PR" && series->getModality() != "SR")
     {
         return;
     }
@@ -187,6 +188,10 @@ void loadAuxiliaryObjects(Study *study, const Series *series)
         if (sopClass == UIDKeyObjectSelectionDocumentStorage)
         {
             study->addKeyObjectSelection(KeyObjectSelection::fromDICOM(reader));
+        }
+        else if (StructuredReport::isStructuredReportClass(sopClass))
+        {
+            study->addStructuredReport(StructuredReport::fromDICOM(reader));
         }
         else if (sopClass == UIDGrayscaleSoftcopyPresentationStateStorage || sopClass == UIDColorSoftcopyPresentationStateStorage
                  || sopClass == UIDPseudoColorSoftcopyPresentationStateStorage)
