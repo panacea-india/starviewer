@@ -783,7 +783,9 @@ Case `curved-tube` (the winding tube, slice 32), on the test VM with the softwar
 | 4. What is seen inside | **Not useful yet** | Inside the volume the pictures are a gray gradient: the default rendering styles do not make the lumen transparent and show its wall. A style for the inside is needed before the flight is useful to a person |
 | 5. Shortcuts | Passed | Ctrl+E in the 2D viewer does nothing (no extension registers the clear-annotations tool; "Exams" is in the Lite build only): the shared default keys are not a problem in the full build |
 
-Automatic tests: 5,233 passed, 0 failed, 9 skipped (`test_FlythroughPath`, 11 more: even speed, look ahead, up direction perpendicular and turning little, vertical paths, repeated points, invalid input, length).
+Second part (the styles "Inside: air" and "Inside: contrast", listed first among the rendering styles): applied to the tube and the flight written as 12 pictures again. The pictures are still a faint gray gradient, with a trace of an edge in one of them. With the software renderer of the VM the camera inside a volume is not a reliable test, so the styles are **not confirmed visually**: to look at on a computer with a GPU, with a CT of an airway or a vessel with contrast.
+
+Automatic tests: 5,240 passed, 0 failed, 9 skipped (`test_EndoscopyTransferFunction`, 7 more, and `test_FlythroughPath`, 11 more: even speed, look ahead, up direction perpendicular and turning little, vertical paths, repeated points, invalid input, length).
 
 ### Fuzzing runs
 
