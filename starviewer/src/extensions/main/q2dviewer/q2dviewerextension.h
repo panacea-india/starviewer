@@ -151,6 +151,10 @@ private slots:
     void printCurrentImage(bool toPdf);
     /// Shows the volume of the selected viewer smoothed (1), sharpened (2) or as it was loaded (0). The images are not changed, and are marked as filtered.
     void applyImageFilter(int kind);
+    /// Asks for the mask image (and whether to move it to fit each image) and shows the volume of the selected viewer with the mask taken away from every image (digital subtraction).
+    void applyMaskSubtraction();
+    /// Shows the target volume in the viewer in place of the shown one, and deletes the shown one if it was a derived volume.
+    void showDerivedVolume(Q2DViewerWidget *viewerWidget, Volume *shown, Volume *target);
     
     /// Mostrar la pantalla de Dicom dump, amb informació de la imatge que es visualitza en aquell moment
     void showDicomDumpCurrentDisplayedImage();

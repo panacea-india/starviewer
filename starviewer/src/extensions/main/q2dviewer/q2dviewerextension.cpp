@@ -18,6 +18,7 @@
 #include <QInputDialog>
 #include "registeredvolumes.h"
 #include "imagefilters.h"
+#include "digitalsubtraction.h"
 #include "movieencoder.h"
 #include <QImage>
 #include <QPainter>
@@ -184,6 +185,7 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     viewerInformationMenu->addSeparator();
     viewerInformationMenu->addAction(tr("Smooth the images"), this, [this]() { applyImageFilter(1); });
     viewerInformationMenu->addAction(tr("Sharpen the images"), this, [this]() { applyImageFilter(2); });
+    viewerInformationMenu->addAction(tr("Subtract a mask image (DSA)..."), this, &Q2DViewerExtension::applyMaskSubtraction);
     viewerInformationMenu->addAction(tr("Show the images as loaded"), this, [this]() { applyImageFilter(0); });
     viewerInformationMenu->addSeparator();
     viewerInformationMenu->addAction(tr("Export a movie of the slices..."), this, &Q2DViewerExtension::exportMovie);
@@ -1045,21 +1047,85 @@ void Q2DViewerExtension::applyImageFilter(int kind)
         RegisteredVolumes::add(target, QString("FILTER:") + (kind == 1 ? tr("smoothed") : tr("sharpened")));
     }
 
+    showDerivedVolume(selectedViewerWidget, shown, target);
+}
+
+void Q2DViewerExtension::showDerivedVolume(Q2DViewerWidget *viewerWidget, Volume *shown, Volume *target)
+{
     if (target == shown)
     {
         return;
     }
 
-    int slice = selectedViewerWidget->getViewer()->getCurrentSlice();
-    selectedViewerWidget->getViewer()->setInput(target);
-    selectedViewerWidget->getViewer()->setSlice(slice);
+    int slice = viewerWidget->getViewer()->getCurrentSlice();
+    viewerWidget->getViewer()->setInput(target);
+    viewerWidget->getViewer()->setSlice(slice);
 
-    // The filtered volume that is no longer shown is not needed
+    // The derived volume that is no longer shown is not needed
     if (m_filteredSources.contains(shown))
     {
         m_filteredSources.remove(shown);
         delete shown;
     }
+}
+
+void Q2DViewerExtension::applyMaskSubtraction()
+{
+    Q2DViewerWidget *selectedViewerWidget = m_workingArea->getSelectedViewer();
+    Volume *shown = selectedViewerWidget ? selectedViewerWidget->getViewer()->getMainInput() : nullptr;
+
+    if (!shown)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Select a viewer that shows a volume first."));
+        return;
+    }
+
+    // The mask is taken from the images that were loaded, also when a filtered or subtracted volume is shown
+    Volume *source = m_filteredSources.value(shown, shown);
+    int slices = source->getVtkData()->GetDimensions()[2];
+
+    if (slices < 2 || source->getNumberOfPhases() > 1)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("The subtraction needs a series of at least two images (a run of an angiography), without phases."));
+        return;
+    }
+
+    bool accepted = false;
+    int mask = QInputDialog::getInt(this, tr("Subtract a mask image"), tr("Number of the image to take away from all the others (the one before the contrast):"), 1, 1, slices, 1, &accepted);
+
+    if (!accepted)
+    {
+        return;
+    }
+
+    bool move = QMessageBox::question(this, tr("Subtract a mask image"), tr("Move the mask to fit each image, up to 10 pixels? Use it if the patient or the table moved. "
+                                                                              "It is chosen by the least difference in the center of the image, so it can be wrong if the contrast fills most of it."),
+                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes;
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QVector<QPoint> shifts;
+
+    if (move)
+    {
+        shifts = DigitalSubtraction::findShifts(source->getVtkData(), mask - 1, 10);
+    }
+
+    vtkSmartPointer<vtkImageData> subtracted = DigitalSubtraction::subtract(source->getVtkData(), mask - 1, shifts);
+    QApplication::restoreOverrideCursor();
+
+    if (!subtracted)
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("These images cannot be subtracted (only gray images can)."));
+        return;
+    }
+
+    Volume *target = new Volume(this);
+    target->setImages(source->getImages());
+    target->setData(subtracted);
+    m_filteredSources.insert(target, source);
+    RegisteredVolumes::add(target, QString("FILTER:") + tr("subtracted, mask image %1%2").arg(mask).arg(move ? tr(", moved to fit") : QString()));
+
+    showDerivedVolume(selectedViewerWidget, shown, target);
 }
 
 void Q2DViewerExtension::registerAndFuse()

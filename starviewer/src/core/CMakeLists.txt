@@ -29,6 +29,7 @@ set(SOURCES
     gantrytiltcorrector.cpp
     shortcutconfiguration.cpp
     timeintensitycurve.cpp
+    digitalsubtraction.cpp
     timeintensitycurvetool.cpp
     qtimeintensitycurvedialog.cpp
     calibrationtool.cpp

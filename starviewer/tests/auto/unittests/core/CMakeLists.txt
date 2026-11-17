@@ -72,6 +72,7 @@ set(SOURCES
     test_savedview.cpp
     test_shortcutconfiguration.cpp
     test_timeintensitycurve.cpp
+    test_digitalsubtraction.cpp
     test_calibrationtool.cpp
     test_imagefilters.cpp
     test_ziparchive.cpp
