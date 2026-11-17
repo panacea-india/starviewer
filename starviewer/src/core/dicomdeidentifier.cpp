@@ -18,6 +18,8 @@
 
 #include <QCryptographicHash>
 #include <QDate>
+#include <QPair>
+#include <QRegExp>
 #include <QSet>
 #include <QUuid>
 
@@ -93,6 +95,11 @@ bool isFixedUid(const DcmElement *element, const QString &value)
     return value.startsWith("1.2.840.10008.");
 }
 
+}
+
+DicomDeidentifier::DicomDeidentifier()
+    : m_salt(QUuid::createUuid().toString())
+{
 }
 
 DicomDeidentifier::DicomDeidentifier(const Options &options, const QString &salt)

@@ -5,6 +5,8 @@
 
 #include "autotest.h"
 
+#include <functional>
+
 #include <QDir>
 #include <QJsonArray>
 #include <QJsonDocument>

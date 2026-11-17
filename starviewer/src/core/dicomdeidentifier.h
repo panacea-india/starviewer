@@ -63,7 +63,8 @@ public:
     };
 
     /// The salt makes the new UIDs and codes different from the ones of another run; with the same salt a run gives the same ones (useful for tests). An empty salt is a random one.
-    explicit DicomDeidentifier(const Options &options = Options(), const QString &salt = QString());
+    DicomDeidentifier();
+    explicit DicomDeidentifier(const Options &options, const QString &salt = QString());
 
     /// De-identifies the dataset in place (all its sequences too).
     Report process(DcmDataset *dataset);

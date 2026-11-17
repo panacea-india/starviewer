@@ -14,6 +14,8 @@
 
 #include "externalmodule.h"
 
+#include <algorithm>
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QElapsedTimer>
