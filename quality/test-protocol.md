@@ -679,6 +679,17 @@ The reference CT was opened and "Smooth the images" chosen in the layers menu of
 
 Automatic tests: 5,149 passed, 0 failed, 9 skipped, which is 27 more than before (`test_ImageFilters`: 10, for a constant image, the sum and peak of an impulse, slices not mixed, the use of the spacing, the edge of an unsharp mask, the range of the type, bad input, and the original left unchanged; `test_ZipArchive`: 17, run 22).
 
+### Run 24: Movie of the slices of the 2D viewer (Phase 4)
+
+"Export a movie of the slices..." was chosen for the reference CT (100 slices) and a folder.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Pictures | Passed | 100 pictures in a new folder `movie_<date>_<time>`; the first and the 51st differ; the viewer went back to its slice |
+| 2. Video | Not tried | ffmpeg is not on this machine; the message said so and that the pictures can be joined by any editor |
+
+Not tried: the MP4 itself (it needs ffmpeg with libx264), a viewer that shows a fusion or a filtered volume, and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
