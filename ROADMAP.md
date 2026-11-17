@@ -68,7 +68,7 @@ build and test baseline. It was written on 2026-10-31 against branch `phase0`
 | Structured reports | **Thumbnail only** | Yes | Not listed | Yes | Yes |
 | DICOM video (MPEG-2/4) | **No** | Yes | Not listed | Yes | Not listed |
 | Presentation states (GSPS) | **Loader is a stub** | Not listed | Not listed | Not listed | Not listed |
-| Key images | **KO loader is a stub** | Yes | Not listed | Not listed | Not listed |
+| Key images | **Key object selections load and are marked (Phase 2, first slice); GSPS, SR and video are still stubs or missing** | Yes | Not listed | Not listed | Not listed |
 | DICOM overlays | Yes | Not listed | Not listed | Yes | Yes |
 | Tag browser | Yes | Yes | Not listed | Yes | Yes |
 | Interface languages | 3 | 11 | Not listed | 30+ | Not listed |
@@ -258,7 +258,7 @@ Orthanc, every transfer syntax in the corpus decodes, and fuzzing runs regularly
 
 - **Structured reports:** render them, instead of showing only a thumbnail.
 - **Presentation states:** implement GSPS (`presentationstatefillerstep.cpp`).
-- **Key images:** implement key image notes (`keyimagenotefillerstep.cpp`).
+- **Key images:** implement key image notes (`keyimagenotefillerstep.cpp`). **Started:** Key Object Selection Documents are read (`KeyObjectSelection`), kept in their study, and the images they refer to show "KEY IMAGE: <title>" or "REJECTED: <title>" in the 2D viewer. A document that refers to images that are not loaded gives a warning. Still to do: the frames of a multiframe reference, a more prominent marker for rejections, a list of the key images to jump between, and key images from the other studies of the patient.
 - **DICOM video:** play MPEG-2 and MPEG-4 objects. Choosing a decoder is a
   licence and patent decision as well as a technical one, because it affects
   open core distribution later.
