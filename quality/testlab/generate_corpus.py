@@ -1059,6 +1059,56 @@ def generate_xa(writer):
     }
 
 
+DSA_VESSEL_DROP = 60
+
+
+DSA_SHIFTS = [(0, 0), (0, 0), (3, 1), (3, 1), (-2, 2), (-2, 2), (0, -3), (4, 0), (0, 0), (1, 1)]
+
+
+def generate_dsa_run(writer):
+    """A run of 10 frames (XA, 8 bit) for the digital subtraction: a background of bars and a ring (the bones), a vessel that fills with contrast from the left, frame by frame,
+    and a patient that moves: the background of frame f is moved by DSA_SHIFTS[f] pixels (x, y) from the mask, which is frame 1. The vessel is darker than the background by
+    DSA_VESSEL_DROP where it is full."""
+    case = "dsa-run"
+    rows = columns = 256
+    frames = len(DSA_SHIFTS)
+    y, x = np.mgrid[0:rows, 0:columns]
+    video = np.zeros((frames, rows, columns), dtype=np.uint8)
+    for f, (dx, dy) in enumerate(DSA_SHIFTS):
+        xs = x - dx
+        ys = y - dy
+        image = 150 + 30 * (((xs // 16) + (ys // 16)) % 2) + 20 * ((np.hypot(xs - 128, ys - 128) // 6).astype(int) % 3)
+        vessel = (np.abs(ys - 128) < 5) & (xs > 20) & (xs < 20 + (f + 1) * 22)
+        image = np.where(vessel, image - DSA_VESSEL_DROP, image)
+        video[f] = np.clip(image, 0, 255).astype(np.uint8)
+    ds = writer.base(case, "dsa", 0, XA_STORAGE, "XA", "PHANTOM^DSA", "QA-DSA-001", "Run for subtraction")
+    ds.ImageType = ["ORIGINAL", "PRIMARY", "SINGLE PLANE"]
+    monochrome(ds)
+    ds.NumberOfFrames = frames
+    ds.FrameIncrementPointer = (0x0018, 0x1063)
+    ds.FrameTime = 100.0
+    ds.ImagerPixelSpacing = [0.3, 0.3]
+    ds.DistanceSourceToDetector = 1000
+    ds.DistanceSourceToPatient = 800
+    ds.PositionerPrimaryAngle = 0
+    ds.PositionerSecondaryAngle = 0
+    ds.Rows, ds.Columns = rows, columns
+    ds.BitsAllocated = 8
+    ds.BitsStored = 8
+    ds.HighBit = 7
+    ds.PixelRepresentation = 0
+    ds.PixelData = video.tobytes()
+    writer.save(ds, case, "DSA0000.dcm")
+    writer.cases[case] = {
+        "modality": "XA",
+        "instances": 1,
+        "frames": frames,
+        "shifts_px": DSA_SHIFTS,
+        "vessel_drop": DSA_VESSEL_DROP,
+        "expected": "Subtract a mask image: with mask 1 and no movement, the subtracted frames show the vessel as a line of -60 in frames without movement (3 and 4 have the background shifted: they show the pattern too); with the mask moved to fit, the background goes away in every frame and the vessel stays",
+    }
+
+
 def generate_mg(writer):
     case = "mg-monochrome1"
     rows, columns = 1280, 1024
@@ -1344,7 +1394,7 @@ def main():
     root.mkdir(parents=True)
     writer = Writer(root)
     video_file = arguments.video
-    for generator in (generate_ct, generate_rtstruct, generate_curved_tube, generate_gantry_tilt, generate_dynamic, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_rtstruct, generate_curved_tube, generate_gantry_tilt, generate_dynamic, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_dsa_run, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         if generator is generate_videos:
             generator(writer, video_file)

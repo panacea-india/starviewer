@@ -741,6 +741,20 @@ Case `dynamic-ct` (new: 6 slices of 5 phases, a disc that takes up contrast: 0, 
 
 Automatic tests: 5,175 passed, 0 failed, 9 skipped (`test_TimeIntensityCurve`, 9 more); the corpus has 1 case more and `verify_corpus.py` checks it.
 
+### Run 29: Digital subtraction (Phase 4)
+
+Case `dsa-run` (new: 10 XA frames, a moving background and a vessel that fills).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Menu | Passed | "Subtract a mask image (DSA)..." in the layers menu; asks for the mask number, then whether to move the mask |
+| 2. Mask 1, not moved | Passed | Frame 1 is flat (the mask minus itself); frame 10 shows the vessel and the ghost edges of the 1 pixel movement. The marker reads "FILTERED: subtracted, mask image 1 (not for measuring values)" |
+| 3. Mask 1, moved to fit | Passed | Frame 10 shows only the vessel on a flat background; the marker adds "moved to fit". Only frame 10 (shift 1, 1) was looked at on screen: the shifts up to (-4, 2) are covered by the unit tests |
+| 4. "Show the images as loaded" | Not tried after the subtraction | It is the same path as for the filters |
+| 5. Series with phases or one image | Not tried on screen | The message is in the code, not covered by a test |
+
+Automatic tests: 5,186 passed, 0 failed, 9 skipped (`test_DigitalSubtraction`: 11 more); the corpus has 1 case more, checked by `verify_corpus.py`.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

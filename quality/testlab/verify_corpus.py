@@ -256,6 +256,24 @@ def verify_dynamic(root, cases):
     check(ok, "dynamic CT: the center of the disc follows the curve in every phase and every slice")
 
 
+def verify_dsa_run(root, cases):
+    truth = cases["dsa-run"]
+    files = list((root / "dsa-run").glob("*.dcm"))
+    check(len(files) == truth["instances"], "dsa run is one multiframe image")
+    frames = pydicom.dcmread(files[0]).pixel_array.astype(int)
+    check(frames.shape[0] == truth["frames"], "dsa run has 10 frames")
+    # With the known shift of each frame, the background of the frame is the one of the mask: only the vessel is different
+    ok = True
+    mask = frames[1]
+    for f, (dx, dy) in enumerate(truth["shifts_px"]):
+        moved = np.roll(np.roll(mask, dy, axis=0), dx, axis=1)
+        difference = frames[f] - moved
+        inner = difference[20:-20, 20:-20]
+        # only the vessel (a thin band) differs, by -drop
+        ok = ok and set(np.unique(inner)) <= {0, -truth["vessel_drop"], truth["vessel_drop"]}
+    check(ok, "dsa run: after taking the movement away, only the vessel differs from the mask")
+
+
 def verify_gantry_tilt(root, cases):
     truth = cases["gantry-tilt"]
     series = read_series(root / "gantry-tilt")
@@ -323,6 +341,7 @@ def main():
     verify_registration_pair(root, cases)
     verify_curved_tube(root, cases)
     verify_dynamic(root, cases)
+    verify_dsa_run(root, cases)
     verify_gantry_tilt(root, cases)
     verify_rtstruct(root, cases)
     verify_videos(root, cases)
