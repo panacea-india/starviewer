@@ -4,6 +4,9 @@
  */
 
 #include "autotest.h"
+
+#include <algorithm>
+#include <array>
 #include "rtregionstatistics.h"
 
 #include <cmath>

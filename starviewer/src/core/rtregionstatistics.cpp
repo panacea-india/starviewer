@@ -125,7 +125,8 @@ RtRegionStatistics::Result RtRegionStatistics::compute(const RtStructureSet::Roi
         }
 
         double position = n[0] * contour.points[0][0] + n[1] * contour.points[0][1] + n[2] * contour.points[0][2];
-        items.append({&contour, 0.5 * length, static_cast<qint64>(std::llround(position * 100.0))});
+        Item item = {&contour, 0.5 * length, static_cast<qint64>(std::llround(position * 100.0))};
+        items.append(item);
         result.contours++;
     }
 

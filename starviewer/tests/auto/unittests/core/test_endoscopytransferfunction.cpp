@@ -4,6 +4,8 @@
  */
 
 #include "autotest.h"
+
+#include <cmath>
 #include "endoscopytransferfunction.h"
 
 using namespace udg;

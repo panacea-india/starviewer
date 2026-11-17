@@ -4,6 +4,8 @@
  */
 
 #include "autotest.h"
+
+#include <array>
 #include "flythroughpath.h"
 
 #include <cmath>

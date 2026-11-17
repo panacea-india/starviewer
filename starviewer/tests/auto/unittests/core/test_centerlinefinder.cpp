@@ -4,6 +4,8 @@
  */
 
 #include "autotest.h"
+
+#include <algorithm>
 #include "centerlinefinder.h"
 
 #include <cmath>

@@ -461,7 +461,8 @@ CenterlineFinder::Result CenterlineFinder::find(vtkImageData *data, const double
         int x = i % g.nx;
         int y = (i / g.nx) % g.ny;
         int z = i / (g.nx * g.ny);
-        raw.append({{g.origin[0] + (x + g.extent[0]) * g.spacing[0], g.origin[1] + (y + g.extent[2]) * g.spacing[1], g.origin[2] + (z + g.extent[4]) * g.spacing[2]}});
+        std::array<double, 3> point = {{g.origin[0] + (x + g.extent[0]) * g.spacing[0], g.origin[1] + (y + g.extent[2]) * g.spacing[1], g.origin[2] + (z + g.extent[4]) * g.spacing[2]}};
+        raw.append(point);
 
         if (i == startIndex)
         {

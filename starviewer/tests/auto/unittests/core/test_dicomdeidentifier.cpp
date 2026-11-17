@@ -5,6 +5,8 @@
 
 #include "autotest.h"
 
+#include <QDate>
+
 #include <QDir>
 #include <QFile>
 #include <QTemporaryDir>

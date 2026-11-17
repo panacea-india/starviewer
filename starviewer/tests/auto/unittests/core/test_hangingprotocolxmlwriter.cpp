@@ -5,6 +5,8 @@
 
 #include "autotest.h"
 
+#include <QFile>
+
 #include <memory>
 
 #include <QBuffer>
