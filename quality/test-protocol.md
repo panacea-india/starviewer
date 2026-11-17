@@ -803,6 +803,19 @@ Volumes (added later in the same run): the list shows SoftSphere 33.3 mL (a sphe
 
 Automatic tests: 5,250 passed, 0 failed, 9 skipped (`test_RtRegionStatistics`, 10 more: areas, a sphere within 3%, a box, the middle distance, several contours on a plane, open contours, one plane).
 
+### Run 33: Automatic path between two points (Phase 3, item 10)
+
+Case `curved-tube` (slice 32), Curved MPR tool with only two clicks and Enter.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Clicks just beyond the ends of the tube | Failed as designed | The two clicks were in the body: the range was the body, and a path of 202 mm through 676,526 voxels was found (the curved MPR was plain gray). Fixed by trying the range from each point and taking the smaller structure; clicks that are in the body at both ends still give the body, which is what was asked |
+| 2. Clicks inside the ends | Passed | Attempt from the start point: the body (676,526 voxels); from the end point: the tube (range 235 to 365, 1,714 voxels), which is used: path of 223.6 mm for the 236.2 mm tube (the clicks were about 6 mm inside each end), and the straightened tube is a straight, centered band |
+| 3. Message when no path | Passed | With the end point outside the structure, the message says so and offers clicking points by hand (seen when the range was the tube and one click was in the body) |
+| 4. Speed | Acceptable | Seconds for 983,000 voxels (a few seconds on the test VM) |
+
+Automatic tests: 5,261 passed, 0 failed, 9 skipped (`test_CenterlineFinder`, 11 tests: a winding tube within 4% of its length and 1.6 mm of its center line, the ends, snapping a point that is just outside, unconnected points, invalid input, a volume whose extent does not start at 0, the range, and the automatic choice of the range).
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
