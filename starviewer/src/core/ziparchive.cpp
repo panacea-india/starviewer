@@ -276,6 +276,11 @@ int ZipArchive::removeOldExtractions(const QString &rootFolder, int maxAgeHours)
     return removed;
 }
 
+ZipArchive::Result ZipArchive::extract(const QString &archivePath, const QString &destinationFolder)
+{
+    return extract(archivePath, destinationFolder, Limits());
+}
+
 ZipArchive::Result ZipArchive::extract(const QString &archivePath, const QString &destinationFolder, const Limits &limits)
 {
     QFile archive(archivePath);

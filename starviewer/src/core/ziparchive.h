@@ -45,7 +45,9 @@ public:
     };
 
     /// Unpacks the archive into the folder, which is created. If it fails, the files that were already written are removed.
-    static Result extract(const QString &archivePath, const QString &destinationFolder, const Limits &limits = Limits());
+    static Result extract(const QString &archivePath, const QString &destinationFolder, const Limits &limits);
+    /// The same with the default limits (written as an overload because GCC does not accept Limits() as a default argument inside the class that declares Limits)
+    static Result extract(const QString &archivePath, const QString &destinationFolder);
 
     /// The path of an entry as it goes under the folder (with / as the separator and no empty parts), or an empty string if the name is not safe: it is empty, absolute, has a drive or
     /// a stream (a ":"), a ".." part, a control character, or ends the way that Windows changes (a space or a dot at the end of a part).
