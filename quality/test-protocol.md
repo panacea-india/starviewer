@@ -505,6 +505,28 @@ Not tried: playing MPEG-2, H.264 or HEVC, seeking and the controls on a playing 
 auxiliary objects: a series with no images is read again from the cache), a video of many megabytes (the whole file is read into memory to take the bitstream
 out), and Linux, where the extension is built only if Qt Multimedia is installed.
 
+### Registration (Phase 3, first step)
+
+`RigidRegistration` has no interface yet, so there is nothing to see on screen; it is tested by `test_RigidRegistration` on 64 x 64 x 64 synthetic
+volumes (2 mm voxels, a phantom of a body, an ellipsoid, two spheres and a box with no symmetry). A known rotation (6 degrees about z and 3 about x) and
+translation (5, -4, 3 mm) are put on the moving volume, and the test measures how far the matrix of the result puts 27 points from where the true motion puts them.
+
+| Case | Result |
+| --- | --- |
+| The same volume twice | Passed: no motion found (under 0.3 degrees and 0.5 mm) |
+| Rotation and translation, mean squares | Passed: largest error under 1.5 mm |
+| Rotation and translation, mutual information | Passed: under 1.5 mm |
+| A different rotation and translation, and the moving volume with opposite contrast (300 minus the value) | Passed: under 2 mm, where mean squares could not match them |
+| A translation of 8 mm | Passed: the result says 8 mm within 1 mm, and under 1 degree |
+| A missing volume, or a volume of three components | Passed: fails with a message |
+
+The first version of the mutual information path was 10 mm off, because a phantom of flat regions makes a rugged landscape: the fix was to smooth each level before
+shrinking it, and to look at every voxel when the level is small, so that there is no sampling noise. Each run takes about 0.3 s here. Automatic tests: 5,012 passed,
+0 failed, 9 skipped, which is 10 more than before.
+
+Not tried: real acquisitions (MR T1 with T2, CT with PET) and large volumes (512 x 512 x 300, where the sampling and the time matter), a start that is far from the
+answer (the centers of the volumes are aligned first, and nothing else), and what a user sees.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

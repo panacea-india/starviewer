@@ -275,7 +275,7 @@ the user rather than silently showing the image without it.
 In priority order:
 
 1. Rigid registration, which fusion across different acquisitions depends on.
-   ITK is already in the SDK.
+   ITK is already in the SDK. **Started:** `RigidRegistration` (core, with no interface) registers two volumes with ITK, by mutual information or mean squares, in three resolutions, and gives the matrix, the rotation, the translation and the metric. It is tested on synthetic volumes with a known motion, also between volumes with opposite contrast. **Not done:** connecting it to the fusion in the viewers, showing that a volume is registered and by how much, a check of the quality of the match, and a test on real acquisitions (the corpus has none with a known motion).
 2. General multi-modality fusion, such as MR T1/T2 with DWI. Today fusion is
    offered only for PET or NM with CT in the same frame of reference
    (`patientbrowsermenu.cpp:112`), and that limit should only be relaxed
