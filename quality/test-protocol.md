@@ -845,6 +845,18 @@ LIDC-IDRI-0365 (Siemens, 101 slices of 3 mm, 0.63 mm pixels, kernel B31f), opene
 
 Limits: the path of a structure with branches is the shortest way between the two points (it went through the carina to the left bronchus as clicked); the path was not compared with a reference centerline.
 
+### Run 36: Reformats and STL export on the real chest CT (LIDC-IDRI-0365)
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Coronal reformat | Passed | R on the left of the image, H at the top; the liver dome under the right lung (image left), the heart apex to the left; the proportions look right for 3 mm slices |
+| 2. Sagittal reformat | Passed | The sternum in front (left) and the spine behind (right); the trachea and the aortic arch are where they should be |
+| 3. STL of the body surface at -300 HU (3D viewer, STL button) | Passed | 1,278,812 triangles, 20,547 mL, 4,444 cm2, written in about 15 s on the test VM (software rendering is not involved: it is the CPU) |
+| 4. The STL file checked with Python and numpy, without the viewer | Passed | Valid binary STL: the count in the header matches the size of the file (63.9 MB); bounding box 325.0 x 274.4 x 304.6 mm (the CT is 325 mm wide, 101 slices of 3 mm = 303 mm); volume 20,589 mL (0.2% from the viewer's); area 4,444 cm2; no NaN; no open edges; 2 edges out of 1.9 million are shared by more than two triangles |
+| 5. Position of the model | Not checked | The coordinates are the patient's (mm); no other software was used to compare the position |
+
+The 64 MB file was deleted after the check: a model of a patient is personal data, even from a public collection.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
