@@ -621,6 +621,24 @@ Automatic tests: 5,074 passed, 0 failed, 9 skipped, which is 1 more than before 
 
 Not tried: a real angiography, a path that is nearly parallel to the reference direction of the views, and Linux.
 
+### Run 20: Saved views, sculpting and movie of the 3D viewer (Phase 3)
+
+The `curved-tube` case was opened in the 3D viewer (software OpenGL, `GALLIUM_DRIVER=llvmpipe`; the same program with the default driver closed itself when the 3D viewer was opened,
+as noted before for this machine).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Buttons | Passed | STL, Views, Sculpt and Movie in the Tools group |
+| 2. Views | Passed | "Save this view..." asked for a name; after turning the image with the mouse and saving a second view, "View 1" in the list put the camera back exactly |
+| 3. Sculpt | Passed with remark | "Keep the largest piece..." gave "0 voxels were taken out and 678240 were kept" (the phantom is one piece, as it should be) and the note that this is a view only; "Show the volume as it was loaded" was grayed out before and enabled after. The camera jumped to a closer view when the volume was replaced (fixed after this run: the camera is kept) |
+| 4. Movie | Passed | 12 pictures of a turn around the volume in a new folder; the pictures differ and the orientation marker in them turns. ffmpeg is not on this machine, and the message said so and that the pictures can be joined by any editor |
+
+Automatic tests: 5,100 passed, 0 failed, 9 skipped, which is 26 more than before (`test_SavedView`: 15, for the JSON round trip, invalid fields, the orbit angle and distance,
+the arc between two views, opposite views, the frames of a path through the keys, the turntable, the store and the file name; `test_VolumeSculptor`: 11, for groups touching by a
+face or an edge, the original left unchanged, nothing above the threshold, the sphere (81 voxels exactly), the box, no volume, and the names and arguments of the video encoder).
+
+Not tried: a real CT with a table, the video made by ffmpeg, a movie through saved views on screen, and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
