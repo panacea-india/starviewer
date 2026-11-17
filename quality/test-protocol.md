@@ -589,6 +589,23 @@ radius and with the threshold, and a sphere that has no voxel).
 Not tried: the CT column together with the PET (the dialog takes each volume of the viewer that the cursor is on, and the PET and the CT were in two viewers), a click in the sagittal or coronal views (the
 point comes from the same call, but it was not tried), the other SUV formulas, and Linux.
 
+### Run 18: 3D distance (Phase 3)
+
+The reference CT was opened, "3D distance" was chosen in the drawing tools menu, and the L marker (which is at the same place on every slice) was clicked on slice 1, and the same
+screen point on slice 100.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Tool | Passed | "3D distance" in the drawing tools menu, after Sphere VOI |
+| 2. Slice 1 to slice 100 | Passed | Written next to the second point: "247.5 mm (0.0, 0.0, 247.5)", which is 99 slices of 2.5 mm |
+| 3. In plane | Passed | Two points 100 screen pixels apart on one slice: 31.4 mm (31.4, 0.0, 0.0). The body of 180 mm spans 571 screen pixels, so 0.315 mm per pixel |
+
+Automatic tests: 5,064 passed, 0 failed, 9 skipped, which is 19 more than before (`test_Measurement3D`: the distance in a plane, along an axis, between slices, of a box
+diagonal and with negative coordinates, the angle at a vertex in a plane and out of it from 0 to 180 degrees, the segments with no length, and the length of a path).
+One row of the first run was wrong in the test (247.3 for 247.5) and was corrected.
+
+Not tried: the accuracy on a real acquisition, a measurement between two points that are both off the grid of the voxels (each end can be half a voxel off), the sagittal and coronal views, and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
