@@ -128,6 +128,7 @@ set(SOURCES
     imageplane.cpp
     itemmenu.cpp
     keyimagenotefillerstep.cpp
+    keyobjectselection.cpp
     leanbodymassformula.cpp
     leanbodymassformulacalculator.cpp
     line3d.cpp

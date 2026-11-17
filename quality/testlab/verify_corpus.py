@@ -130,6 +130,20 @@ def verify_transfer_syntaxes(root, cases):
         check(syntaxes == {case["transfer_syntax_uid"]}, f"{key}: transfer syntax {case['transfer_syntax_uid']}")
 
 
+def verify_key_objects(root, cases):
+    case = cases["key-objects"]
+    ct_uids = {str(ds.SOPInstanceUID): int(ds.InstanceNumber) - 1 for ds in read_series(root / "ct-reference")}
+    study_uid = str(read_series(root / "ct-reference")[0].StudyInstanceUID)
+    for name, truth in case["documents"].items():
+        ds = pydicom.dcmread(root / "key-objects" / f"{name}.dcm")
+        check(ds.Modality == "KO" and str(ds.StudyInstanceUID) == study_uid, f"{name}: a KO in the study of the reference CT")
+        check(ds.ConceptNameCodeSequence[0].CodeMeaning == truth["title"], f"{name}: title {truth['title']}")
+        referenced = [str(i.ReferencedSOPSequence[0].ReferencedSOPInstanceUID) for i in ds.ContentSequence if i.ValueType == "IMAGE"]
+        found = sorted(ct_uids[u] for u in referenced if u in ct_uids)
+        check(found == truth["images"], f"{name}: refers to CT images {truth['images']}")
+        check(len(referenced) - len(found) == truth.get("missing_images", 0), f"{name}: {truth.get('missing_images', 0)} missing image(s)")
+
+
 def verify_broken(root):
     missing = read_series(root / "broken" / "missing-slice")
     positions = [float(s.ImagePositionPatient[2]) for s in missing]
@@ -152,6 +166,7 @@ def main():
     verify_pet(root, cases["petct-suv"])
     verify_other(root, cases)
     verify_transfer_syntaxes(root, cases)
+    verify_key_objects(root, cases)
     verify_broken(root)
     print(f"\n{'FAILED: ' + str(len(failures)) if failures else 'All checks passed'}")
     sys.exit(1 if failures else 0)

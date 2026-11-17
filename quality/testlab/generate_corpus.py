@@ -30,6 +30,7 @@ US_MULTIFRAME_STORAGE = "1.2.840.10008.5.1.4.1.1.3.1"
 XA_STORAGE = "1.2.840.10008.5.1.4.1.1.12.1"
 MG_PRESENTATION_STORAGE = "1.2.840.10008.5.1.4.1.1.1.2"
 ENCAPSULATED_PDF_STORAGE = "1.2.840.10008.5.1.4.1.1.104.1"
+KEY_OBJECT_SELECTION_STORAGE = "1.2.840.10008.5.1.4.1.1.88.59"
 
 STUDY_DATE = "20260101"
 INJECTION_TIME = "090000"
@@ -227,6 +228,83 @@ def generate_ct(writer):
     case = "ct-reference"
     write_ct_series(writer, case, case, "ct", "PHANTOM^CT", "QA-CT-001", "Reference CT")
     writer.cases[case] = {"modality": "CT", "instances": 100, **ct_truth()}
+
+
+def code(value, meaning, scheme="DCM"):
+    item = Dataset()
+    item.CodeValue = value
+    item.CodingSchemeDesignator = scheme
+    item.CodeMeaning = meaning
+    return item
+
+
+def write_key_object(writer, name, title, references, note=None):
+    """A Key Object Selection Document in the study of the reference CT. references are CT instance numbers
+    (the file CT0020.dcm is 20), and a number beyond the 100 slices refers to an image that does not exist."""
+    case = "ct-reference"
+    ct_series = uid(case, "ct", "series")
+    ds = writer.base(case, name, 0, KEY_OBJECT_SELECTION_STORAGE, "KO", "PHANTOM^CT", "QA-CT-001", title[1])
+    ds.SeriesNumber = 900 + len(name)
+    ds.ReferencedRequestSequence = Sequence([])
+    ds.ContentTemplateSequence = Sequence([Dataset()])
+    ds.ContentTemplateSequence[0].MappingResource = "DCMR"
+    ds.ContentTemplateSequence[0].TemplateIdentifier = "2010"
+    ds.ValueType = "CONTAINER"
+    ds.ConceptNameCodeSequence = Sequence([code(*title)])
+    ds.ContinuityOfContent = "SEPARATE"
+    ds.PerformedProcedureCodeSequence = Sequence([])
+    ds.CompletionFlag = "COMPLETE"
+    ds.VerificationFlag = "UNVERIFIED"
+
+    referenced = []
+    content = []
+    for number in references:
+        sop = uid(case, "ct", number)
+        item = Dataset()
+        item.ReferencedSOPClassUID = CT_STORAGE
+        item.ReferencedSOPInstanceUID = sop
+        referenced.append(item)
+        image = Dataset()
+        image.RelationshipType = "CONTAINS"
+        image.ValueType = "IMAGE"
+        image.ReferencedSOPSequence = Sequence([item])
+        content.append(image)
+    if note:
+        text = Dataset()
+        text.RelationshipType = "CONTAINS"
+        text.ValueType = "TEXT"
+        text.ConceptNameCodeSequence = Sequence([code("113012", "Key Object Description")])
+        text.TextValue = note
+        content.append(text)
+    ds.ContentSequence = Sequence(content)
+
+    series_item = Dataset()
+    series_item.SeriesInstanceUID = ct_series
+    series_item.ReferencedSOPSequence = Sequence(referenced)
+    study_item = Dataset()
+    study_item.StudyInstanceUID = uid(case, "study")
+    study_item.ReferencedSeriesSequence = Sequence([series_item])
+    ds.CurrentRequestedProcedureEvidenceSequence = Sequence([study_item])
+    writer.save(ds, "key-objects", f"{name}.dcm")
+
+
+def generate_key_objects(writer):
+    write_key_object(writer, "ko-of-interest", ("113000", "Of Interest"), [20, 45], note="Both fiducial and sphere slices")
+    write_key_object(writer, "ko-rejected", ("113001", "Rejected for Quality Reasons"), [60])
+    # The last image is not in the corpus: a viewer has to say that, not show the selection as complete
+    write_key_object(writer, "ko-missing-image", ("113004", "For Teaching"), [10, 9999])
+    writer.cases["key-objects"] = {
+        "modality": "KO",
+        "instances": 3,
+        "study": "the study of ct-reference",
+        "documents": {
+            "ko-of-interest": {"title": "Of Interest", "kind": "selection", "images": [20, 45], "overlay": "KEY IMAGE: Of Interest"},
+            "ko-rejected": {"title": "Rejected for Quality Reasons", "kind": "rejection", "images": [60],
+                            "overlay": "REJECTED: Rejected for Quality Reasons"},
+            "ko-missing-image": {"title": "For Teaching", "kind": "selection", "images": [10], "missing_images": 1,
+                                 "overlay": "KEY IMAGE: For Teaching", "warning": "refers to 1 of its 2 images that are not loaded"},
+        },
+    }
 
 
 def generate_ct_large(writer):
@@ -732,7 +810,7 @@ def main():
         shutil.rmtree(root)
     root.mkdir(parents=True)
     writer = Writer(root)
-    for generator in (generate_ct, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_key_objects, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         generator(writer)
         print(f"generated {generator.__name__.removeprefix('generate_')}", flush=True)

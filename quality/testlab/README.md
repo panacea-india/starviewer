@@ -123,6 +123,7 @@ truth for each case.
 | `mg-monochrome1` | Inversion, laterality |
 | `enhanced-ct` | Enhanced multi-frame geometry |
 | `encapsulated-pdf` | Document display |
+| `key-objects` | Key Object Selection Documents in the study of `ct-reference`: Of Interest (images 20 and 45), Rejected for Quality Reasons (60), and For Teaching with one missing image (10 and a CT that does not exist), which must give a warning |
 | `transfer-syntaxes/*` | Decoding: 14 variants, with lossless ones checked for exact round trip by another decoder |
 | `broken/*` | Failing visibly: missing slices, truncated data, wrong pixel length, not DICOM |
 

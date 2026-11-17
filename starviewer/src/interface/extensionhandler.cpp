@@ -109,6 +109,40 @@ void warnAboutMissingOpenGL(QWidget *parent)
 
 }
 
+// Says, once for each document, that a Key Object Selection Document refers to images that were not loaded: the selection cannot be shown as it was made.
+static void warnAboutUnresolvedKeyObjects(const QList<Study*> &studies, QWidget *parent)
+{
+    static QSet<QString> warned;
+    QStringList messages;
+
+    for (Study *study : studies)
+    {
+        QSet<QString> available = study->getImageSopInstanceUids();
+
+        for (const KeyObjectSelection &selection : study->getKeyObjectSelections())
+        {
+            int unresolved = selection.getUnresolvedReferences(available).size();
+
+            if (unresolved > 0 && !warned.contains(selection.getSopInstanceUid()))
+            {
+                warned.insert(selection.getSopInstanceUid());
+                WARN_LOG(QString("The Key Object Selection Document %1 refers to %2 of %3 images that are not loaded")
+                         .arg(selection.getSopInstanceUid()).arg(unresolved).arg(selection.getReferences().size()));
+                messages << QObject::tr("\"%1\" refers to %2 of its %3 images that are not loaded.")
+                            .arg(selection.getTitleMeaning().isEmpty() ? QObject::tr("Key images") : selection.getTitleMeaning())
+                            .arg(unresolved).arg(selection.getReferences().size());
+            }
+        }
+    }
+
+    if (!messages.isEmpty())
+    {
+        QMessageBox::warning(parent, ApplicationNameString,
+                             QObject::tr("Some key images or rejections cannot be shown as they were made, because the images are not loaded:\n\n%1")
+                             .arg(messages.join("\n")));
+    }
+}
+
 bool ExtensionHandler::request(const QString &who)
 {
     if (needsOpenGL(who) && !OpenGLSupport::isAvailable())
@@ -452,6 +486,9 @@ void ExtensionHandler::openDefaultExtensions(QList<Study*> newStudies)
 
     DicomEntityFlags dicomEntities = newStudies.isEmpty() ? m_extensionContext.getDicomEntities() : m_extensionContext.getDicomEntities(newStudies);
     Settings settings;
+
+    warnAboutUnresolvedKeyObjects(newStudies.isEmpty() && m_mainApp->getCurrentPatient() ? m_mainApp->getCurrentPatient()->getStudies() : newStudies,
+                                  m_mainApp);
 
     if (dicomEntities.testFlag(DicomEntity::EncapsulatedDocument))
     {

@@ -20,6 +20,7 @@
 #include <QDateTime>
 #include "series.h"
 #include "dicomsource.h"
+#include "keyobjectselection.h"
 
 namespace udg {
 
@@ -129,6 +130,18 @@ public:
     /// Obté la sèrie amb l'UID donat. NUL si no hi és
     Series* getSeries(QString uid);
 
+    /// Adds a Key Object Selection Document to the study. It returns false, and does not add it, if it is null or the study has it already.
+    bool addKeyObjectSelection(const KeyObjectSelection &selection);
+
+    /// Returns the Key Object Selection Documents of the study.
+    const QList<KeyObjectSelection>& getKeyObjectSelections() const;
+
+    /// Returns the Key Object Selection Documents of the study that refer to the instance with the given SOP Instance UID.
+    QList<KeyObjectSelection> getKeyObjectSelectionsReferencing(const QString &sopInstanceUid) const;
+
+    /// Returns the SOP Instance UIDs of all the images of the series of the study.
+    QSet<QString> getImageSopInstanceUids() const;
+
     /// Ens diu si existeix una serie amb aquest uid a la llista
     /// @param uid l'uid que busquem
     /// @return Cert si existeix, fals altrament
@@ -226,6 +239,9 @@ private:
 
     /// Llista de les Series de l'estudi ordenades per número de serie
     QList<Series*> m_seriesSet;
+
+    /// The Key Object Selection Documents of the study
+    QList<KeyObjectSelection> m_keyObjectSelections;
 
     /// L'entitat Patient a la qual pertany aquest estudi
     Patient *m_parentPatient;

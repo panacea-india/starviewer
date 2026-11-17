@@ -13,12 +13,13 @@
  *************************************************************************************/
 
 #include "keyimagenotefillerstep.h"
+
+#include "dicomtagreader.h"
+#include "keyobjectselection.h"
 #include "logging.h"
 #include "patientfillerinput.h"
-#include "patient.h"
-#include "study.h"
 #include "series.h"
-#include "dicomtagreader.h"
+#include "study.h"
 
 namespace udg {
 
@@ -31,18 +32,34 @@ KeyImageNoteFillerStep::~KeyImageNoteFillerStep()
 {
 }
 
-void KeyImageNoteFillerStep::processKeyImageNote()
+bool KeyImageNoteFillerStep::fillIndividually()
 {
-    DICOMTagReader dicomReader;
-    bool ok = false;
-//     ok = dicomReader.setFile(keyImageNote->getPath());
-    if (ok)
+    const DICOMTagReader *dicomReader = m_input->getDICOMFile();
+
+    if (!dicomReader || dicomReader->getValueAttributeAsQString(DICOMSOPClassUID) != UIDKeyObjectSelectionDocumentStorage)
     {
-        // TODO per implementar
-        DEBUG_LOG("Not implemented yet!");
+        return true;
     }
-//     else
-//         DEBUG_LOG("Could not open the file with the tagReader: " + keyImageNote->getPath());
+
+    QString error;
+    KeyObjectSelection selection = KeyObjectSelection::fromDICOM(*dicomReader, &error);
+
+    if (selection.isNull())
+    {
+        WARN_LOG(QString("The Key Object Selection Document %1 was not used: %2").arg(dicomReader->getFileName()).arg(error));
+        return true;
+    }
+
+    Series *series = m_input->getCurrentSeries();
+    Study *study = series ? series->getParentStudy() : nullptr;
+
+    if (study && study->addKeyObjectSelection(selection))
+    {
+        INFO_LOG(QString("Key Object Selection Document %1 (%2) refers to %3 images")
+                 .arg(selection.getSopInstanceUid()).arg(selection.getTitleMeaning()).arg(selection.getReferences().size()));
+    }
+
+    return true;
 }
 
-}
+} // End namespace udg

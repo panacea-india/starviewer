@@ -366,6 +366,37 @@ QString getLossyMarker(const Q2DViewer *viewer)
     return QObject::tr("LOSSY");
 }
 
+// Returns what the Key Object Selection Documents say about the current image of each input, one line for each document, or an empty string if
+// none refers to it. A rejection is shown as well as a selection.
+QString getKeyObjectMarker(const Q2DViewer *viewer)
+{
+    QStringList lines;
+
+    for (int i = 0; i < viewer->getNumberOfInputs(); i++)
+    {
+        Image *image = viewer->getCurrentDisplayedImageOnInput(i);
+        Series *series = image ? image->getParentSeries() : nullptr;
+        Study *study = series ? series->getParentStudy() : nullptr;
+
+        if (!study)
+        {
+            continue;
+        }
+
+        for (const KeyObjectSelection &selection : study->getKeyObjectSelectionsReferencing(image->getSOPInstanceUID()))
+        {
+            QString text = selection.getDisplayText();
+
+            if (!text.isEmpty() && !lines.contains(text))
+            {
+                lines << text;
+            }
+        }
+    }
+
+    return lines.join("\n");
+}
+
 // Map from variable to getter function.
 const QHash<QString, decltype(&getDicomPatientID)> VariableGetters{
     {"PatientID", &getDicomPatientID},
@@ -597,6 +628,13 @@ void Q2DViewerAnnotationHandler::updateCornerAnnotation(CornerAnnotationIndexTyp
         if (corner == UpperLeftCornerIndex)
         {
             annotation += "\n" + getLossyMarker(m_2DViewer);
+
+            QString keyObjectMarker = getKeyObjectMarker(m_2DViewer);
+
+            if (!keyObjectMarker.isEmpty())
+            {
+                annotation += "\n" + keyObjectMarker;
+            }
         }
 
         setCornerAnnotation(corner, annotation);

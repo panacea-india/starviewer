@@ -13,6 +13,7 @@
  *************************************************************************************/
 
 #include "study.h"
+#include "image.h"
 #include "patient.h"
 #include "logging.h"
 
@@ -560,6 +561,60 @@ int Study::findSeriesIndex(QString uid)
     }
 
     return i;
+}
+
+bool Study::addKeyObjectSelection(const KeyObjectSelection &selection)
+{
+    if (selection.isNull())
+    {
+        return false;
+    }
+
+    for (const KeyObjectSelection &existing : m_keyObjectSelections)
+    {
+        if (existing.getSopInstanceUid() == selection.getSopInstanceUid())
+        {
+            return false;
+        }
+    }
+
+    m_keyObjectSelections << selection;
+    return true;
+}
+
+const QList<KeyObjectSelection>& Study::getKeyObjectSelections() const
+{
+    return m_keyObjectSelections;
+}
+
+QList<KeyObjectSelection> Study::getKeyObjectSelectionsReferencing(const QString &sopInstanceUid) const
+{
+    QList<KeyObjectSelection> selections;
+
+    for (const KeyObjectSelection &selection : m_keyObjectSelections)
+    {
+        if (selection.references(sopInstanceUid))
+        {
+            selections << selection;
+        }
+    }
+
+    return selections;
+}
+
+QSet<QString> Study::getImageSopInstanceUids() const
+{
+    QSet<QString> uids;
+
+    for (Series *series : m_seriesSet)
+    {
+        for (Image *image : series->getImages())
+        {
+            uids.insert(image->getSOPInstanceUID());
+        }
+    }
+
+    return uids;
 }
 
 }

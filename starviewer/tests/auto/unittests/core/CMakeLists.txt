@@ -42,6 +42,7 @@ set(SOURCES
     test_imageoverlayregionfinder.cpp
     test_imageplane.cpp
     test_leanbodymassformula.cpp
+    test_keyobjectselection.cpp
     test_leanbodymassformulacalculator.cpp
     test_machineidentifier.cpp
     test_machineinformation.cpp
