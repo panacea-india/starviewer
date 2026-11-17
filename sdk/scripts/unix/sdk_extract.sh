@@ -42,7 +42,7 @@ do
             tar -C $SDK_SOURCE_DIR_BASE -xvf "${DOWNLOAD_PREFIX}/VTK-9.2.5.tar.gz"
             ;;
         gdcm)
-            tar -C $SDK_SOURCE_DIR_BASE -xvf "${DOWNLOAD_PREFIX}/GDCM-3.0.21.tar.gz"
+            tar -C $SDK_SOURCE_DIR_BASE -xvf "${DOWNLOAD_PREFIX}/GDCM-3.0.24.tar.gz"
             ;;
         itk)
             tar -C $SDK_SOURCE_DIR_BASE -xvf "${DOWNLOAD_PREFIX}/InsightToolkit-5.3.0.tar.gz"

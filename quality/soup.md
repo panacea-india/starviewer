@@ -17,7 +17,7 @@ python3 quality/generate_sbom.py --platform linux --out sbom.json
 | --- | --- | --- | --- | --- |
 | DCMTK | 3.6.7 | BSD-3-Clause | DICOM parsing, networking, JPEG and RLE decoding | Yes |
 | VTK | 9.2.5 | BSD-3-Clause | Rendering | Yes |
-| GDCM | 3.0.21 | BSD-3-Clause | JPEG 2000 and other decoding | Yes |
+| GDCM | 3.0.24 | BSD-3-Clause | JPEG 2000 and other decoding | Yes |
 | ITK | 5.3.0 | Apache-2.0 | Image processing | Yes |
 | Qt | 5.15.2 on Windows, Ubuntu 24.04's 5.15 on Linux | LGPL-3.0 | Interface, networking, database | No |
 | ThreadWeaver | 5.64.0 on Windows, Ubuntu 24.04's on Linux | LGPL-2.1 | Background jobs | No |

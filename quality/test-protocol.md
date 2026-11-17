@@ -412,6 +412,17 @@ Studio 2022 and the libraries of the SDK (DCMTK, and GDCM 3.0.21 as built for St
 GDCM 3.0.24 is the vcpkg build on this machine (`C:\dev\vcpkg_installed`), which the SDK's DLLs
 shadow unless its `bin` folder comes first on the path.
 
+Run 4 put GDCM 3.0.24 into the SDK itself (`C:\sdk\sdk-install`) instead of beside it. It was built from the
+upstream source with Starviewer's patches in `sdk/patches/gdcm` (one, `surroundReadWithTryCatch_ticket_1900`,
+needed its context changed because 3.0.24 writes `buffer.data()` for `&buffer[0]`). ITK's GDCM module of the SDK was not
+rebuilt, because ITK 5.3's source is not on the machine; the GDCM build there exports one destructor that 3.0.24 made
+inline, so that module links. The 3.0.21 files are kept in `C:\sv\sdk-gdcm321-backup`.
+
+| Run | Target | Length | Result |
+| --- | --- | --- | --- |
+| 4 | `fuzz_gdcm` (SDK, 3.0.24) | 2 x 4 min | The reproducer of A-56 runs clean. Both runs stopped at the 2 GB memory limit (rss 2.1 GB, once after 1,262 inputs and once at the start of a second run), each on an input that runs in 32 ms and a few kilobytes alone. A smaller AddressSanitizer quarantine did not change it. The cause is still unknown |
+| 4 | Suites (`autotests`) | 123 suites | 4,892 passed, 0 failed, 9 skipped (the test PACS with TLS and the OAuth mock are not running), the same as with GDCM 3.0.21 |
+
 These runs are short. They show that the harnesses work and that the readers are not trivially
 safe, not that the readers are free of memory errors.
 
