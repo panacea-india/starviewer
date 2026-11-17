@@ -41,6 +41,27 @@ SOURCES = {
         "patient": "RIDER-1002189179",
         "url": NBIA_IMAGE + "1.3.6.1.4.1.9328.50.17.142988316909724707487240522957927897313",
     },
+    "lctsc-s1-101/ct": {
+        "source": "TCIA, LCTSC (Lung CT Segmentation Challenge): a chest and upper abdomen CT, 130 slices of 3 mm",
+        "doi": "https://doi.org/10.7937/K9/TCIA.2017.3r3fvz08",
+        "licence": "CC BY 3.0",
+        "patient": "LCTSC-Test-S1-101",
+        "url": NBIA_IMAGE + "1.3.6.1.4.1.14519.5.2.1.7014.4598.106943890850011666503487579262",
+    },
+    "lctsc-s1-101/rtstruct": {
+        "source": "TCIA, LCTSC: the structure set of the same patient (spinal cord, both lungs, heart, esophagus)",
+        "doi": "https://doi.org/10.7937/K9/TCIA.2017.3r3fvz08",
+        "licence": "CC BY 3.0",
+        "patient": "LCTSC-Test-S1-101",
+        "url": NBIA_IMAGE + "1.3.6.1.4.1.14519.5.2.1.7014.4598.280355341349691222365783556597",
+    },
+    "lidc-0365/ct": {
+        "source": "TCIA, LIDC-IDRI: a chest CT of 101 slices (ThoraxRoutine 3.0 B31f)",
+        "doi": "https://doi.org/10.7937/K9/TCIA.2015.LO9QL9SX",
+        "licence": "CC BY 3.0",
+        "patient": "LIDC-IDRI-0365",
+        "url": NBIA_IMAGE + "1.3.6.1.4.1.14519.5.2.1.6279.6001.207544473852086582434957174616",
+    },
     "rider-large-ct": {
         **RIDER,
         "patient": "RIDER-1006487867",

@@ -816,6 +816,21 @@ Case `curved-tube` (slice 32), Curved MPR tool with only two clicks and Enter.
 
 Automatic tests: 5,261 passed, 0 failed, 9 skipped (`test_CenterlineFinder`, 11 tests: a winding tube within 4% of its length and 1.6 mm of its center line, the ends, snapping a point that is just outside, unconnected points, invalid input, a volume whose extent does not start at 0, the range, and the automatic choice of the range).
 
+### Run 34: Real patient CT (LCTSC, TCIA)
+
+Downloaded for this run: the CT (130 slices of 3 mm, 512 x 512) and the structure set of LCTSC-Test-S1-101, and a chest CT of LIDC-IDRI-0365 (not opened yet). Both are CC BY 3.0 and de-identified.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Load CT and structure set from one folder | Passed | 130 slices; the contours are drawn on their own on the images |
+| 2. Contours on the anatomy | Passed | The lung contours follow the edge of both lungs, the spinal cord and esophagus contours are around those structures, on the slices that were looked at (1, 84) |
+| 3. Regions list and volumes | Passed | SpinalCord 62.7 mL (104 contours), Lung_R 2,139 mL (93), Lung_L 1,781 mL (82), Heart 747 mL (29), Esophagus 27.7 mL (74): all in the usual range for an adult. No independent measure was available to compare with, so these are plausibility checks only |
+| 4. Automatic path in the airway | Passed | Curved MPR with two clicks (the trachea at slice 84 and the airway at the neck, slice 118): the air-filled structure found (range -1171 to -769 HU, 17,124 voxels: it did not leak into the lungs or outside the body), a path of 114.8 mm for about 102 mm between the slices; the straightened view shows the airway as a straight dark band in the middle. Both ranges (from each point) gave nearly the same structure |
+| 5. Flight inside the airway ("Inside: air") | Not possible here | Needs a GPU (see run 31) |
+| 6. Real tilted gantry, perfusion series | Not found | No open series was found for these |
+
+Not verified by anyone with clinical training: the contours were only looked at on a few slices.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

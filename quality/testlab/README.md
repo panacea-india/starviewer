@@ -142,6 +142,8 @@ In `corpus/public/`:
 | --- | --- | --- |
 | `pydicom-test-files` | pydicom 2.4.4: 70 small files from many vendors, some deliberately malformed | MIT |
 | `rider-petct` | [RIDER Lung PET-CT](https://doi.org/10.7937/K9/TCIA.2015.OFIP7TVM): GE PET-CT, one study | CC BY 3.0 |
+| `lctsc-s1-101/ct` and `/rtstruct` | [LCTSC](https://doi.org/10.7937/K9/TCIA.2017.3r3fvz08), patient LCTSC-Test-S1-101: a real chest CT (130 slices of 3 mm) and its structure set (spinal cord, both lungs, heart, esophagus). Put both in one folder to load them together (the structure set has the same file name `00000001.dcm` as the first image: rename it) | CC BY 3.0 |
+| `lidc-0365/ct` | [LIDC-IDRI](https://doi.org/10.7937/K9/TCIA.2015.LO9QL9SX), patient LIDC-IDRI-0365: a real chest CT of 101 slices | CC BY 3.0 |
 | `rider-large-ct` | The same collection: 1,049 slices, for realistic benchmarks | CC BY 3.0 |
 
 Credit TCIA and the collection if these files appear in anything published. They are
