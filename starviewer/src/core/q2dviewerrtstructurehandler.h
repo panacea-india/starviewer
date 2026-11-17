@@ -51,6 +51,8 @@ public:
         QString name;
         QColor color;
         int contours = 0;
+        /// The volume from the contours of the region (see RtRegionStatistics), 0 if it cannot be known (one plane only)
+        double volumeMl = 0.0;
     };
 
     /// The regions that have contours drawn, ordered by number.

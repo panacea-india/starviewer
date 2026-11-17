@@ -1103,7 +1103,7 @@ void Q2DViewerExtension::showRtRegions()
     {
         QPixmap swatch(14, 14);
         swatch.fill(region.color);
-        QCheckBox *box = new QCheckBox(tr("%1 (%2 contours)").arg(region.name).arg(region.contours), &dialog);
+        QCheckBox *box = new QCheckBox(region.volumeMl > 0.0 ? tr("%1 (%2 contours, %3 mL)").arg(region.name).arg(region.contours).arg(region.volumeMl, 0, 'f', 1) : tr("%1 (%2 contours)").arg(region.name).arg(region.contours), &dialog);
         box->setIcon(QIcon(swatch));
         box->setChecked(handler->isRegionVisible(region.number));
         int number = region.number;

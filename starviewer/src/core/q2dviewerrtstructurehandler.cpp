@@ -26,6 +26,7 @@
 #include "logging.h"
 #include "orthogonalplane.h"
 #include "q2dviewer.h"
+#include "rtregionstatistics.h"
 #include "rtstructureset.h"
 #include "series.h"
 #include "study.h"
@@ -251,6 +252,16 @@ void Q2DViewerRtStructureHandler::rebuild()
                     region.name = contour.roiName;
                     region.color = contour.color;
                     region.contours = 1;
+
+                    for (const RtStructureSet::Roi &roi : set.getRois())
+                    {
+                        if (roi.number == contour.roiNumber)
+                        {
+                            region.volumeMl = RtRegionStatistics::compute(roi).volumeMl;
+                            break;
+                        }
+                    }
+
                     m_regions << region;
                 }
             }

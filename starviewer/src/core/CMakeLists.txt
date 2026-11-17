@@ -31,6 +31,7 @@ set(SOURCES
     timeintensitycurve.cpp
     digitalsubtraction.cpp
     flythroughpath.cpp
+    rtregionstatistics.cpp
     endoscopytransferfunction.cpp
     hangingprotocolxmlwriter.cpp
     hangingprotocolfiles.cpp

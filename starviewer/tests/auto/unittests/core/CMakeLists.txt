@@ -74,6 +74,7 @@ set(SOURCES
     test_timeintensitycurve.cpp
     test_digitalsubtraction.cpp
     test_flythroughpath.cpp
+    test_rtregionstatistics.cpp
     test_endoscopytransferfunction.cpp
     test_hangingprotocolxmlwriter.cpp
     test_hangingprotocolfiles.cpp
