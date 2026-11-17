@@ -258,6 +258,7 @@ set(SOURCES
     relativegeometrylayout.cpp
     renderqviewercommand.cpp
     repositorybase.cpp
+    rigidregistration.cpp
     roidata.cpp
     roidataprinter.cpp
     roitool.cpp
@@ -493,7 +494,10 @@ find_package(ITK REQUIRED COMPONENTS
     ITKIODCMTK
     ITKIOGDCM
     ITKIOImageBase
+    ITKImageGrid
+    ITKOptimizers
     ITKRegionGrowing
+    ITKRegistrationCommon
     ITKSmoothing
     ITKStatistics
     ITKTransform
