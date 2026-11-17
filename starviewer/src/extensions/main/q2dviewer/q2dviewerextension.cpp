@@ -513,6 +513,7 @@ void Q2DViewerExtension::initializeTools()
 
     m_drawingToolButton->addAction(m_toolManager->registerTool("EllipticalROITool"));
     m_drawingToolButton->addAction(m_toolManager->registerTool("SphereVoiTool"));
+    m_drawingToolButton->addAction(m_toolManager->registerTool("Distance3DTool"));
     m_drawingToolButton->addAction(m_toolManager->registerTool("MagicROITool"));
     m_drawingToolButton->addAction(m_toolManager->registerTool("PolylineROITool"));
     m_drawingToolButton->addAction(m_toolManager->registerTool("CircleTool"));
@@ -580,7 +581,7 @@ void Q2DViewerExtension::initializeTools()
 #else
     leftButtonExclusiveTools << "ZoomTool" << "SlicingMouseTool" << "TranslateLeftTool" << "WindowLevelLeftTool" << "PolylineROITool" << "DistanceTool"
                              << "PerpendicularDistanceTool" << "EraserTool" << "AngleTool" << "NonClosedAngleTool" << "Cursor3DTool" << "EllipticalROITool"
-                             << "MagicROITool" << "CircleTool" << "MagnifyingGlassTool" << "ArrowTool" << "SphereVoiTool";
+                             << "MagicROITool" << "CircleTool" << "MagnifyingGlassTool" << "ArrowTool" << "SphereVoiTool" << "Distance3DTool";
 #endif
 
     m_toolManager->addExclusiveToolsGroup("LeftButtonGroup", leftButtonExclusiveTools);

@@ -45,6 +45,7 @@
 #include "transdifferencetool.h"
 #include "ellipticalroitool.h"
 #include "spherevoitool.h"
+#include "distance3dtool.h"
 #include "automaticsynchronizationtool.h"
 #include "magnifyingglasstool.h"
 #include "circletool.h"
@@ -181,6 +182,10 @@ Tool* ToolRegistry::getTool(const QString &toolName, QViewer *viewer)
     else if (toolName == "SphereVoiTool")
     {
         tool = new SphereVoiTool(viewer);
+    }
+    else if (toolName == "Distance3DTool")
+    {
+        tool = new Distance3DTool(viewer);
     }
     else if (toolName == "AutomaticSynchronizationTool")
     {
@@ -418,6 +423,13 @@ QAction* ToolRegistry::getToolAction(const QString &toolName)
         toolAction->setShortcuts(ShortcutManager::getShortcuts(Shortcuts::TransDifferenceTool));
         statusTip = tr("Enable/Disable the translation difference tool");
         toolTip = toolAction->text();
+    }
+    else if (toolName == "Distance3DTool")
+    {
+        toolAction->setText(tr("3D distance"));
+        toolAction->setIcon(QIcon(":/images/icons/kruler-west.svg"));
+        statusTip = tr("Click a point, scroll to another slice and click a second point, to measure the distance in 3D between them");
+        toolTip = tr("3D distance: between points on different slices");
     }
     else if (toolName == "SphereVoiTool")
     {

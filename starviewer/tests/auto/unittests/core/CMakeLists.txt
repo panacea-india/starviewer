@@ -49,6 +49,7 @@ set(SOURCES
     test_machineinformation.cpp
     test_mammographyimagehelper.cpp
     test_mathtools.cpp
+    test_measurement3d.cpp
     test_measurementmanager.cpp
     test_opacitytransferfunction.cpp
     test_optimalviewersgridestimator.cpp

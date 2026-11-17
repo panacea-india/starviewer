@@ -144,6 +144,8 @@ set(SOURCES
     machineidentifier.cpp
     machineinformation.cpp
     magicroitool.cpp
+    measurement3d.cpp
+    distance3dtool.cpp
     magnifyingglasstool.cpp
     maininputsynccriterion.cpp
     mammographyimagehelper.cpp
