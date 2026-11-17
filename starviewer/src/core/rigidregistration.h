@@ -17,6 +17,8 @@
 
 #include <QString>
 
+#include <vtkSmartPointer.h>
+
 class vtkImageData;
 
 namespace udg {
@@ -75,6 +77,11 @@ public:
 
     /// Returns the point of the moving volume that corresponds to a point of the fixed one, by the matrix of a result.
     static void transformPoint(const double matrix[16], const double fixedPoint[3], double movingPoint[3]);
+
+    /// Returns the moving volume seen from the fixed one: a volume with the grid of the fixed one (origin, spacing and size) where each voxel has the
+    /// value of the moving volume at the point that the matrix gives, by linear interpolation. Where the moving volume does not reach, the value is the
+    /// smallest one of the moving volume. The type of the scalars is the one of the moving volume.
+    static vtkSmartPointer<vtkImageData> resample(vtkImageData *moving, vtkImageData *fixed, const double matrix[16]);
 };
 
 } // End namespace udg

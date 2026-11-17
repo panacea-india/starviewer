@@ -258,6 +258,7 @@ set(SOURCES
     relativegeometrylayout.cpp
     renderqviewercommand.cpp
     repositorybase.cpp
+    registeredvolumes.cpp
     rigidregistration.cpp
     roidata.cpp
     roidataprinter.cpp

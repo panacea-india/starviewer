@@ -142,6 +142,9 @@ private slots:
 
     /// Shows or hides the graphic annotations of the presentation states in all the viewers.
     void showPresentationState(bool show);
+
+    /// Asks for a second volume of the patient, registers it to the volume of the selected viewer, and shows both fused.
+    void registerAndFuse();
     
     /// Mostrar la pantalla de Dicom dump, amb informació de la imatge que es visualitza en aquell moment
     void showDicomDumpCurrentDisplayedImage();
@@ -230,6 +233,10 @@ private:
     QAction *m_showOverlaysAction;
     QAction *m_showViewersTextualInformationAction;
     QAction *m_showPresentationStateAction;
+    QAction *m_registerAndFuseAction;
+
+    /// The volumes made by registrations, which the extension owns
+    QList<Volume*> m_registeredVolumes;
     QAction *m_showDisplayShuttersAction;
     QAction *m_synchronizeAllAction;
     QAction *m_desynchronizeAllAction;

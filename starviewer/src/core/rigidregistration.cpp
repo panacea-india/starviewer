@@ -21,7 +21,10 @@
 
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
+#include <vtkImageReslice.h>
+#include <vtkMatrix4x4.h>
 #include <vtkSmartPointer.h>
+#include <vtkTransform.h>
 
 #include <itkCenteredTransformInitializer.h>
 #include <itkImage.h>
@@ -203,8 +206,10 @@ RigidRegistration::Result RigidRegistration::run(vtkImageData *fixed, vtkImageDa
             scales[0] = scales[1] = scales[2] = 1.0;
             scales[3] = scales[4] = scales[5] = translationScale;
             optimizer->SetScales(scales);
-            optimizer->SetMaximumStepLength(0.2);
-            optimizer->SetMinimumStepLength(0.0001);
+            // Large steps at the coarse level, where the volumes are small and blurred, and small ones at the fine level, where a large step would only
+            // throw away what the coarse levels found
+            optimizer->SetMaximumStepLength(0.025 * factor);
+            optimizer->SetMinimumStepLength(0.00001);
             optimizer->SetRelaxationFactor(0.7);
             int maximumIterations = options.maximumIterationsFine + (options.maximumIterationsCoarse - options.maximumIterationsFine) * level / std::max(1, levels - 1);
             optimizer->SetNumberOfIterations(std::max(1, maximumIterations));
@@ -219,8 +224,22 @@ RigidRegistration::Result RigidRegistration::run(vtkImageData *fixed, vtkImageDa
             registration->SetInitialTransformParameters(parameters);
             registration->Update();
 
-            parameters = registration->GetLastTransformParameters();
-            finalMetric = optimizer->GetValue();
+            // Do no harm: the optimization is only taken if the metric, on the same voxels, is better than where the level started. A volume that
+            // was already in place (the centers of two series of a patient usually put them there) must not be turned by the noise of the metric.
+            RegistrationType::ParametersType optimized = registration->GetLastTransformParameters();
+            double startValue = registration->GetMetric()->GetValue(parameters);
+            double optimizedValue = registration->GetMetric()->GetValue(optimized);
+
+            if (optimizedValue < startValue - 0.005 * std::abs(startValue))
+            {
+                parameters = optimized;
+                finalMetric = optimizedValue;
+            }
+            else
+            {
+                finalMetric = startValue;
+            }
+
             finalIterations = optimizer->GetCurrentIteration();
         }
 
@@ -266,6 +285,47 @@ RigidRegistration::Result RigidRegistration::run(vtkImageData *fixed, vtkImageDa
         result.message = QObject::tr("The registration failed: %1").arg(QString::fromLatin1(exception.what()));
     }
 
+    return result;
+}
+
+vtkSmartPointer<vtkImageData> RigidRegistration::resample(vtkImageData *moving, vtkImageData *fixed, const double matrix[16])
+{
+    vtkSmartPointer<vtkMatrix4x4> vtkMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+
+    for (int row = 0; row < 4; row++)
+    {
+        for (int column = 0; column < 4; column++)
+        {
+            vtkMatrix->SetElement(row, column, matrix[row * 4 + column]);
+        }
+    }
+
+    // The reslice transform sends the points of the output (the fixed grid) to the input (the moving volume), as the matrix does
+    vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+    transform->SetMatrix(vtkMatrix);
+
+    double range[2];
+    moving->GetScalarRange(range);
+
+    int extent[6];
+    double origin[3];
+    double spacing[3];
+    fixed->GetExtent(extent);
+    fixed->GetOrigin(origin);
+    fixed->GetSpacing(spacing);
+
+    vtkSmartPointer<vtkImageReslice> reslice = vtkSmartPointer<vtkImageReslice>::New();
+    reslice->SetInputData(moving);
+    reslice->SetResliceTransform(transform);
+    reslice->SetInterpolationModeToLinear();
+    reslice->SetOutputExtent(extent);
+    reslice->SetOutputOrigin(origin);
+    reslice->SetOutputSpacing(spacing);
+    reslice->SetBackgroundLevel(range[0]);
+    reslice->Update();
+
+    vtkSmartPointer<vtkImageData> result = vtkSmartPointer<vtkImageData>::New();
+    result->DeepCopy(reslice->GetOutput());
     return result;
 }
 

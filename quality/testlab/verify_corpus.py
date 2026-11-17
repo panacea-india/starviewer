@@ -207,6 +207,20 @@ def verify_videos(root, cases):
         check(len(fragments) == 1 and 0 <= len(fragments[0]) - truth["bytes"] <= 1, f"{name}: one fragment with the {truth['bytes']} bytes")
 
 
+def verify_registration_pair(root, cases):
+    truth = cases["registration-pair"]
+    fixed = {int(d.InstanceNumber): d for d in read_series(root / "ct-reference")}
+    moved = {int(d.InstanceNumber): d for d in read_series(root / "registration-pair")}
+    check(len(moved) == truth["instances"], "registration pair has 100 slices")
+    first = min(fixed)
+    shift = [float(m) - float(f) for m, f in zip(moved[first].ImagePositionPatient, fixed[first].ImagePositionPatient)]
+    check(all(close(a, b, 1e-4) for a, b in zip(shift, truth["true_shift_mm"])), f"registration pair is shifted by {truth['true_shift_mm']} mm")
+    check(str(moved[first].FrameOfReferenceUID) != str(fixed[first].FrameOfReferenceUID), "registration pair has its own frame of reference")
+    check(str(moved[first].StudyInstanceUID) == str(fixed[first].StudyInstanceUID), "registration pair is in the study of the reference CT")
+    sample = 50
+    check(bool((moved[sample].pixel_array.astype(int) + fixed[sample].pixel_array.astype(int) == 4095).all()), "registration pair has the contrast inverted")
+
+
 def verify_broken(root):
     missing = read_series(root / "broken" / "missing-slice")
     positions = [float(s.ImagePositionPatient[2]) for s in missing]
@@ -232,6 +246,7 @@ def main():
     verify_key_objects(root, cases)
     verify_presentation_states(root, cases)
     verify_structured_reports(root, cases)
+    verify_registration_pair(root, cases)
     verify_videos(root, cases)
     verify_broken(root)
     print(f"\n{'FAILED: ' + str(len(failures)) if failures else 'All checks passed'}")

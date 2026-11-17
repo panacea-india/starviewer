@@ -434,6 +434,13 @@ QString getPresentationStateMarker(const Q2DViewer *viewer)
     return lines.join("\n");
 }
 
+// Says that the second input is registered to the first one, and by how much, or returns an empty string if it is not.
+QString getRegistrationMarker(const Q2DViewer *viewer)
+{
+    QString note = viewer->getRegistrationNote();
+    return note.isEmpty() ? QString() : QObject::tr("REGISTERED") + ": " + note;
+}
+
 // Map from variable to getter function.
 const QHash<QString, decltype(&getDicomPatientID)> VariableGetters{
     {"PatientID", &getDicomPatientID},
@@ -671,6 +678,13 @@ void Q2DViewerAnnotationHandler::updateCornerAnnotation(CornerAnnotationIndexTyp
             if (!keyObjectMarker.isEmpty())
             {
                 annotation += "\n" + keyObjectMarker;
+            }
+
+            QString registrationMarker = getRegistrationMarker(m_2DViewer);
+
+            if (!registrationMarker.isEmpty())
+            {
+                annotation += "\n" + registrationMarker;
             }
 
             QString presentationStateMarker = getPresentationStateMarker(m_2DViewer);

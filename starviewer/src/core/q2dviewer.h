@@ -101,6 +101,10 @@ public:
     /// @return Objecte drawer del viewer
     Drawer* getDrawer() const;
 
+    /// Returns the note of the registration (see RegisteredVolumes) if the second input is a registered volume, or an empty string if it is not. The viewer writes it
+    /// under the annotations, so that nobody takes a registered volume for the original.
+    QString getRegistrationNote() const;
+
     /// Turns on or off the graphic annotations of the presentation states. They are on by default.
     void setPresentationStateEnabled(bool enabled);
     bool isPresentationStateEnabled() const;

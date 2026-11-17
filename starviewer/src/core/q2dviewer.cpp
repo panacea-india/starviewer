@@ -40,6 +40,7 @@
 #include "slicelocator.h"
 #include "q2dviewerannotationhandler.h"
 #include "q2dviewerpresentationstatehandler.h"
+#include "registeredvolumes.h"
 #include "volumedisplayunithandlerfactory.h"
 #include "genericvolumedisplayunithandler.h"
 #include "patientbrowsermenu.h"
@@ -1408,6 +1409,11 @@ void Q2DViewer::updateImageSlices()
 
     // TODO Si separem els renderers potser caldria aplicar-ho a cada renderer?
     getRenderer()->ResetCameraClippingRange();
+}
+
+QString Q2DViewer::getRegistrationNote() const
+{
+    return getNumberOfInputs() > 1 ? RegisteredVolumes::getNote(getInput(1)) : QString();
 }
 
 void Q2DViewer::setPresentationStateEnabled(bool enabled)

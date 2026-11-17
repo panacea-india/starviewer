@@ -554,6 +554,41 @@ def generate_videos(writer, video_file=None):
     writer.cases["videos"] = {"modality": "XC", "instances": len(cases), "documents": cases}
 
 
+REGISTRATION_SHIFT_MM = (6.0, -4.0, 3.0)
+
+
+def generate_registration_pair(writer):
+    """A second series in the study of the reference CT that is the same patient moved by REGISTRATION_SHIFT_MM, in another frame of reference and with
+    the contrast inverted, as if it were another modality. A rigid registration of it to the reference CT has to find that shift."""
+    case = "ct-reference"
+    series = "ct-moved"
+    frame = uid(case, series, "frame")
+    for path in sorted((writer.root / case).glob("CT*.dcm")):
+        ds = pydicom.dcmread(path)
+        index = int(ds.InstanceNumber) - 1
+        ds.SOPInstanceUID = uid(case, series, index)
+        ds.file_meta.MediaStorageSOPInstanceUID = ds.SOPInstanceUID
+        ds.SeriesInstanceUID = uid(case, series, "series")
+        ds.SeriesDescription = "CT moved and inverted"
+        ds.SeriesNumber = 980
+        ds.FrameOfReferenceUID = frame
+        ds.ImagePositionPatient = [float(v) + d for v, d in zip(ds.ImagePositionPatient, REGISTRATION_SHIFT_MM)]
+        stored = ds.pixel_array.astype(np.int32)
+        ds.PixelData = (4095 - stored).astype(np.uint16).tobytes()
+        ds.RescaleIntercept = 0
+        ds.WindowCenter = 2048
+        ds.WindowWidth = 4096
+        writer.save(ds, "registration-pair", f"MV{index:04d}.dcm")
+    writer.cases["registration-pair"] = {
+        "modality": "CT",
+        "instances": 100,
+        "study": "the study of ct-reference, as a second series in another frame of reference",
+        "true_shift_mm": list(REGISTRATION_SHIFT_MM),
+        "contrast": "inverted: stored value 4095 minus the one of the reference CT",
+        "expected": "registering it to the reference CT finds a translation of about 7.8 mm (the length of 6, -4, 3) and no rotation",
+    }
+
+
 def generate_ct_large(writer):
     case = "benchmark-ct-1000"
     write_ct_series(writer, case, case, "ct", "BENCHMARK^CT", "QA-BENCH-001", "Benchmark CT 512x512x1000",
@@ -1059,7 +1094,7 @@ def main():
     root.mkdir(parents=True)
     writer = Writer(root)
     video_file = arguments.video
-    for generator in (generate_ct, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         if generator is generate_videos:
             generator(writer, video_file)

@@ -109,13 +109,14 @@ struct RigidMotion {
 };
 
 // Creates a volume of floats, with the origin so that the center of the volume is at 0, 0, 0, whose value in each point is function(x, y, z)
-vtkSmartPointer<vtkImageData> createVolume(const std::function<double(double, double, double)> &function)
+vtkSmartPointer<vtkImageData> createVolume(const std::function<double(double, double, double)> &function, const double originShift[3] = nullptr)
 {
     vtkSmartPointer<vtkImageData> volume = vtkSmartPointer<vtkImageData>::New();
     volume->SetDimensions(Size, Size, Size);
     volume->SetSpacing(Spacing, Spacing, Spacing);
     double half = (Size - 1) * Spacing / 2.0;
-    volume->SetOrigin(-half, -half, -half);
+    double shift[3] = {originShift ? originShift[0] : 0.0, originShift ? originShift[1] : 0.0, originShift ? originShift[2] : 0.0};
+    volume->SetOrigin(-half + shift[0], -half + shift[1], -half + shift[2]);
     volume->AllocateScalars(VTK_FLOAT, 1);
 
     float *pixels = static_cast<float*>(volume->GetScalarPointer());
@@ -126,7 +127,7 @@ vtkSmartPointer<vtkImageData> createVolume(const std::function<double(double, do
         {
             for (int i = 0; i < Size; i++)
             {
-                pixels[(k * Size + j) * Size + i] = static_cast<float>(function(-half + i * Spacing, -half + j * Spacing, -half + k * Spacing));
+                pixels[(k * Size + j) * Size + i] = static_cast<float>(function(-half + shift[0] + i * Spacing, -half + shift[1] + j * Spacing, -half + shift[2] + k * Spacing));
             }
         }
     }
@@ -183,11 +184,16 @@ private slots:
     void run_ShouldRecoverARotationAndATranslation_WithMutualInformation();
     void run_ShouldRecoverTheMotion_BetweenVolumesWithOppositeContrast();
     void run_ShouldTellWhenTheMotionIsLarge_ThroughTheResult();
+    void run_ShouldNotMoveAPairThatIsAligned_WithNoiseAndOppositeContrast();
+    void run_ShouldNotMoveAPairThatIsAligned_LikeTwoCtSeriesOfAPatient();
 
     void run_ShouldFailAndSayWhy_WithoutAVolume();
     void run_ShouldFailAndSayWhy_WithAVolumeOfSeveralComponents();
 
     void transformPoint_ShouldApplyTheMatrix();
+
+    void resample_ShouldGiveTheMovingVolumeOnTheGridOfTheFixedOne();
+    void resample_ShouldUseTheSmallestValueOutsideTheMovingVolume();
 };
 
 void test_RigidRegistration::run_ShouldFindNoMotion_ForTheSameVolume()
@@ -265,6 +271,115 @@ void test_RigidRegistration::run_ShouldTellWhenTheMotionIsLarge_ThroughTheResult
     QVERIFY(result.iterations > 0);
 }
 
+void test_RigidRegistration::run_ShouldNotMoveAPairThatIsAligned_WithNoiseAndOppositeContrast()
+{
+    // The case of two series of a patient with different contrast: the centers of the volumes already put them in place, the body is a nearly
+    // round cylinder with noise inside, and the only things that tell a rotation from none are a few small structures. The registration must keep what
+    // is right and not turn the volume.
+    unsigned int seed = 12345;
+    auto noise = [&seed]() {
+        seed = seed * 1664525u + 1013904223u;
+        return ((seed >> 16) & 0xff) / 255.0 * 10.0 - 5.0;
+    };
+
+    const double shift[3] = {6.0, -4.0, 3.0};
+    vtkSmartPointer<vtkImageData> fixed = createVolume([&](double x, double y, double z) { return phantom(x, y, z) > 0 ? phantom(x, y, z) + noise() : 0.0; });
+    vtkSmartPointer<vtkImageData> moving = createVolume([&](double x, double y, double z) {
+        double value = phantom(x - shift[0], y - shift[1], z - shift[2]);
+        return 300.0 - (value > 0 ? value + noise() : 0.0);
+    }, shift);
+
+    RigidRegistration::Result result = RigidRegistration::run(fixed, moving);
+
+    QVERIFY2(result.success, qPrintable(result.message));
+    RigidMotion truth(0.0, 0.0, shift[0], shift[1], shift[2]);
+    double error = largestError(result, truth);
+    QVERIFY2(error < 2.0, qPrintable(QString("error %1 mm, rotation %2 degrees").arg(error).arg(result.rotationDegrees)));
+    QVERIFY2(result.rotationDegrees < 1.5, qPrintable(QString("rotation %1 degrees").arg(result.rotationDegrees)));
+}
+
+// A volume like the CT series of the test corpus, with voxels that are not cubes: a round body with noise, a soft sphere and a bone sphere, a marker in the shape of an L
+// outside the body, and air around. The value in each point is given by hu(x, y, z), and the volume has its origin moved by the given shift.
+vtkSmartPointer<vtkImageData> createCtLikeVolume(const std::function<double(double, double, double)> &hu, const double shift[3])
+{
+    const int columns = 128;
+    const int rows = 128;
+    const int slices = 40;
+    const double inPlane = 1.6;
+    const double between = 6.0;
+
+    vtkSmartPointer<vtkImageData> volume = vtkSmartPointer<vtkImageData>::New();
+    volume->SetDimensions(columns, rows, slices);
+    volume->SetSpacing(inPlane, inPlane, between);
+    volume->SetOrigin(-(columns - 1) * inPlane / 2.0 + shift[0], -(rows - 1) * inPlane / 2.0 + shift[1], shift[2]);
+    volume->AllocateScalars(VTK_FLOAT, 1);
+    float *pixels = static_cast<float*>(volume->GetScalarPointer());
+
+    for (int k = 0; k < slices; k++)
+    {
+        for (int j = 0; j < rows; j++)
+        {
+            for (int i = 0; i < columns; i++)
+            {
+                pixels[(k * rows + j) * columns + i] = static_cast<float>(hu(volume->GetOrigin()[0] + i * inPlane, volume->GetOrigin()[1] + j * inPlane,
+                                                                              volume->GetOrigin()[2] + k * between));
+            }
+        }
+    }
+
+    return volume;
+}
+
+void test_RigidRegistration::run_ShouldNotMoveAPairThatIsAligned_LikeTwoCtSeriesOfAPatient()
+{
+    unsigned int seed = 777;
+    auto noise = [&seed]() {
+        seed = seed * 1664525u + 1013904223u;
+        return ((seed >> 16) & 0xff) / 255.0 * 10.0 - 5.0;
+    };
+
+    // Values as the corpus CT has them (HU), with the body 90 mm in radius, and the spheres at the middle height of the volume
+    auto ct = [&](double x, double y, double z, double sx, double sy, double sz) {
+        x -= sx;
+        y -= sy;
+        z -= sz;
+        double value = -1000.0;
+
+        if (x * x + y * y <= 90.0 * 90.0)
+        {
+            value = 0.0 + noise();
+        }
+        if ((x + 40) * (x + 40) + (y + 20) * (y + 20) + (z - 120) * (z - 120) <= 20.0 * 20.0)
+        {
+            value = 100.0;
+        }
+        if ((x - 40) * (x - 40) + (y + 20) * (y + 20) + (z - 120) * (z - 120) <= 10.0 * 10.0)
+        {
+            value = 1000.0;
+        }
+        if ((x >= 55 && x <= 60 && y >= -75 && y <= -35) || (x >= 55 && x <= 85 && y >= -40 && y <= -35))
+        {
+            value = 3000.0;
+        }
+
+        return value;
+    };
+
+    const double none[3] = {0.0, 0.0, 0.0};
+    const double shift[3] = {6.0, -4.0, 3.0};
+    vtkSmartPointer<vtkImageData> fixed = createCtLikeVolume([&](double x, double y, double z) { return ct(x, y, z, 0, 0, 0); }, none);
+    // The same patient in another series: moved by the shift, and with the contrast inverted
+    vtkSmartPointer<vtkImageData> moving = createCtLikeVolume([&](double x, double y, double z) { return 1000.0 - ct(x, y, z, shift[0], shift[1], shift[2]) * 0.2; }, shift);
+
+    RigidRegistration::Result result = RigidRegistration::run(fixed, moving);
+
+    QVERIFY2(result.success, qPrintable(result.message));
+    RigidMotion truth(0.0, 0.0, shift[0], shift[1], shift[2]);
+    double error = largestError(result, truth);
+    QVERIFY2(result.rotationDegrees < 1.5, qPrintable(QString("rotation %1 degrees, error %2 mm").arg(result.rotationDegrees).arg(error)));
+    QVERIFY2(error < 3.0, qPrintable(QString("error %1 mm, rotation %2 degrees").arg(error).arg(result.rotationDegrees)));
+}
+
 void test_RigidRegistration::run_ShouldFailAndSayWhy_WithoutAVolume()
 {
     vtkSmartPointer<vtkImageData> volume = createMovedVolume(RigidMotion(0, 0, 0, 0, 0));
@@ -306,6 +421,79 @@ void test_RigidRegistration::transformPoint_ShouldApplyTheMatrix()
     QCOMPARE(result[0], 3.0);
     QCOMPARE(result[1], 7.0);
     QCOMPARE(result[2], 10.0);
+}
+
+void test_RigidRegistration::resample_ShouldGiveTheMovingVolumeOnTheGridOfTheFixedOne()
+{
+    RigidMotion motion(6.0, 3.0, 5.0, -4.0, 3.0);
+    vtkSmartPointer<vtkImageData> fixed = createMovedVolume(RigidMotion(0, 0, 0, 0, 0));
+    vtkSmartPointer<vtkImageData> moving = createMovedVolume(motion);
+
+    // The true matrix: the points of the fixed volume go to the points of the moving one by the motion
+    double matrix[16];
+
+    for (int row = 0; row < 3; row++)
+    {
+        for (int column = 0; column < 3; column++)
+        {
+            matrix[row * 4 + column] = motion.matrix[row][column];
+        }
+
+        matrix[row * 4 + 3] = motion.translation[row];
+    }
+
+    matrix[12] = matrix[13] = matrix[14] = 0.0;
+    matrix[15] = 1.0;
+
+    vtkSmartPointer<vtkImageData> resampled = RigidRegistration::resample(moving, fixed, matrix);
+
+    int dimensions[3];
+    resampled->GetDimensions(dimensions);
+    QCOMPARE(dimensions[0], Size);
+    QCOMPARE(dimensions[1], Size);
+    QCOMPARE(dimensions[2], Size);
+    QCOMPARE(resampled->GetSpacing()[0], Spacing);
+    QCOMPARE(resampled->GetOrigin()[0], fixed->GetOrigin()[0]);
+    QCOMPARE(resampled->GetScalarType(), VTK_FLOAT);
+
+    // Inside the body, where the moving volume reaches, the resampled one is like the fixed one: the mean absolute difference is small
+    const float *a = static_cast<const float*>(resampled->GetScalarPointer());
+    const float *b = static_cast<const float*>(fixed->GetScalarPointer());
+    double sum = 0.0;
+    int count = 0;
+
+    for (int k = 16; k < 48; k++)
+    {
+        for (int j = 16; j < 48; j++)
+        {
+            for (int i = 16; i < 48; i++)
+            {
+                int index = (k * Size + j) * Size + i;
+                sum += std::abs(a[index] - b[index]);
+                count++;
+            }
+        }
+    }
+
+    QVERIFY2(sum / count < 6.0, qPrintable(QString("mean difference %1").arg(sum / count)));
+}
+
+void test_RigidRegistration::resample_ShouldUseTheSmallestValueOutsideTheMovingVolume()
+{
+    vtkSmartPointer<vtkImageData> fixed = createMovedVolume(RigidMotion(0, 0, 0, 0, 0));
+    vtkSmartPointer<vtkImageData> moving = createVolume([](double, double, double) { return 7.0; });
+
+    // The matrix sends the fixed volume far from the moving one
+    double matrix[16] = {1, 0, 0, 1000,
+                         0, 1, 0, 0,
+                         0, 0, 1, 0,
+                         0, 0, 0, 1};
+
+    vtkSmartPointer<vtkImageData> resampled = RigidRegistration::resample(moving, fixed, matrix);
+    const float *values = static_cast<const float*>(resampled->GetScalarPointer());
+
+    QCOMPARE(values[0], 7.0f);
+    QCOMPARE(values[Size * Size * Size / 2], 7.0f);
 }
 
 DECLARE_TEST(test_RigidRegistration)

@@ -13,6 +13,12 @@
  *************************************************************************************/
 
 #include "q2dviewerextension.h"
+#include <vtkSmartPointer.h>
+#include <vtkImageData.h>
+#include <QInputDialog>
+#include "registeredvolumes.h"
+#include "rigidregistration.h"
+#include "starviewerapplication.h"
 
 #include "volume.h"
 #include "image.h"
@@ -149,12 +155,20 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     m_showPresentationStateAction->setStatusTip(m_showPresentationStateAction->toolTip());
     connect(m_showPresentationStateAction, SIGNAL(toggled(bool)), SLOT(showPresentationState(bool)));
 
+    m_registerAndFuseAction = new QAction(this);
+    m_registerAndFuseAction->setText(tr("Register and fuse..."));
+    m_registerAndFuseAction->setToolTip(tr("Register another volume of the patient to the one in the selected viewer, and show both fused"));
+    m_registerAndFuseAction->setStatusTip(m_registerAndFuseAction->toolTip());
+    connect(m_registerAndFuseAction, SIGNAL(triggered()), SLOT(registerAndFuse()));
+
     m_viewerLayersToolButton->setDefaultAction(m_showViewersTextualInformationAction);
     
     QMenu *viewerInformationMenu = new QMenu(this);
     viewerInformationMenu->addAction(m_showOverlaysAction);
     viewerInformationMenu->addAction(m_showDisplayShuttersAction);
     viewerInformationMenu->addAction(m_showPresentationStateAction);
+    viewerInformationMenu->addSeparator();
+    viewerInformationMenu->addAction(m_registerAndFuseAction);
     m_viewerLayersToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_viewerLayersToolButton->setMenu(viewerInformationMenu);
     
@@ -800,6 +814,85 @@ void Q2DViewerExtension::showDisplayShutters(bool show)
     {
         m_workingArea->getViewerWidget(viewerNumber)->getViewer()->showDisplayShutters(show);
     }
+}
+
+void Q2DViewerExtension::registerAndFuse()
+{
+    Q2DViewerWidget *selectedViewerWidget = m_workingArea->getSelectedViewer();
+    Volume *fixed = selectedViewerWidget ? selectedViewerWidget->getViewer()->getMainInput() : nullptr;
+
+    if (!fixed || !m_patient)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Select a viewer that shows a volume first."));
+        return;
+    }
+
+    // The volumes that can be registered to this one: of the same acquisition plane, since the registration works on the axes of the volumes
+    QStringList names;
+    QList<Volume*> candidates;
+
+    for (Study *study : m_patient->getStudies())
+    {
+        for (Series *series : study->getViewableSeries())
+        {
+            for (Volume *volume : series->getVolumesList())
+            {
+                if (volume != fixed && !m_registeredVolumes.contains(volume) && volume->getNumberOfPhases() == 1
+                    && volume->getAcquisitionPlane() == fixed->getAcquisitionPlane() && volume->getAcquisitionPlane() != AnatomicalPlane::NotAvailable)
+                {
+                    names << QString("%1 (%2, %3 images)").arg(series->getDescription().trimmed().isEmpty() ? tr("Series %1").arg(series->getSeriesNumber())
+                                                                                                           : series->getDescription().trimmed())
+                                                           .arg(series->getModality()).arg(volume->getNumberOfSlicesPerPhase());
+                    candidates << volume;
+                }
+            }
+        }
+    }
+
+    if (candidates.isEmpty())
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("There is no other volume of the patient that was acquired in the same plane as the one shown."));
+        return;
+    }
+
+    bool accepted = false;
+    QString chosen = QInputDialog::getItem(this, tr("Register and fuse"), tr("Volume to register to the one shown:"), names, 0, false, &accepted);
+
+    if (!accepted)
+    {
+        return;
+    }
+
+    Volume *moving = candidates.at(names.indexOf(chosen));
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    RigidRegistration::Result result = RigidRegistration::run(fixed->getVtkData(), moving->getVtkData());
+    QApplication::restoreOverrideCursor();
+
+    if (!result.success)
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The volumes could not be registered: %1").arg(result.message));
+        return;
+    }
+
+    INFO_LOG(QString("Registered a volume: rotation %1 deg, translation %2 mm, metric %3, %4 iterations")
+             .arg(result.rotationDegrees).arg(result.translationMillimeters).arg(result.metricValue).arg(result.iterations));
+
+    // The moving volume as seen from the grid of the fixed one, as a volume of its own, which the viewers fuse like any other
+    vtkSmartPointer<vtkImageData> resampled = RigidRegistration::resample(moving->getVtkData(), fixed->getVtkData(), result.matrix);
+    Volume *registered = new Volume(this);
+    registered->setImages(moving->getImages());
+    registered->setData(resampled);
+    m_registeredVolumes << registered;
+
+    QString note = tr("rotation %1 deg, translation %2 mm").arg(result.rotationDegrees, 0, 'f', 1).arg(result.translationMillimeters, 0, 'f', 1);
+
+    QMessageBox::information(this, ApplicationNameString,
+                             tr("The volume was registered: %1.\n\nCheck that the images match before you rely on it. The volume that is shown is marked REGISTERED.").arg(note));
+
+    // Any viewer that shows it as its second input marks it, even if the layout makes the viewers later
+    RegisteredVolumes::add(registered, note);
+    setFusionLayout2x1First({fixed, registered}, fixed->getAcquisitionPlane());
 }
 
 void Q2DViewerExtension::showPresentationState(bool show)
