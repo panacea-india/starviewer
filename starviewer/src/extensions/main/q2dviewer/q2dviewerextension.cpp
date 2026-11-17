@@ -151,7 +151,7 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     m_showPresentationStateAction->setCheckable(true);
     m_showPresentationStateAction->setChecked(true);
     m_showPresentationStateAction->setText(tr("Presentation state"));
-    m_showPresentationStateAction->setToolTip(tr("Show/Hide the annotations of the presentation states"));
+    m_showPresentationStateAction->setToolTip(tr("Show/Hide the annotations of the presentation states and the contours of the RT structure sets"));
     m_showPresentationStateAction->setStatusTip(m_showPresentationStateAction->toolTip());
     connect(m_showPresentationStateAction, SIGNAL(toggled(bool)), SLOT(showPresentationState(bool)));
 

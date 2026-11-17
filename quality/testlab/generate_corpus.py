@@ -650,6 +650,144 @@ def generate_curved_tube(writer):
     }
 
 
+TILT_DEGREES = 20.0
+TILT_TABLE_STEP_MM = 3.0
+TILT_BAR = {"x_mm": 20.0, "y_mm": 0.0, "radius_mm": 6.0}
+
+
+def generate_gantry_tilt(writer):
+    """A CT of a head-like sphere with a bar along the patient z axis, acquired with a gantry tilted by TILT_DEGREES: the slices are tilted planes (the columns go up and
+    toward the head) and the table moves 3 mm between them. The positions of the slices are therefore shifted along the slices, which a correction has to take out."""
+    case = "gantry-tilt"
+    size = 96
+    spacing = 2.0
+    slices = 40
+    alpha = math.radians(TILT_DEGREES)
+    start = -95.0
+    frame = uid(case, "frame")
+    cols = np.arange(size)
+    rows = np.arange(size)
+    x_world = (cols * spacing - 95.0)[None, :].repeat(size, axis=0)
+    t = (start + rows * spacing)[:, None].repeat(size, axis=1)
+    rng = np.random.default_rng(hash_int(case))
+    for index in range(slices):
+        table_z = index * TILT_TABLE_STEP_MM
+        y_world = t * math.cos(alpha)
+        z_world = table_z + t * math.sin(alpha)
+        hu = np.full((size, size), -1000.0)
+        head = x_world ** 2 + y_world ** 2 + (z_world - 60.0) ** 2 <= 45.0 ** 2
+        hu[head] = 40.0
+        hu[head] += rng.normal(0.0, 5.0, hu.shape)[head]
+        bar = (x_world - TILT_BAR["x_mm"]) ** 2 + (y_world - TILT_BAR["y_mm"]) ** 2 <= TILT_BAR["radius_mm"] ** 2
+        hu[bar & head] = 1000.0
+        ds = writer.base(case, "tilt", index, CT_STORAGE, "CT", "PHANTOM^TILT", "QA-TILT-001", "CT with a tilted gantry")
+        ds.ImageType = ["ORIGINAL", "PRIMARY", "AXIAL"]
+        ds.KVP = 120
+        monochrome(ds)
+        ds.ImageOrientationPatient = [1, 0, 0, 0, math.cos(alpha), math.sin(alpha)]
+        ds.ImagePositionPatient = [-95.0, start * math.cos(alpha), table_z + start * math.sin(alpha)]
+        ds.PixelSpacing = [spacing, spacing]
+        ds.SliceThickness = TILT_TABLE_STEP_MM
+        ds.SliceLocation = table_z
+        ds.GantryDetectorTilt = TILT_DEGREES
+        ds.FrameOfReferenceUID = frame
+        ds.PositionReferenceIndicator = ""
+        ds.RescaleIntercept = -1024
+        ds.RescaleSlope = 1
+        ds.RescaleType = "HU"
+        ds.WindowCenter = 300
+        ds.WindowWidth = 1500
+        stored = np.clip(np.rint(hu + 1024), 0, 4095).astype(np.uint16)
+        set_pixels(ds, stored, 12)
+        writer.save(ds, case, f"GT{index:04d}.dcm")
+    writer.cases[case] = {
+        "modality": "CT",
+        "instances": slices,
+        "pixel_spacing_mm": [spacing, spacing],
+        "gantry_tilt_degrees": TILT_DEGREES,
+        "table_step_mm": TILT_TABLE_STEP_MM,
+        "bar": TILT_BAR,
+        "expected": "the viewer logs a corrected gantry tilt of 20.0 degrees; the bar along the patient z axis, which is straight in the stack as read, is slanted by 20 degrees from the vertical of the sagittal view",
+    }
+
+
+RT_STRUCTURE_SET_STORAGE = "1.2.840.10008.5.1.4.1.1.481.3"
+
+
+def sphere_contours(sphere, thickness=2.5, slices=100, segments=48):
+    """The circles where the slices cut a sphere: a list of (z, [(x, y, z), ...])."""
+    cx, cy, cz = sphere["center"]
+    contours = []
+    for index in range(slices):
+        z = index * thickness
+        dz = z - cz
+        if abs(dz) >= sphere["radius"]:
+            continue
+        radius = math.sqrt(sphere["radius"] ** 2 - dz ** 2)
+        points = [(cx + radius * math.cos(2 * math.pi * k / segments), cy + radius * math.sin(2 * math.pi * k / segments), z) for k in range(segments)]
+        contours.append((z, points))
+    return contours
+
+
+def generate_rtstruct(writer):
+    """An RT structure set in the study of the reference CT with a contour of each sphere, in the patient coordinates of its images: the viewer has to draw them
+    on the spheres, a circle on each slice that cuts one."""
+    case = "ct-reference"
+    ds = writer.base(case, "rtss", 0, RT_STRUCTURE_SET_STORAGE, "RTSTRUCT", "PHANTOM^CT", "QA-CT-001", "Structure set")
+    ds.SeriesNumber = 970
+    ds.StructureSetLabel = "SPHERES"
+    ds.StructureSetName = "Sphere contours"
+    ds.StructureSetDate = STUDY_DATE
+    ds.StructureSetTime = "120000"
+    frame = uid(case, "frame")
+    frame_item = Dataset()
+    frame_item.FrameOfReferenceUID = frame
+    ds.ReferencedFrameOfReferenceSequence = Sequence([frame_item])
+    rois = []
+    contour_items = []
+    expected = {}
+    for number, name, sphere, color in ((1, "SoftSphere", SOFT_SPHERE, [255, 0, 0]), (2, "BoneSphere", BONE_SPHERE, [0, 255, 0])):
+        roi = Dataset()
+        roi.ROINumber = number
+        roi.ReferencedFrameOfReferenceUID = frame
+        roi.ROIName = name
+        roi.ROIGenerationAlgorithm = "MANUAL"
+        rois.append(roi)
+        item = Dataset()
+        item.ReferencedROINumber = number
+        item.ROIDisplayColor = color
+        contours = sphere_contours(sphere)
+        sequence = []
+        for z, points in contours:
+            contour = Dataset()
+            contour.ContourGeometricType = "CLOSED_PLANAR"
+            contour.NumberOfContourPoints = len(points)
+            contour.ContourData = [float(round(v, 4)) for point in points for v in point]
+            sequence.append(contour)
+        item.ContourSequence = Sequence(sequence)
+        contour_items.append(item)
+        expected[name] = {"center_lps_mm": sphere["center"], "radius_mm": sphere["radius"], "contours": len(contours), "color": color}
+    ds.StructureSetROISequence = Sequence(rois)
+    ds.ROIContourSequence = Sequence(contour_items)
+    observations = []
+    for number, name in ((1, "SoftSphere"), (2, "BoneSphere")):
+        observation = Dataset()
+        observation.ObservationNumber = number
+        observation.ReferencedROINumber = number
+        observation.RTROIInterpretedType = "ORGAN"
+        observation.ROIInterpreter = ""
+        observations.append(observation)
+    ds.RTROIObservationsSequence = Sequence(observations)
+    writer.save(ds, "rt-structure-sets", "rtss.dcm")
+    writer.cases["rt-structure-sets"] = {
+        "modality": "RTSTRUCT",
+        "instances": 1,
+        "study": "the study of ct-reference",
+        "regions": expected,
+        "expected": "a red circle on each slice that cuts the soft sphere and a green one on the bone sphere, on the spheres of the images",
+    }
+
+
 def generate_ct_large(writer):
     case = "benchmark-ct-1000"
     write_ct_series(writer, case, case, "ct", "BENCHMARK^CT", "QA-BENCH-001", "Benchmark CT 512x512x1000",
@@ -1155,7 +1293,7 @@ def main():
     root.mkdir(parents=True)
     writer = Writer(root)
     video_file = arguments.video
-    for generator in (generate_ct, generate_curved_tube, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_rtstruct, generate_curved_tube, generate_gantry_tilt, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         if generator is generate_videos:
             generator(writer, video_file)

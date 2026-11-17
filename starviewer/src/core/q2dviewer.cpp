@@ -40,6 +40,7 @@
 #include "slicelocator.h"
 #include "q2dviewerannotationhandler.h"
 #include "q2dviewerpresentationstatehandler.h"
+#include "q2dviewerrtstructurehandler.h"
 #include "registeredvolumes.h"
 #include "volumedisplayunithandlerfactory.h"
 #include "genericvolumedisplayunithandler.h"
@@ -88,6 +89,8 @@ Q2DViewer::Q2DViewer(QWidget *parent)
 
     m_presentationStateHandler = new Q2DViewerPresentationStateHandler(this);
     connect(this, SIGNAL(newVolumesRendered()), m_presentationStateHandler, SLOT(rebuild()));
+    m_rtStructureHandler = new Q2DViewerRtStructureHandler(this);
+    connect(this, SIGNAL(newVolumesRendered()), m_rtStructureHandler, SLOT(rebuild()));
 
     m_imageOrientationOperationsMapper = new ImageOrientationOperationsMapper();
 
@@ -1419,6 +1422,8 @@ QString Q2DViewer::getRegistrationNote() const
 void Q2DViewer::setPresentationStateEnabled(bool enabled)
 {
     m_presentationStateHandler->setEnabled(enabled);
+    // The contours of the structure sets are annotations of the images too, and go with the same switch
+    m_rtStructureHandler->setEnabled(enabled);
 }
 
 bool Q2DViewer::isPresentationStateEnabled() const

@@ -617,6 +617,30 @@ QSet<QString> Study::getImageSopInstanceUids() const
     return uids;
 }
 
+bool Study::addRtStructureSet(const RtStructureSet &set)
+{
+    if (set.isNull())
+    {
+        return false;
+    }
+
+    for (const RtStructureSet &existing : m_rtStructureSets)
+    {
+        if (existing.getSopInstanceUid() == set.getSopInstanceUid())
+        {
+            return false;
+        }
+    }
+
+    m_rtStructureSets << set;
+    return true;
+}
+
+const QList<RtStructureSet>& Study::getRtStructureSets() const
+{
+    return m_rtStructureSets;
+}
+
 bool Study::addPresentationState(const GraphicPresentationState &state)
 {
     if (state.isNull())

@@ -206,6 +206,10 @@ void loadAuxiliaryObjects(Study *study, const Series *series)
         {
             study->addPresentationState(GraphicPresentationState::fromDICOM(reader));
         }
+        else if (sopClass == UIDRTStructureSetStorage)
+        {
+            study->addRtStructureSet(RtStructureSet::fromDICOM(reader));
+        }
     }
 }
 

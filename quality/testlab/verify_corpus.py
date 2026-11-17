@@ -243,6 +243,45 @@ def verify_curved_tube(root, cases):
     check(worst < 30.0, "curved tube: the center line is tube and beside it is body")
 
 
+def verify_gantry_tilt(root, cases):
+    truth = cases["gantry-tilt"]
+    series = read_series(root / "gantry-tilt")
+    check(len(series) == truth["instances"], "gantry tilt has 40 slices")
+    alpha = math.radians(truth["gantry_detector_tilt"] if "gantry_detector_tilt" in truth else truth["gantry_tilt_degrees"])
+    bar = truth["bar"]
+    ok = True
+    for ds in series[10:30]:
+        position = [float(p) for p in ds.ImagePositionPatient]
+        spacing = float(ds.PixelSpacing[0])
+        hu = ds.pixel_array.astype(float) * float(ds.RescaleSlope) + float(ds.RescaleIntercept)
+        # The pixel of the bar, with y = 0 in the patient: t = -y of the position / cos(alpha) is not needed, since y = t cos(alpha) and the position holds t0 cos(alpha)
+        column = int(round((bar["x_mm"] - position[0]) / spacing))
+        t0 = position[1] / math.cos(alpha)
+        row = int(round((bar["y_mm"] / math.cos(alpha) - t0) / spacing))
+        ok = ok and abs(hu[row, column] - 1000.0) < 30.0
+    check(ok, "gantry tilt: the bar is at the same pixel in every slice, and the positions are shifted along the slices")
+    check(abs(float(series[1].ImagePositionPatient[2]) - float(series[0].ImagePositionPatient[2]) - truth["table_step_mm"]) < 1e-6, "gantry tilt: the table moves 3 mm per slice")
+
+
+def verify_rtstruct(root, cases):
+    truth = cases["rt-structure-sets"]
+    ds = pydicom.dcmread(Path(root) / "rt-structure-sets" / "rtss.dcm")
+    check(ds.SOPClassUID == "1.2.840.10008.5.1.4.1.1.481.3", "rtstruct: the SOP class")
+    for roi_item, contour_item in zip(ds.StructureSetROISequence, ds.ROIContourSequence):
+        name = str(roi_item.ROIName)
+        sphere = truth["regions"][name]
+        check(len(contour_item.ContourSequence) == sphere["contours"], f"rtstruct: {name} has {sphere['contours']} contours")
+        worst = 0.0
+        for contour in contour_item.ContourSequence:
+            data = [float(v) for v in contour.ContourData]
+            points = [data[i:i + 3] for i in range(0, len(data), 3)]
+            cx, cy, cz = sphere["center_lps_mm"]
+            for x, y, z in points:
+                distance = math.sqrt((x - cx) ** 2 + (y - cy) ** 2 + (z - cz) ** 2)
+                worst = max(worst, abs(distance - sphere["radius_mm"]))
+        check(worst < 0.01, f"rtstruct: every point of {name} is on the sphere")
+
+
 def verify_broken(root):
     missing = read_series(root / "broken" / "missing-slice")
     positions = [float(s.ImagePositionPatient[2]) for s in missing]
@@ -270,6 +309,8 @@ def main():
     verify_structured_reports(root, cases)
     verify_registration_pair(root, cases)
     verify_curved_tube(root, cases)
+    verify_gantry_tilt(root, cases)
+    verify_rtstruct(root, cases)
     verify_videos(root, cases)
     verify_broken(root)
     print(f"\n{'FAILED: ' + str(len(failures)) if failures else 'All checks passed'}")

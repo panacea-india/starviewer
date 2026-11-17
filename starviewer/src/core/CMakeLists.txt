@@ -26,6 +26,11 @@ set(SOURCES
     clippingplanestool.cpp
     colortransferfunction.cpp
     computezspacingpostprocessor.cpp
+    gantrytiltcorrector.cpp
+    rtstructureset.cpp
+    rtstructurefillerstep.cpp
+    q2dviewerrtstructurehandler.cpp
+    gantrytiltpostprocessor.cpp
     contourvoxelshader.cpp
     coresettings.cpp
     createinformationmodelobject.cpp

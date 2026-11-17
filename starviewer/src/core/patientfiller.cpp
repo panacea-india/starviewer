@@ -20,6 +20,7 @@
 #include "imagefillerstep.h"
 #include "keyimagenotefillerstep.h"
 #include "presentationstatefillerstep.h"
+#include "rtstructurefillerstep.h"
 #include "structuredreportfillerstep.h"
 #include "videofillerstep.h"
 #include "logging.h"
@@ -194,7 +195,7 @@ void PatientFiller::createSteps()
     {
         m_firstStageSteps << new DICOMFileClassifierFillerStep() << new ImageFillerStep() << new EncapsulatedDocumentFillerStep()
                           << new KeyImageNoteFillerStep() << new PresentationStateFillerStep()
-                          << new StructuredReportFillerStep() << new VideoFillerStep();
+                          << new StructuredReportFillerStep() << new VideoFillerStep() << new RtStructureFillerStep();
         m_secondStageSteps << new VolumeFillerStep() << new OrderImagesFillerStep() << new TemporalDimensionFillerStep() << new OrderVolumesFillerStep();
     }
     else

@@ -22,6 +22,7 @@
 #include "dicomsource.h"
 #include "keyobjectselection.h"
 #include "graphicpresentationstate.h"
+#include "rtstructureset.h"
 #include "structuredreport.h"
 #include "videoobject.h"
 
@@ -148,6 +149,10 @@ public:
     /// Adds a Softcopy Presentation State to the study. It returns false, and does not add it, if it is null or the study has it already.
     bool addPresentationState(const GraphicPresentationState &state);
 
+    /// Adds an RT structure set to the study. Returns false if it is null or the study has it already (by SOP instance UID).
+    bool addRtStructureSet(const RtStructureSet &set);
+    const QList<RtStructureSet>& getRtStructureSets() const;
+
     /// Returns the Softcopy Presentation States of the study.
     const QList<GraphicPresentationState>& getPresentationStates() const;
 
@@ -269,6 +274,7 @@ private:
 
     /// The Softcopy Presentation States of the study
     QList<GraphicPresentationState> m_presentationStates;
+    QList<RtStructureSet> m_rtStructureSets;
 
     /// The Structured Reports of the study
     QList<StructuredReport> m_structuredReports;

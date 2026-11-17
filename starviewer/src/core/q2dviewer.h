@@ -45,6 +45,7 @@ class VolumeDisplayUnit;
 class VolumePixelData;
 class Q2DViewerAnnotationHandler;
 class Q2DViewerPresentationStateHandler;
+class Q2DViewerRtStructureHandler;
 class VolumeDisplayUnitHandlerFactory;
 class GenericVolumeDisplayUnitHandler;
 class TransferFunction;
@@ -617,6 +618,7 @@ private:
 
     /// Draws the annotations of the presentation states
     Q2DViewerPresentationStateHandler *m_presentationStateHandler;
+    Q2DViewerRtStructureHandler *m_rtStructureHandler;
 
     /// Fusion balance stored as a value in the range [0, 100] representing the weight of the second input.
     int m_fusionBalance;
