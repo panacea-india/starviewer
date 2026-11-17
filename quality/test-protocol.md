@@ -656,6 +656,18 @@ the pixels and depth of a point, the contours at a depth with the tolerance, pol
 Not tried: the draw of the contours in the 3D viewer or in the sagittal and coronal views (they are not drawn there), the tilt correction on a real head CT (the test is synthetic: a
 sphere and a bar, with the shift worked out from the positions), the pairing of a structure set with a series by the frame of reference when the study has several, and Linux.
 
+### Run 22: ZIP import (Phase 4)
+
+The study of `ct-reference` with its RT structure set was packed with a ZIP program (deflate, in a folder `study/`), and opened with File > Open Files, typing the path of the ZIP.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Open the ZIP | Passed | 101 files were unpacked and the study loaded with its 100 slices |
+
+Automatic tests: 17 new (`test_ZipArchive`), for stored and deflated files, subfolders, names that go outside (../, ..\\, absolute, a drive, a stream, a double slash: nothing is written, not even the good files), a wrong CRC, an entry that holds more than it says, the limits of total size, file size and entries, encrypted and duplicate entries, files that are not ZIP or are cut, and the safe path rules.
+
+Not tried: a ZIP made by Windows Explorer or by a CD export tool, names in the old DOS character set, a very large archive, ZIP64 (it is refused), and Linux. The unpacked files are not removed after use: that has to be added (they are patient data).
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

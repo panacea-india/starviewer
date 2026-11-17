@@ -317,7 +317,9 @@ measurement accuracy checks against known phantoms.
 - **Image tools:** sharpen and smooth filters; promote DSA from the playground
   into a supported extension; time-intensity curves, building on
   `PolylineTemporalROITool`.
-- **Input and output:** ZIP import; MP4 export; standard printing and PDF.
+- **Input and output:** ZIP import (**done:** File > Open Files takes a .zip, which `ZipArchive` unpacks into a folder of the user data and opens like a folder; it refuses unsafe paths,
+  lies about sizes, encrypted and ZIP64 files, and has limits of size and number; the unpacked files stay in `zip-import` of the user data folder and are not cleaned up yet);
+  MP4 export; standard printing and PDF.
 - **Usability:** customisable shortcuts, a hanging protocol editor, and
   performance work against the Phase 0.5 baseline.
 
