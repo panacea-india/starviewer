@@ -22,6 +22,7 @@
 #include "surfaceexporter.h"
 #include <algorithm>
 #include "movieencoder.h"
+#include "flythroughpath.h"
 #include "savedviewstore.h"
 #include "volumesculptor.h"
 #include "series.h"
@@ -579,6 +580,7 @@ void Q3DViewerExtension::fillViewsMenu()
 {
     m_viewsMenu->clear();
     m_viewsMenu->addAction(tr("Save this view..."), this, &Q3DViewerExtension::saveCurrentView);
+    m_viewsMenu->addAction(tr("Fly along the last curved MPR path"), this, &Q3DViewerExtension::flyAlongPath);
 
     if (!m_savedViews.isEmpty())
     {
@@ -724,6 +726,13 @@ void Q3DViewerExtension::exportMovie()
         kinds << tr("Go through the saved views, in order");
     }
 
+    QString flightKind = tr("Fly along the last curved MPR path");
+
+    if (FlythroughPath::length(FlythroughPath::lastPath()) > 0.0)
+    {
+        kinds << flightKind;
+    }
+
     bool accepted = false;
     QString kind = QInputDialog::getItem(this, tr("Movie"), tr("The camera will:"), kinds, 0, false, &accepted);
 
@@ -758,7 +767,7 @@ void Q3DViewerExtension::exportMovie()
     folder.cd(subfolder);
 
     SavedView start = currentView();
-    QList<SavedView> views = kind == kinds.first() ? start.turntable(frames) : SavedView::path(m_savedViews, frames);
+    QList<SavedView> views = kind == kinds.first() ? start.turntable(frames) : kind == flightKind ? FlythroughPath::views(FlythroughPath::lastPath(), frames, 5.0, 90.0) : SavedView::path(m_savedViews, frames);
 
     QProgressDialog progress(tr("Making the pictures..."), tr("Cancel"), 0, views.size(), this);
     progress.setWindowModality(Qt::WindowModal);
@@ -820,6 +829,31 @@ void Q3DViewerExtension::exportMovie()
 
     text += "\n\n" + tr("The pictures show the patient: keep them as such.");
     QMessageBox::information(this, ApplicationNameString, text);
+}
+
+void Q3DViewerExtension::flyAlongPath()
+{
+    QVector<double> path = FlythroughPath::lastPath();
+
+    if (!m_input || FlythroughPath::length(path) <= 0.0)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("There is no path yet. In the 2D viewer, choose the Curved MPR tool, click points along a vessel or a cavity and press Enter: "
+                                                                  "then come back here. The path is in the coordinates of the volume that was open in the 2D viewer."));
+        return;
+    }
+
+    // About 25 millimeters of path a second
+    int frames = qBound(40, static_cast<int>(FlythroughPath::length(path) / 1.0), 600);
+    QList<SavedView> views = FlythroughPath::views(path, frames, 5.0, 90.0);
+    SavedView start = currentView();
+
+    for (const SavedView &view : views)
+    {
+        showView(view);
+        QApplication::processEvents();
+    }
+
+    showView(start);
 }
 
 void Q3DViewerExtension::setScalarRange(double min, double max)

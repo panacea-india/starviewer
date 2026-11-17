@@ -30,6 +30,7 @@ set(SOURCES
     shortcutconfiguration.cpp
     timeintensitycurve.cpp
     digitalsubtraction.cpp
+    flythroughpath.cpp
     hangingprotocolxmlwriter.cpp
     hangingprotocolfiles.cpp
     timeintensitycurvetool.cpp

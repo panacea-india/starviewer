@@ -22,6 +22,7 @@
 #include <QMessageBox>
 
 #include "curvedreformation.h"
+#include "flythroughpath.h"
 #include "drawer.h"
 #include "drawerpoint.h"
 #include "q2dviewer.h"
@@ -76,6 +77,9 @@ void CurvedMprTool::finish()
     {
         return;
     }
+
+    // The 3D viewer can fly along this path
+    FlythroughPath::setLastPath(m_points);
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     CurvedReformation::Result result = CurvedReformation::straighten(volume->getVtkData(), m_points.constData(), m_points.size() / 3);

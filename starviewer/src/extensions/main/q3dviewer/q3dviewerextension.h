@@ -59,6 +59,8 @@ public slots:
     void deleteSavedView();
     /// Makes a movie of the 3D view: pictures (and a video, if ffmpeg is on the computer) of the camera turning around the volume or going through the saved views.
     void exportMovie();
+    /// Shows a flight along the last path drawn with the curved MPR tool in the 2D viewer, from inside the vessel or the cavity.
+    void flyAlongPath();
     /// Takes out of the 3D view everything at or above a value that is not the largest piece (the table, the loose spots). The loaded volume is not changed.
     void sculptKeepLargestPiece();
     /// Shows the volume as it was loaded, before any sculpting.

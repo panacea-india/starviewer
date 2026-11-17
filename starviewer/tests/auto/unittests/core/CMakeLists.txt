@@ -73,6 +73,7 @@ set(SOURCES
     test_shortcutconfiguration.cpp
     test_timeintensitycurve.cpp
     test_digitalsubtraction.cpp
+    test_flythroughpath.cpp
     test_hangingprotocolxmlwriter.cpp
     test_hangingprotocolfiles.cpp
     test_calibrationtool.cpp
