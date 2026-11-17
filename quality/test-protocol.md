@@ -721,7 +721,7 @@ Tools > Keyboard shortcuts... was opened (and cancelled: no setting was changed)
 | Step | Result | Notes |
 | --- | --- | --- |
 | 1. List | Passed | All shortcuts of the settings with their keys, in alphabetical order, with a Default button each |
-| 2. Conflicts | Passed | The warning lists keys that two or more actions have by default: Ctrl+E, Ctrl+I, Ctrl+S, Ctrl+V and S (the mouse and the wheel tools, which is by design). The first four are worth a look |
+| 2. Conflicts | Passed | The warning lists keys that two or more actions have by default: Ctrl+E, Ctrl+S, Ctrl+V, Ctrl+R and S. Looked at afterwards (run 31): they belong to different windows or buttons; Ctrl+E did nothing in the viewer because no extension registers the clear-annotations tool, and "Exams" is only in the Lite build. The warning now says when it matters |
 | 3. Changing a key | Not tried on screen | Saving is covered by the logic that is tested only in part: the conflicts and the names are tested, the saving to the settings is not |
 
 Automatic tests: 5,166 passed, 0 failed, 9 skipped, which is 11 more than before (`test_ShortcutConfiguration`: 10, and `test_ZipArchive`: 1 for the cleanup of old unpacked folders).

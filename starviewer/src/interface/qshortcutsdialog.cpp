@@ -100,7 +100,7 @@ void QShortcutsDialog::updateConflicts()
         lines << tr("%1 is used by: %2").arg(it.key(), it.value().join(", "));
     }
 
-    m_conflicts->setText(lines.isEmpty() ? QString() : tr("Keys used by more than one action (the tools that work with a different button, such as the mouse and the wheel, can share a key):") + "\n" + lines.join("\n"));
+    m_conflicts->setText(lines.isEmpty() ? QString() : tr("Keys used by more than one action. It is not a problem if the actions are in different windows (the query screens) or work with a different button (the mouse and the wheel tools); it is if they can be used in the same window at the same time:") + "\n" + lines.join("\n"));
 }
 
 void QShortcutsDialog::apply()
