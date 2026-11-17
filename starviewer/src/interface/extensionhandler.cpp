@@ -92,7 +92,8 @@ namespace {
 // Only the PDF extension works without OpenGL. The rest show images through VTK, which needs OpenGL 3.2 or newer.
 bool needsOpenGL(const QString &extensionIdentifier)
 {
-    return extensionIdentifier != "PdfExtension" && extensionIdentifier != "StructuredReportExtension";
+    return extensionIdentifier != "PdfExtension" && extensionIdentifier != "StructuredReportExtension"
+           && extensionIdentifier != "VideoExtension";
 }
 
 void warnAboutMissingOpenGL(QWidget *parent)
@@ -533,6 +534,11 @@ void ExtensionHandler::openDefaultExtensions(QList<Study*> newStudies)
     if (dicomEntities.testFlag(DicomEntity::StructuredReport))
     {
         request("StructuredReportExtension");
+    }
+
+    if (dicomEntities.testFlag(DicomEntity::Video))
+    {
+        request("VideoExtension");
     }
 
     // Without OpenGL no viewer can open: say it once instead of once for each extension that is tried

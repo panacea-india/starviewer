@@ -13,6 +13,7 @@
  *************************************************************************************/
 
 #include "imagefillerstep.h"
+#include "videoobject.h"
 
 #include "dicomformattedvaluesconverter.h"
 #include "dicomsequenceattribute.h"
@@ -307,7 +308,9 @@ bool ImageFillerStep::fillIndividually()
 QList<Image*> ImageFillerStep::processDICOMFile(const DICOMTagReader *dicomReader)
 {
     QList<Image*> generatedImages;
-    bool ok = dicomReader->tagExists(DICOMPixelData);
+    // A DICOM video has a bitstream in its pixel data, not pixels. The VideoFillerStep takes it.
+    bool ok = dicomReader->tagExists(DICOMPixelData)
+              && !VideoObject::isVideoTransferSyntax(dicomReader->getValueAttributeAsQString(DICOMTransferSyntaxUID).trimmed());
     if (ok)
     {
         // Comprovem si la imatge és enhanced o no per tal de cridar el mètode específic més adient

@@ -1,0 +1,4 @@
+<RCC>
+    <qresource prefix="/extensions/VideoExtension">
+    </qresource>
+</RCC>

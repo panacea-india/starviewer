@@ -680,4 +680,28 @@ const QList<StructuredReport>& Study::getStructuredReports() const
     return m_structuredReports;
 }
 
+bool Study::addVideo(const VideoObject &video)
+{
+    if (video.isNull())
+    {
+        return false;
+    }
+
+    for (const VideoObject &existing : m_videos)
+    {
+        if (existing.getSopInstanceUid() == video.getSopInstanceUid())
+        {
+            return false;
+        }
+    }
+
+    m_videos << video;
+    return true;
+}
+
+const QList<VideoObject>& Study::getVideos() const
+{
+    return m_videos;
+}
+
 }

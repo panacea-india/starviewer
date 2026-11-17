@@ -132,6 +132,8 @@ set(SOURCES
     structuredreport.cpp
     structuredreportfillerstep.cpp
     structuredreportrenderer.cpp
+    videofillerstep.cpp
+    videoobject.cpp
     graphicpresentationstate.cpp
     leanbodymassformula.cpp
     leanbodymassformulacalculator.cpp

@@ -20,6 +20,7 @@ import numpy as np
 import pydicom
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.sequence import Sequence
+from pydicom.encaps import encapsulate
 from pydicom.uid import ExplicitVRLittleEndian
 
 CT_STORAGE = "1.2.840.10008.5.1.4.1.1.2"
@@ -33,6 +34,9 @@ ENCAPSULATED_PDF_STORAGE = "1.2.840.10008.5.1.4.1.1.104.1"
 KEY_OBJECT_SELECTION_STORAGE = "1.2.840.10008.5.1.4.1.1.88.59"
 GRAYSCALE_PRESENTATION_STATE_STORAGE = "1.2.840.10008.5.1.4.1.1.11.1"
 ENHANCED_SR_STORAGE = "1.2.840.10008.5.1.4.1.1.88.22"
+VIDEO_PHOTOGRAPHIC_STORAGE = "1.2.840.10008.5.1.4.1.1.77.1.4.1"
+MPEG4_AVC_HP_41 = "1.2.840.10008.1.2.4.102"
+MPEG2_MP_ML = "1.2.840.10008.1.2.4.100"
 
 STUDY_DATE = "20260101"
 INJECTION_TIME = "090000"
@@ -92,13 +96,13 @@ class Writer:
         ds.InstanceNumber = instance + 1
         return ds
 
-    def save(self, ds, directory, name):
+    def save(self, ds, directory, name, transfer_syntax=ExplicitVRLittleEndian):
         directory = self.root / directory
         directory.mkdir(parents=True, exist_ok=True)
         meta = FileMetaDataset()
         meta.MediaStorageSOPClassUID = ds.SOPClassUID
         meta.MediaStorageSOPInstanceUID = ds.SOPInstanceUID
-        meta.TransferSyntaxUID = ExplicitVRLittleEndian
+        meta.TransferSyntaxUID = transfer_syntax
         meta.ImplementationClassUID = "1.2.826.0.1.3680043.8.498.1"
         ds.file_meta = meta
         ds.is_little_endian = True
@@ -509,6 +513,45 @@ def generate_structured_reports(writer):
                          "notice": "This report is not final: completion PARTIAL, verification UNVERIFIED."},
         },
     }
+
+
+def write_video(writer, name, description, stream, transfer_syntax, frames=50, frame_time=40.0):
+    """A DICOM video (Video Photographic Image) whose pixel data is the given bitstream in one fragment."""
+    case = "videos"
+    ds = writer.base(case, name, 0, VIDEO_PHOTOGRAPHIC_STORAGE, "XC", "PHANTOM^VIDEO", "QA-VIDEO-001", description)
+    ds.SamplesPerPixel = 3
+    ds.PhotometricInterpretation = "YBR_PARTIAL_420"
+    ds.PlanarConfiguration = 0
+    ds.Rows = 240
+    ds.Columns = 320
+    ds.BitsAllocated = 8
+    ds.BitsStored = 8
+    ds.HighBit = 7
+    ds.PixelRepresentation = 0
+    ds.NumberOfFrames = str(frames)
+    ds.FrameTime = frame_time
+    ds.CineRate = round(1000.0 / frame_time)
+    ds.LossyImageCompression = "01"
+    ds.LossyImageCompressionMethod = "ISO_14496_10" if transfer_syntax != MPEG2_MP_ML else "ISO_13818_2"
+    # The bitstream is padded to an even length, in a single fragment after an empty basic offset table
+    ds.PixelData = encapsulate([stream], has_bot=False)
+    writer.save(ds, case, f"{name}.dcm", transfer_syntax=transfer_syntax)
+
+
+def generate_videos(writer, video_file=None):
+    # Bytes that no decoder can play: the viewer has to say that, not show a black rectangle
+    undecodable = hashlib.sha256(b"starviewer undecodable video").digest() * 128
+    write_video(writer, "video-undecodable", "Not a bitstream", undecodable, MPEG4_AVC_HP_41)
+    cases = {
+        "video-undecodable": {"format": "MPEG-4 AVC/H.264", "bytes": len(undecodable), "expected": "no decoder can play it: a notice says so"},
+    }
+    if video_file:
+        stream = Path(video_file).read_bytes()
+        mpeg2 = Path(video_file).suffix.lower() in (".mpg", ".mpeg", ".m2v")
+        write_video(writer, "video-real", "A real video", stream, MPEG2_MP_ML if mpeg2 else MPEG4_AVC_HP_41)
+        cases["video-real"] = {"format": "MPEG-2" if mpeg2 else "MPEG-4 AVC/H.264", "bytes": len(stream), "source": Path(video_file).name,
+                               "expected": "plays, if the computer has a decoder for the format"}
+    writer.cases["videos"] = {"modality": "XC", "instances": len(cases), "documents": cases}
 
 
 def generate_ct_large(writer):
@@ -1007,6 +1050,7 @@ def tool_versions():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", default="/lab/corpus/synthetic")
+    parser.add_argument("--video", help="a .mp4 (H.264) or .mpg (MPEG-2) file to wrap in a DICOM video, as the case videos/video-real")
     parser.add_argument("--large", action="store_true", help="also generate the 1000-slice benchmark CT (about 520 MB)")
     arguments = parser.parse_args()
     root = Path(arguments.out)
@@ -1014,9 +1058,13 @@ def main():
         shutil.rmtree(root)
     root.mkdir(parents=True)
     writer = Writer(root)
-    for generator in (generate_ct, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    video_file = arguments.video
+    for generator in (generate_ct, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
-        generator(writer)
+        if generator is generate_videos:
+            generator(writer, video_file)
+        else:
+            generator(writer)
         print(f"generated {generator.__name__.removeprefix('generate_')}", flush=True)
     if arguments.large:
         generate_ct_large(writer)

@@ -90,6 +90,7 @@ set(SOURCES
     test_volumefillerstep.cpp
     test_volumepixeldata.cpp
     test_volumepixeldataiterator.cpp
+    test_videoobject.cpp
     test_volumepixeldatareaderfactory.cpp
     test_voxel.cpp
     test_vtkdcmtkimagereader.cpp

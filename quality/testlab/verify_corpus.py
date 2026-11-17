@@ -187,6 +187,26 @@ def verify_structured_reports(root, cases):
             check("<script>" not in result.stdout, f"{name}: the markup in the text is escaped")
 
 
+def encapsulated_fragments(data):
+    """The fragments of encapsulated pixel data, without the basic offset table (the first item)."""
+    items = []
+    position = 0
+    while position + 8 <= len(data) and data[position:position + 4] == b"\xfe\xff\x00\xe0":
+        length = int.from_bytes(data[position + 4:position + 8], "little")
+        items.append(data[position + 8:position + 8 + length])
+        position += 8 + length
+    return items[1:]
+
+
+def verify_videos(root, cases):
+    for name, truth in cases["videos"]["documents"].items():
+        ds = pydicom.dcmread(root / "videos" / f"{name}.dcm")
+        syntax = str(ds.file_meta.TransferSyntaxUID)
+        check(syntax.startswith("1.2.840.10008.1.2.4.") and 100 <= int(syntax.rsplit(".", 1)[1]) <= 108, f"{name}: a video transfer syntax")
+        fragments = encapsulated_fragments(ds.PixelData)
+        check(len(fragments) == 1 and 0 <= len(fragments[0]) - truth["bytes"] <= 1, f"{name}: one fragment with the {truth['bytes']} bytes")
+
+
 def verify_broken(root):
     missing = read_series(root / "broken" / "missing-slice")
     positions = [float(s.ImagePositionPatient[2]) for s in missing]
@@ -212,6 +232,7 @@ def main():
     verify_key_objects(root, cases)
     verify_presentation_states(root, cases)
     verify_structured_reports(root, cases)
+    verify_videos(root, cases)
     verify_broken(root)
     print(f"\n{'FAILED: ' + str(len(failures)) if failures else 'All checks passed'}")
     sys.exit(1 if failures else 0)

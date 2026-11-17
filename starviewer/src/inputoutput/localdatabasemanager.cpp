@@ -24,6 +24,7 @@
 #include "image.h"
 #include "keyobjectselection.h"
 #include "structuredreport.h"
+#include "videoobject.h"
 #include "inputoutputsettings.h"
 #include "localdatabasedisplayshutterdal.h"
 #include "localdatabaseencapsulateddocumentdal.h"
@@ -167,7 +168,10 @@ void saveImages(DatabaseConnection &databaseConnection, const QList<Image*> &ima
 // in the folder of their series. They are read again when the study is loaded.
 void loadAuxiliaryObjects(Study *study, const Series *series)
 {
-    if (series->getModality() != "KO" && series->getModality() != "PR" && series->getModality() != "SR")
+    // The series of these objects have no images. A video is of a modality of its own (ES, XC, GM, SM...), so any series with nothing in it is read.
+    bool auxiliaryModality = series->getModality() == "KO" || series->getModality() == "PR" || series->getModality() == "SR";
+
+    if (!auxiliaryModality && (series->hasImages() || series->hasEncapsulatedDocuments()))
     {
         return;
     }
@@ -188,6 +192,10 @@ void loadAuxiliaryObjects(Study *study, const Series *series)
         if (sopClass == UIDKeyObjectSelectionDocumentStorage)
         {
             study->addKeyObjectSelection(KeyObjectSelection::fromDICOM(reader));
+        }
+        else if (VideoObject::isVideoTransferSyntax(reader.getValueAttributeAsQString(DICOMTransferSyntaxUID).trimmed()))
+        {
+            study->addVideo(VideoObject::fromDICOM(reader));
         }
         else if (StructuredReport::isStructuredReportClass(sopClass))
         {

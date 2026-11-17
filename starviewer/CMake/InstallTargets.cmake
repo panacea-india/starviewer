@@ -150,6 +150,23 @@ set(QT_LIBS
     Qt5Xml
     Qt5XmlPatterns
 )
+# Qt Multimedia plays DICOM video with the decoders of the operating system. The video extension is built only where Qt Multimedia exists,
+# so it is bundled only there.
+if(WIN32)
+    set(MULTIMEDIA_LIB_FILE "${QT_LIB_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Multimedia${DEBUG_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(MULTIMEDIA_PLUGIN "mediaservice/wmfengine")
+else()
+    file(GLOB MULTIMEDIA_LIB_FILE "${QT_LIB_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Qt5Multimedia${CMAKE_SHARED_LIBRARY_SUFFIX}.*")
+    set(MULTIMEDIA_PLUGIN "mediaservice/gstmediaplayer")
+endif()
+if(MULTIMEDIA_LIB_FILE AND EXISTS "${MULTIMEDIA_LIB_FILE}")
+    list(APPEND QT_LIBS Qt5Multimedia Qt5MultimediaWidgets)
+    string(REGEX MATCH "([^/]+)/([^/]+)" _ ${MULTIMEDIA_PLUGIN})
+    set(MULTIMEDIA_PLUGIN_FILE "${QT_PLUGINS_DIR}/${CMAKE_MATCH_1}/${CMAKE_SHARED_LIBRARY_PREFIX}${CMAKE_MATCH_2}${DEBUG_LIBRARY_SUFFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    if(EXISTS "${MULTIMEDIA_PLUGIN_FILE}")
+        install(PROGRAMS "${MULTIMEDIA_PLUGIN_FILE}" DESTINATION "plugins/${CMAKE_MATCH_1}")
+    endif()
+endif()
 if(WIN32)
     list(APPEND QT_LIBS
         d3dcompiler_47

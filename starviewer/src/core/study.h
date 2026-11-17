@@ -23,6 +23,7 @@
 #include "keyobjectselection.h"
 #include "graphicpresentationstate.h"
 #include "structuredreport.h"
+#include "videoobject.h"
 
 namespace udg {
 
@@ -159,6 +160,12 @@ public:
     /// Returns the Structured Reports of the study.
     const QList<StructuredReport>& getStructuredReports() const;
 
+    /// Adds a DICOM video to the study. It returns false, and does not add it, if it is null or the study has it already.
+    bool addVideo(const VideoObject &video);
+
+    /// Returns the DICOM videos of the study.
+    const QList<VideoObject>& getVideos() const;
+
     /// Ens diu si existeix una serie amb aquest uid a la llista
     /// @param uid l'uid que busquem
     /// @return Cert si existeix, fals altrament
@@ -265,6 +272,9 @@ private:
 
     /// The Structured Reports of the study
     QList<StructuredReport> m_structuredReports;
+
+    /// The DICOM videos of the study
+    QList<VideoObject> m_videos;
 
     /// L'entitat Patient a la qual pertany aquest estudi
     Patient *m_parentPatient;
