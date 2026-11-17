@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-test:
     runs-on: windows-2022
+    permissions:
+      contents: write
     timeout-minutes: 330
 
     defaults:
@@ -242,3 +244,32 @@ jobs:
             build/*.sha256
             build/*.cdx.json
           if-no-files-found: error
+
+      # A build that passed its tests is published as a pre-release tagged with the commit, so that the
+      # packages do not expire like artifacts. The Linux and Windows workflows each add their own files to the
+      # same release (the first one to arrive creates it), so a release has only the builds that passed.
+      # It is marked as a pre-release: these are research builds, not for diagnostic use.
+      - name: Publish pre-release
+        if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/phase1' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_FILES: "build/*~*.exe build/*.sha256 build/*.cdx.json"
+        run: |
+          tag="phase1-${GITHUB_SHA::7}"
+          subject="$(git log -1 --format=%s)"
+          notes="Build of commit ${GITHUB_SHA} on the branch phase1.
+
+          ${subject}
+
+          **Research build. Not for diagnostic use. Not a certified medical device.** Check the .sha256 file of a package before installing it, and see the software bill of materials (.cdx.json) for what is in it.
+
+          Workflow runs: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "phase1 ${GITHUB_SHA::7}" --notes "$notes" || true
+          for attempt in 1 2 3 4 5; do
+            if gh release upload "$tag" $RELEASE_FILES --repo "$GITHUB_REPOSITORY" --clobber; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "The release could not be updated" >&2
+          exit 1
