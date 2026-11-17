@@ -147,6 +147,8 @@ private slots:
     void registerAndFuse();
     /// Writes the images of the selected viewer (from the first slice to the last) as numbered pictures, and as an MP4 if ffmpeg is on the computer.
     void exportMovie();
+    /// Prints the image shown in the selected viewer, or saves it as a PDF.
+    void printCurrentImage(bool toPdf);
     /// Shows the volume of the selected viewer smoothed (1), sharpened (2) or as it was loaded (0). The images are not changed, and are marked as filtered.
     void applyImageFilter(int kind);
     

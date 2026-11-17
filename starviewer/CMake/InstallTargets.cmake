@@ -139,6 +139,7 @@ set(QT_LIBS
     Qt5Gui
     Qt5Network
     Qt5OpenGL
+    Qt5PrintSupport
     Qt5Qml
     Qt5QmlModels
     Qt5QmlWorkerScript

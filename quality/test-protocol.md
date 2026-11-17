@@ -703,6 +703,17 @@ Automatic tests: 5,155 passed, 0 failed, 9 skipped, which is 6 more than before 
 
 Not tried: images that already have a pixel size (refused with a message, not clicked), and a calibration across slices of a different series.
 
+### Run 26: Print and PDF of the image (Phase 4)
+
+"Save the image as PDF..." was chosen for the reference CT in the 2D viewer and a file name typed.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. PDF | Passed | A one page PDF of 77 KB, with the image and all its annotations (corners, orientation letters, window), and the footer "Starviewer - Not for diagnostic use - date". The picture is the size of the viewer, scaled up to the page |
+| 2. Printer | Not tried | The print dialog was not opened: there is no printer here |
+
+Not tried: a real printer, other page sizes (A4 is fixed), and the picture of a viewer with a very different shape. Qt5PrintSupport was added to the libraries of the installer; the installer was not built.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

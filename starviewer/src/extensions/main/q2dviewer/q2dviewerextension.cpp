@@ -19,9 +19,14 @@
 #include "registeredvolumes.h"
 #include "imagefilters.h"
 #include "movieencoder.h"
+#include <QImage>
+#include <QPainter>
+#include <QPrintDialog>
+#include <QPrinter>
 #include <QDateTime>
 #include <QFileDialog>
 #include <vtkPNGWriter.h>
+#include <vtkUnsignedCharArray.h>
 #include <vtkRenderWindow.h>
 #include <vtkWindowToImageFilter.h>
 #include "rigidregistration.h"
@@ -182,6 +187,8 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     viewerInformationMenu->addAction(tr("Show the images as loaded"), this, [this]() { applyImageFilter(0); });
     viewerInformationMenu->addSeparator();
     viewerInformationMenu->addAction(tr("Export a movie of the slices..."), this, &Q2DViewerExtension::exportMovie);
+    viewerInformationMenu->addAction(tr("Print the image..."), this, [this]() { printCurrentImage(false); });
+    viewerInformationMenu->addAction(tr("Save the image as PDF..."), this, [this]() { printCurrentImage(true); });
     m_viewerLayersToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_viewerLayersToolButton->setMenu(viewerInformationMenu);
     
@@ -831,6 +838,88 @@ void Q2DViewerExtension::showDisplayShutters(bool show)
     {
         m_workingArea->getViewerWidget(viewerNumber)->getViewer()->showDisplayShutters(show);
     }
+}
+
+void Q2DViewerExtension::printCurrentImage(bool toPdf)
+{
+    Q2DViewerWidget *selectedViewerWidget = m_workingArea->getSelectedViewer();
+    Q2DViewer *viewer = selectedViewerWidget ? selectedViewerWidget->getViewer() : nullptr;
+
+    if (!viewer || !viewer->hasInput())
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Select a viewer that shows a volume first."));
+        return;
+    }
+
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setPageSize(QPrinter::A4);
+
+    if (toPdf)
+    {
+        QString path = QFileDialog::getSaveFileName(this, tr("Save the image as PDF"), QString(), tr("PDF files (*.pdf)"));
+
+        if (path.isEmpty())
+        {
+            return;
+        }
+
+        if (!path.endsWith(".pdf", Qt::CaseInsensitive))
+        {
+            path += ".pdf";
+        }
+
+        printer.setOutputFormat(QPrinter::PdfFormat);
+        printer.setOutputFileName(path);
+    }
+    else
+    {
+        QPrintDialog dialog(&printer, this);
+
+        if (dialog.exec() != QDialog::Accepted)
+        {
+            return;
+        }
+    }
+
+    // The picture of what the viewer shows, with its annotations
+    vtkSmartPointer<vtkWindowToImageFilter> grabber = vtkSmartPointer<vtkWindowToImageFilter>::New();
+    grabber->SetInput(viewer->getRenderWindow());
+    grabber->ReadFrontBufferOff();
+    grabber->Update();
+    vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+    writer->WriteToMemoryOn();
+    writer->SetInputConnection(grabber->GetOutputPort());
+    writer->Write();
+    vtkUnsignedCharArray *bytes = writer->GetResult();
+    QImage image = bytes ? QImage::fromData(reinterpret_cast<const uchar*>(bytes->GetPointer(0)), static_cast<int>(bytes->GetNumberOfTuples())) : QImage();
+
+    if (image.isNull())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The image could not be taken from the viewer."));
+        return;
+    }
+
+    QPainter painter(&printer);
+
+    if (!painter.isActive())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The printer or the file could not be used."));
+        return;
+    }
+
+    QRect page = painter.viewport();
+    int footer = page.height() / 40;
+    QSize size = image.size().scaled(page.width(), page.height() - 2 * footer, Qt::KeepAspectRatio);
+    painter.drawImage(QRect((page.width() - size.width()) / 2, 0, size.width(), size.height()), image);
+
+    QFont font = painter.font();
+    font.setPixelSize(std::max(footer * 2 / 3, 8));
+    painter.setFont(font);
+    painter.drawText(QRect(0, page.height() - footer, page.width(), footer), Qt::AlignLeft | Qt::AlignVCenter,
+                     QString("%1 - %2 - %3").arg(ApplicationNameString, tr("Not for diagnostic use"), QDateTime::currentDateTime().toString(Qt::ISODate)));
+    painter.end();
+
+    INFO_LOG(QString("Printed the image of a viewer %1").arg(toPdf ? "to a PDF file" : "to a printer"));
 }
 
 void Q2DViewerExtension::exportMovie()

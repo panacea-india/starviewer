@@ -43,5 +43,6 @@ target_link_libraries(q2dviewer core inputoutput)
 target_link_qt(q2dviewer
     Core
     Gui
+    PrintSupport
     Widgets
 )

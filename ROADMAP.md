@@ -319,7 +319,7 @@ measurement accuracy checks against known phantoms.
   `PolylineTemporalROITool`.
 - **Input and output:** ZIP import (**done:** File > Open Files takes a .zip, which `ZipArchive` unpacks into a folder of the user data and opens like a folder; it refuses unsafe paths,
   lies about sizes, encrypted and ZIP64 files, and has limits of size and number; the unpacked files stay in `zip-import` of the user data folder and are removed at the next start if they are more than a day old);
-  MP4 export (**started:** "Export a movie of the slices..." in the layers menu of the 2D viewer writes one picture per slice of the selected viewer and an MP4 through ffmpeg when it is on the computer, the same `MovieEncoder` as the 3D movie; Starviewer ships no encoder; **not done:** a choice of the range of slices, the speed, and a video with no ffmpeg); standard printing and PDF (not started).
+  MP4 export (**started:** "Export a movie of the slices..." in the layers menu of the 2D viewer writes one picture per slice of the selected viewer and an MP4 through ffmpeg when it is on the computer, the same `MovieEncoder` as the 3D movie; Starviewer ships no encoder; **not done:** a choice of the range of slices, the speed, and a video with no ffmpeg); standard printing and PDF (**started:** "Print the image..." and "Save the image as PDF..." in the layers menu of the 2D viewer put the picture of the selected viewer, with its annotations, on an A4 page with a footer "Not for diagnostic use" and the date; **not done:** DICOM print (it exists in its own extension), several images per page, a choice of the layout, and a real printer test).
 - **Usability:** customisable shortcuts, a hanging protocol editor, and
   performance work against the Phase 0.5 baseline.
 
