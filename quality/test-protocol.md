@@ -395,6 +395,33 @@ afterwards. The local PACS was the native Orthanc 1.12.6 of the test lab, with n
 The run left Starviewer with an ORTHANC entry and the two retrieved studies in the local database. The Mesa
 files stay beside `C:\sv\build\bin\starviewer.exe` and are not part of the project.
 
+### Run 10
+
+Run 10 finishes the checks that run 9 left open and tries the changes made after it: the OpenGL message (A-54),
+the OAuth fields of the PACS dialog (A-53) and the translated log messages (A-50). It ran on the same Windows 10 VM
+without a graphics card, on a build of the working tree on top of `fa55d7c6b` (SDK with GDCM 3.0.24), and Claude
+drove the interface again. Orthanc 1.12.6 ran natively, with a second copy for HTTPS on ports 18043 and 14243 and
+throwaway certificates (made like `testlab/make_tls_certs.sh`, in `C:\dev\orthanc-tls`), and the OAuth mock ran on
+18044. For the cancel, a small proxy that limits the speed to 8 MB/s stood in front of Orthanc's DICOM port, because
+a transfer on this machine is over in seconds. It is not part of the project.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. OpenGL message, without Mesa (A-54) | Passed | Opening a folder of CT files showed "The image viewers need OpenGL 3.2 or newer ... This computer gave OpenGL 2.0." once. Starviewer kept running, and the log has the version found, the renderer (ANGLE, Microsoft Basic Render Driver) and a warning that the images are not shown |
+| 2. Viewer with Mesa | Passed | The same folder opened in the 2D viewer and the CT showed |
+| 3. OAuth in the PACS dialog (A-53) | Passed, after a fix | A WADO PACS with the mock's token URI, client ID and secret: Test passed, OK saved it, and Edit showed the fields with the secret blank and "Saved. Leave blank to keep it." Test with the secret blank passed. With a wrong secret Test first said "Test is correct" (A-57); after the fix it said "No access token could be got for the PACS. The token server refused the client ID and secret." The user name and password fields are disabled while OAuth is ticked. The test PACS was deleted afterwards |
+| 4. HTTPS certificate errors (A-46) | Passed | Four cases against the HTTPS Orthanc, in A-46. Each error names the reason |
+| 5. Cancel during a transfer (A-44, A-49) | Passed | C-GET of the 1,000-slice benchmark CT through the slow proxy, cancelled after 63 files. The list showed CANCELLED, the log shows "Aborting the connection with the PACS" and "The study ... does not exist in the database, deleting the contents of its directory", there is no error line, and no files were left. A cancel at the moment of saving was not tried on screen |
+| 6. Decompressed file with the lossy flag | Passed | `gdcmconv --raw` on the JPEG 2000 lossy study gives Explicit VR Little Endian files that keep Lossy Image Compression 01 and the ratio. Opened from a folder, the overlay reads `LOSSY 10.1:1`. The files have the same UIDs as a study in the local database, but a folder is read from its files, not from the database |
+| 7. Log language (A-50) | Done in code | See A-50. The log of this run has no Catalan line in what was exercised |
+
+Automatic tests: 4,908 passed, 0 failed, 9 skipped (the TLS PACS and the OAuth mock were not set up for them).
+That is 16 more than before: the new suite for `OpenGLSupport` (ten checks, counting the start and end of the suite) and six for the client secret in `PacsDeviceManager` (A-53).
+
+Things to know when driving this machine: `open_application` starts a second copy of Starviewer without the
+library path, which ends in a Windows "System Error" box that the tool cannot click, and the box then hides part of
+the screen. Start Starviewer with `C:\sv\launch.cmd` instead, and drag dialogs out from under a hidden area.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
