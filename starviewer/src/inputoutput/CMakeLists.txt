@@ -6,6 +6,9 @@ set(SOURCES
     databaseconnection.cpp
     databaseinstallation.cpp
     dicomanonymizer.cpp
+    routingrules.cpp
+    routingjob.cpp
+    dicomstoresender.cpp
     dicomdirburningapplication.cpp
     dicomdirburningapplicationtest.cpp
     dicomdirimporter.cpp

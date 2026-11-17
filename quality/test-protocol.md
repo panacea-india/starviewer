@@ -893,6 +893,31 @@ Limits: the engine does not look at the pixels (it warns for burned-in annotatio
 
 The output folders were deleted after the check.
 
+### Run 39: DICOM PDF report and routing rules (Phase 5), on the real chest CTs and the Orthanc test PACS
+
+**Report.** 2D viewer, layers menu > "Write a report..." on the LIDC-IDRI-0365 CT (title, findings, impression, author), saved as `report.dcm`.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. The file checked with pydicom and PyMuPDF | Passed | Encapsulated PDF Storage, modality DOC, MIME application/pdf, the title in Document Title; the patient, the study UID, the study date and the accession number of the image; a new series and SOP instance; Conversion Type WSD, Burned In Annotation YES; the PDF has 21,608 bytes (even), one A4 page, and its text has "Draft - not for diagnostic use", the title, the patient line, the findings, the impression and "Written by Test Author" |
+| 2. The report in the viewer | Passed | Opened together with the CT, the viewer asked to confirm that the two are the same patient (same ID, no name), and the PDF tab lists the report by its title |
+| 3. Opening the PDF itself | Not tried | It needs an external PDF program |
+
+**Routing.** Tools > "Route images..." with one rule (Modality equals CT) to the local Orthanc (port 14242, AE ORTHANC), on a folder with the 130 CT images and the structure set of LCTSC-Test-S1-101.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 4. Check the rules | Passed | "The rules are valid: 1 rules and 1 destinations" |
+| 5. Show the plan | Passed | 130 images to the destination, 1 not sent because no rule matches (the structure set), 2 files that are not DICOM; nothing was sent (Orthanc was not changed) |
+| 6. Send | Passed | A confirmation lists the images and the destination and says that they go with the identity they have (the default answer is No); "Sent: 130, failed: 0". Orthanc went from 21 studies and 483 instances to 22 and 613; the new study has one CT series of 130 instances and no structure set; the 21 studies of the test lab were not touched |
+| 7. A destination that does not answer | Passed | Port with no PACS: "Sent: 0, failed: 130" and the reason with the host, port and AE title (the text from DCMTK, "TCP Initialization Error: The operation completed successfully", is odd, but the rest is clear) |
+| 8. Cleanup | Done | The study that was sent was deleted from Orthanc (21 studies, 483 instances again) and Orthanc was stopped |
+| 9. Rules that are not valid | Covered by the unit tests | Unknown attribute or operator, a regular expression that does not compile, a port out of range, a destination that does not exist, names twice: refused with the reasons, and the old rules are kept |
+
+Limits: the routing is applied when the user asks, on a folder; it is not automatic on arrival of studies because the program cannot receive pushed studies yet (see "Later"). Only C-STORE without TLS is done (DICOM TLS for the sender is not). The images are sent as they are (the identity is not removed: de-identify first).
+
+Automatic tests: 5,376 passed, 0 failed, 9 skipped (`test_DicomPdfReport`: 8, `test_RoutingRules`: 26).
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
