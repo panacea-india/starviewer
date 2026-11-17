@@ -282,8 +282,8 @@ In priority order:
    together with registration.
 3. Curved MPR.
 4. 3D measurement.
-5. Volume ROI, with 3D SUV statistics.
-6. STL export, using VTK's writer.
+5. Volume ROI, with 3D SUV statistics. **Started:** `VolumeRoiStatistics` (core, with no interface) gives the volume in mL, the mean, minimum, maximum, deviation, the position of the maximum and SUVpeak (the hottest 1 mL) of a region of a volume, with sphere and threshold masks (for the metabolic volume), and a scale for the SUV factor. It is tested against exact spheres. **Not done:** drawing the region in the viewers and showing the numbers, and the SUV factor from the DICOM header.
+6. STL export, using VTK's writer. **Started:** the "STL" button of the 3D viewer asks for a threshold and a file and writes the surface of the volume at that value (`SurfaceExporter`: flying edges, closed at the edges of the volume, the largest piece, a little smoothing, in mm). It is tested on spheres of known volume, also with voxels that are not cubes. **Not done:** exporting only the clipped region, a preview of the surface before saving, and a choice of the pieces.
 7. Sculpting and saved views.
 8. Movie export from 3D, including flythrough.
 9. RTSTRUCT display and gantry tilt correction (`imageplane.cpp:280` has a

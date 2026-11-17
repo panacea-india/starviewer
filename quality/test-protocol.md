@@ -545,6 +545,32 @@ Automatic tests: 5,016 passed, 0 failed, 9 skipped (the registration suite now h
 Not tried: real acquisitions, volumes with a rotation between them in a viewer (the unit tests have them), a large volume (the window is frozen while it runs, about
 40 s here for 256 x 256 x 100), cancelling, and Linux.
 
+### Run 16: STL export and 3D statistics (Phase 3)
+
+The "STL" button of the 3D viewer was used on the reference CT. The L marker of the phantom (a solid of 325 mm2 in cross section, over 100 slices of 2.5 mm, so about
+82 mL) is the largest object above 400, and the default threshold of the dialog (35% of the range of the volume) is 400.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Button | Passed | The STL button is in the Tools group of the 3D viewer, next to Screen Shot |
+| 2. Threshold | Passed | The dialog says "the values go from -1000 to 3000" and proposes 400.0 |
+| 3. File | Passed | `C:\dev\ct-bone.stl`, written without a prompt for the extension |
+| 4. Result | Passed | 36,740 triangles, 86.7 mL and 351.1 cm2, in millimeters. The file has the size of a binary STL of that many triangles (84 + 50 per triangle) |
+| 5. Position | Passed | The bounds of the file are x 54.8 to 85.0, y -75.4 to -34.8 and z -1.9 to 249.4 mm, which is where the L marker is in the patient coordinates of the corpus (x 55 to 85, y -75 to -35, z 0 to 247.5, plus the padding) |
+
+The volume is 6% above the 82 mL of the solid, and that is the threshold: with a value of 400 between a background of 0 and a marker of 3000 the surface is
+placed 13% of a voxel from the background voxel, about 0.3 mm outside the edge on every side. A threshold at half the contrast gives the true size. The dialog does not
+say that the size of the model depends on the threshold, so a model for printing should be checked against a known dimension.
+
+Automatic tests: 5,039 passed, 0 failed, 9 skipped, which is 27 more than before: `test_SurfaceExporter` (sphere volume within 1.5% and the area within 3%,
+voxels of 0.8 x 0.8 x 2.5 mm within 4%, a closed surface for an object that reaches the edge, a binary file that reads back with the same triangles and bounds, a
+text file, the largest piece, smoothing that keeps the volume within 3%, no voxel above the threshold, a volume of three components, and a folder that does not exist) and
+`test_VolumeRoiStatistics` (volume and values of a sphere inside a lesion, the metabolic volume at half the maximum within 1%, scaling, mean and deviation of
+two values against the counts, the size of non-cubic voxels, the maximum and where it is, SUVpeak of a single hot voxel against a lesion, and empty or mismatched masks).
+
+Not tried: the statistics in the interface (there is none yet), a real CT or PET, a large volume (the surface of 512 x 512 x 500 takes seconds and some hundreds of MB), opening the STL in
+other programs (the file was read back by VTK and checked by hand), and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
