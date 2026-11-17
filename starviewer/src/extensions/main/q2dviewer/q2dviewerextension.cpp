@@ -16,9 +16,15 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 #include <QInputDialog>
+#include <QCheckBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QPixmap>
+#include <QVBoxLayout>
 #include "registeredvolumes.h"
 #include "imagefilters.h"
 #include "digitalsubtraction.h"
+#include "q2dviewerrtstructurehandler.h"
 #include "movieencoder.h"
 #include <QImage>
 #include <QPainter>
@@ -186,6 +192,7 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     viewerInformationMenu->addAction(tr("Smooth the images"), this, [this]() { applyImageFilter(1); });
     viewerInformationMenu->addAction(tr("Sharpen the images"), this, [this]() { applyImageFilter(2); });
     viewerInformationMenu->addAction(tr("Subtract a mask image (DSA)..."), this, &Q2DViewerExtension::applyMaskSubtraction);
+    viewerInformationMenu->addAction(tr("Radiotherapy regions..."), this, &Q2DViewerExtension::showRtRegions);
     viewerInformationMenu->addAction(tr("Show the images as loaded"), this, [this]() { applyImageFilter(0); });
     viewerInformationMenu->addSeparator();
     viewerInformationMenu->addAction(tr("Export a movie of the slices..."), this, &Q2DViewerExtension::exportMovie);
@@ -1067,6 +1074,52 @@ void Q2DViewerExtension::showDerivedVolume(Q2DViewerWidget *viewerWidget, Volume
         m_filteredSources.remove(shown);
         delete shown;
     }
+}
+
+void Q2DViewerExtension::showRtRegions()
+{
+    Q2DViewerWidget *selectedViewerWidget = m_workingArea->getSelectedViewer();
+
+    if (!selectedViewerWidget)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Select a viewer that shows a volume first."));
+        return;
+    }
+
+    Q2DViewerRtStructureHandler *handler = selectedViewerWidget->getViewer()->getRtStructureHandler();
+    QList<Q2DViewerRtStructureHandler::Region> regions = handler->getRegions();
+
+    if (regions.isEmpty())
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("These images have no radiotherapy structure set (RTSTRUCT) with contours on them."));
+        return;
+    }
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Radiotherapy regions"));
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+    for (const Q2DViewerRtStructureHandler::Region &region : regions)
+    {
+        QPixmap swatch(14, 14);
+        swatch.fill(region.color);
+        QCheckBox *box = new QCheckBox(tr("%1 (%2 contours)").arg(region.name).arg(region.contours), &dialog);
+        box->setIcon(QIcon(swatch));
+        box->setChecked(handler->isRegionVisible(region.number));
+        int number = region.number;
+        connect(box, &QCheckBox::toggled, handler, [handler, number](bool shown) { handler->setRegionVisible(number, shown); });
+        layout->addWidget(box);
+    }
+
+    QCheckBox *fill = new QCheckBox(tr("Fill the regions"), &dialog);
+    fill->setChecked(handler->isFilled());
+    connect(fill, &QCheckBox::toggled, handler, &Q2DViewerRtStructureHandler::setFilled);
+    layout->addWidget(fill);
+
+    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+    dialog.exec();
 }
 
 void Q2DViewerExtension::applyMaskSubtraction()

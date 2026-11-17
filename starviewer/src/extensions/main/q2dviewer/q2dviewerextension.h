@@ -153,6 +153,8 @@ private slots:
     void applyImageFilter(int kind);
     /// Asks for the mask image (and whether to move it to fit each image) and shows the volume of the selected viewer with the mask taken away from every image (digital subtraction).
     void applyMaskSubtraction();
+    /// Lists the regions of the RT structure sets on the images of the selected viewer, to show or hide each one, and the choice of filling them.
+    void showRtRegions();
     /// Shows the target volume in the viewer in place of the shown one, and deletes the shown one if it was a derived volume.
     void showDerivedVolume(Q2DViewerWidget *viewerWidget, Volume *shown, Volume *target);
     

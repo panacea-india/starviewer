@@ -14,9 +14,11 @@
 
 #include "q2dviewerrtstructurehandler.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include "drawer.h"
+#include "drawerpolygon.h"
 #include "drawerpolyline.h"
 #include "drawertext.h"
 #include "image.h"
@@ -38,7 +40,7 @@ const char* const GroupName = "RtStructure";
 }
 
 Q2DViewerRtStructureHandler::Q2DViewerRtStructureHandler(Q2DViewer *viewer)
-    : QObject(viewer), m_viewer(viewer), m_enabled(true), m_drawnContours(0)
+    : QObject(viewer), m_viewer(viewer), m_enabled(true), m_drawnContours(0), m_filled(false)
 {
 }
 
@@ -46,20 +48,70 @@ Q2DViewerRtStructureHandler::~Q2DViewerRtStructureHandler()
 {
 }
 
-void Q2DViewerRtStructureHandler::setEnabled(bool enabled)
+QString Q2DViewerRtStructureHandler::groupName(int regionNumber)
 {
-    m_enabled = enabled;
+    return QString("RtStructure:%1").arg(regionNumber);
+}
 
-    if (m_enabled)
+void Q2DViewerRtStructureHandler::applyVisibility()
+{
+    for (const Region &region : m_regions)
     {
-        m_viewer->getDrawer()->enableGroup(GroupName);
-    }
-    else
-    {
-        m_viewer->getDrawer()->disableGroup(GroupName);
+        if (m_enabled && !m_hiddenRegions.contains(region.number))
+        {
+            m_viewer->getDrawer()->enableGroup(groupName(region.number));
+        }
+        else
+        {
+            m_viewer->getDrawer()->disableGroup(groupName(region.number));
+        }
     }
 
     m_viewer->render();
+}
+
+void Q2DViewerRtStructureHandler::setEnabled(bool enabled)
+{
+    m_enabled = enabled;
+    applyVisibility();
+}
+
+QList<Q2DViewerRtStructureHandler::Region> Q2DViewerRtStructureHandler::getRegions() const
+{
+    return m_regions;
+}
+
+void Q2DViewerRtStructureHandler::setRegionVisible(int number, bool visible)
+{
+    if (visible)
+    {
+        m_hiddenRegions.remove(number);
+    }
+    else
+    {
+        m_hiddenRegions.insert(number);
+    }
+
+    applyVisibility();
+}
+
+bool Q2DViewerRtStructureHandler::isRegionVisible(int number) const
+{
+    return !m_hiddenRegions.contains(number);
+}
+
+void Q2DViewerRtStructureHandler::setFilled(bool filled)
+{
+    if (m_filled != filled)
+    {
+        m_filled = filled;
+        rebuild();
+    }
+}
+
+bool Q2DViewerRtStructureHandler::isFilled() const
+{
+    return m_filled;
 }
 
 bool Q2DViewerRtStructureHandler::isEnabled() const
@@ -81,6 +133,7 @@ void Q2DViewerRtStructureHandler::clear()
     }
 
     m_primitives.clear();
+    m_regions.clear();
     m_drawnContours = 0;
 }
 
@@ -144,24 +197,67 @@ void Q2DViewerRtStructureHandler::rebuild()
 
             for (const RtStructureSet::DrawnContour &contour : set.contoursAtDepth(geometry, depth, tolerance))
             {
-                DrawerPolyline *polyline = new DrawerPolyline();
+                DrawerPrimitive *primitive;
 
-                for (const QPointF &pixel : contour.pixels)
+                if (m_filled && contour.closed)
                 {
-                    double world[3] = {origin[0] + pixel.x() * spacing[0], origin[1] + pixel.y() * spacing[1], origin[2] + slice * spacing[2]};
-                    polyline->addPoint(world);
+                    DrawerPolygon *polygon = new DrawerPolygon();
+
+                    for (const QPointF &pixel : contour.pixels)
+                    {
+                        polygon->addVertix(origin[0] + pixel.x() * spacing[0], origin[1] + pixel.y() * spacing[1], origin[2] + slice * spacing[2]);
+                    }
+
+                    polygon->setFilled(true);
+                    polygon->setOpacity(0.35);
+                    primitive = polygon;
+                }
+                else
+                {
+                    DrawerPolyline *polyline = new DrawerPolyline();
+
+                    for (const QPointF &pixel : contour.pixels)
+                    {
+                        double world[3] = {origin[0] + pixel.x() * spacing[0], origin[1] + pixel.y() * spacing[1], origin[2] + slice * spacing[2]};
+                        polyline->addPoint(world);
+                    }
+
+                    primitive = polyline;
                 }
 
-                polyline->setColor(contour.color);
-                polyline->setErasable(false);
-                m_viewer->getDrawer()->draw(polyline, OrthogonalPlane::XYPlane, slice);
-                m_viewer->getDrawer()->addToGroup(polyline, GroupName);
-                m_primitives << QPointer<DrawerPrimitive>(polyline);
+                primitive->setColor(contour.color);
+                primitive->setErasable(false);
+                m_viewer->getDrawer()->draw(primitive, OrthogonalPlane::XYPlane, slice);
+                m_viewer->getDrawer()->addToGroup(primitive, groupName(contour.roiNumber));
+                m_primitives << QPointer<DrawerPrimitive>(primitive);
                 m_drawnContours++;
+
+                bool known = false;
+
+                for (Region &region : m_regions)
+                {
+                    if (region.number == contour.roiNumber)
+                    {
+                        region.contours++;
+                        known = true;
+                        break;
+                    }
+                }
+
+                if (!known)
+                {
+                    Region region;
+                    region.number = contour.roiNumber;
+                    region.name = contour.roiName;
+                    region.color = contour.color;
+                    region.contours = 1;
+                    m_regions << region;
+                }
             }
         }
     }
 
+    std::sort(m_regions.begin(), m_regions.end(), [](const Region &a, const Region &b) { return a.number < b.number; });
     INFO_LOG(QString("Drew %1 contours of the RT structure sets on the images").arg(m_drawnContours));
     setEnabled(m_enabled);
 }

@@ -119,6 +119,9 @@ public:
     int getCurrentSlice() const;
     int getCurrentPhase() const;
 
+    /// The drawer of the contours of the RT structure sets that are on the volume (never null).
+    Q2DViewerRtStructureHandler* getRtStructureHandler() const;
+
     /// Gets the current slice on the specified input. If i is out of range, 0 will be returned
     int getCurrentSliceOnInput(int i) const;
     

@@ -1130,6 +1130,11 @@ int Q2DViewer::getCurrentSlice() const
     return getMainDisplayUnit()->getSlice();
 }
 
+Q2DViewerRtStructureHandler* Q2DViewer::getRtStructureHandler() const
+{
+    return m_rtStructureHandler;
+}
+
 int Q2DViewer::getCurrentPhase() const
 {
     return getCurrentPhaseOnInput(0);
