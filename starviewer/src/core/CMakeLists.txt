@@ -28,6 +28,9 @@ set(SOURCES
     computezspacingpostprocessor.cpp
     gantrytiltcorrector.cpp
     shortcutconfiguration.cpp
+    timeintensitycurve.cpp
+    timeintensitycurvetool.cpp
+    qtimeintensitycurvedialog.cpp
     calibrationtool.cpp
     imagefilters.cpp
     ziparchive.cpp

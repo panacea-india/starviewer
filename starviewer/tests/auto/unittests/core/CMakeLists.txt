@@ -71,6 +71,7 @@ set(SOURCES
     test_curvedreformation.cpp
     test_savedview.cpp
     test_shortcutconfiguration.cpp
+    test_timeintensitycurve.cpp
     test_calibrationtool.cpp
     test_imagefilters.cpp
     test_ziparchive.cpp
