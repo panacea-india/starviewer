@@ -37,6 +37,21 @@ void SettingsRegistry::addSetting(const QString &key, const QVariant &defaultVal
     m_keyDefaultValueAndPropertiesMap.insert(key, qMakePair(defaultValue, properties));
 }
 
+QStringList SettingsRegistry::getKeysWithPrefix(const QString &prefix) const
+{
+    QStringList keys;
+
+    for (auto it = m_keyDefaultValueAndPropertiesMap.constBegin(); it != m_keyDefaultValueAndPropertiesMap.constEnd(); ++it)
+    {
+        if (it.key().startsWith(prefix))
+        {
+            keys << it.key();
+        }
+    }
+
+    return keys;
+}
+
 void SettingsRegistry::addListSetting(const QString &key, const Settings::SettingListType &defaultList)
 {
     QList<QVariant> variantsList;

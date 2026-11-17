@@ -714,6 +714,18 @@ Not tried: images that already have a pixel size (refused with a message, not cl
 
 Not tried: a real printer, other page sizes (A4 is fixed), and the picture of a viewer with a very different shape. Qt5PrintSupport was added to the libraries of the installer; the installer was not built.
 
+### Run 27: Keyboard shortcuts dialog (Phase 4)
+
+Tools > Keyboard shortcuts... was opened (and cancelled: no setting was changed).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. List | Passed | All shortcuts of the settings with their keys, in alphabetical order, with a Default button each |
+| 2. Conflicts | Passed | The warning lists keys that two or more actions have by default: Ctrl+E, Ctrl+I, Ctrl+S, Ctrl+V and S (the mouse and the wheel tools, which is by design). The first four are worth a look |
+| 3. Changing a key | Not tried on screen | Saving is covered by the logic that is tested only in part: the conflicts and the names are tested, the saving to the settings is not |
+
+Automatic tests: 5,166 passed, 0 failed, 9 skipped, which is 11 more than before (`test_ShortcutConfiguration`: 10, and `test_ZipArchive`: 1 for the cleanup of old unpacked folders).
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

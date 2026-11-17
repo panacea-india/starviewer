@@ -30,6 +30,9 @@ public:
     /// Adds a setting with a list to the registry.
     void addListSetting(const QString &key, const Settings::SettingListType &defaultList);
 
+    /// Returns the keys of the registered settings that start with the prefix.
+    QStringList getKeysWithPrefix(const QString &prefix) const;
+
     /// Retorna el valor que tingui per defecte el setting amb clau "key"
     QVariant getDefaultValue(const QString &key) const;
     /// Returns the default list value for the given key.

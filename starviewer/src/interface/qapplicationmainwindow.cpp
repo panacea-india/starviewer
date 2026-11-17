@@ -20,6 +20,7 @@
 #include "qlogviewer.h"
 #include "patient.h"
 #include "qconfigurationdialog.h"
+#include "qshortcutsdialog.h"
 #include "volume.h"
 #include "settings.h"
 #include "extensionfactory.h"
@@ -427,6 +428,7 @@ void QApplicationMainWindow::createMenus()
     // Menú tools
     m_toolsMenu = menuBar()->addMenu(tr("&Tools"));
     m_toolsMenu->addAction(m_configurationAction);
+    m_toolsMenu->addAction(tr("&Keyboard shortcuts..."), this, [this]() { QShortcutsDialog dialog(this); dialog.exec(); });
     m_toolsMenu->addAction(m_runDiagnosisTestsAction);
     m_externalApplicationsMenu = 0;
     createExternalApplicationsMenu();
