@@ -19,23 +19,16 @@
 
 namespace udg {
 
-class Patient;
-class Series;
-
 /**
-    Mòdul que s'encarrega d'omplir la informació d'objectes PresentationState. Un dels seus prerequisits serà que s'hagi superat el mòdul
-    DICOMFileClassifierFillerStep. Les Series a processar han de de ser de modalitat PR.
-  */
+    Reads the Softcopy Presentation States (GSPS) and keeps them in their study, so that the images they refer to can be shown with their annotations.
+    A prerequisite is that the DICOMFileClassifierFillerStep has been passed. Files that are not presentation states are ignored.
+ */
 class PresentationStateFillerStep : public PatientFillerStep {
 public:
     PresentationStateFillerStep();
-
     ~PresentationStateFillerStep();
 
-private:
-    // TODO mètode per implementar
-    void processPresentationState();
-
+    bool fillIndividually() override;
 };
 
 }

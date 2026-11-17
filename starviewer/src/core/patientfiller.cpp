@@ -19,6 +19,7 @@
 #include "encapsulateddocumentfillerstep.h"
 #include "imagefillerstep.h"
 #include "keyimagenotefillerstep.h"
+#include "presentationstatefillerstep.h"
 #include "logging.h"
 #include "nondicomfileclassifierfillerstep.h"
 #include "orderimagesfillerstep.h"
@@ -26,7 +27,6 @@
 #include "patient.h"
 #include "patientfillerinput.h"
 #include "patientfillerstep.h"
-//#include "presentationstatefillerstep.h"  // future use
 #include "temporaldimensionfillerstep.h"
 #include "volumefillerstep.h"
 
@@ -191,7 +191,7 @@ void PatientFiller::createSteps()
     if (m_dicomMode)
     {
         m_firstStageSteps << new DICOMFileClassifierFillerStep() << new ImageFillerStep() << new EncapsulatedDocumentFillerStep()
-                          << new KeyImageNoteFillerStep();
+                          << new KeyImageNoteFillerStep() << new PresentationStateFillerStep();
         m_secondStageSteps << new VolumeFillerStep() << new OrderImagesFillerStep() << new TemporalDimensionFillerStep() << new OrderVolumesFillerStep();
     }
     else

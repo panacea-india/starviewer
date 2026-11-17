@@ -129,6 +129,7 @@ set(SOURCES
     itemmenu.cpp
     keyimagenotefillerstep.cpp
     keyobjectselection.cpp
+    graphicpresentationstate.cpp
     leanbodymassformula.cpp
     leanbodymassformulacalculator.cpp
     line3d.cpp
@@ -198,6 +199,7 @@ set(SOURCES
     presentationstatefillerstep.cpp
     q2dviewer.cpp
     q2dviewerannotationhandler.cpp
+    q2dviewerpresentationstatehandler.cpp
     q2dviewerannotationsconfigurationscreen.cpp
     q2dviewerannotationsconfigurationscreenhelp.cpp
     q2dviewerannotationsconfigurationwidget.cpp

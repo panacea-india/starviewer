@@ -141,11 +141,20 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     m_showDisplayShuttersAction->setIcon(QIcon(":/images/icons/shutter.svg"));
     connect(m_showDisplayShuttersAction, SIGNAL(toggled(bool)), SLOT(showDisplayShutters(bool)));
     
+    m_showPresentationStateAction = new QAction(this);
+    m_showPresentationStateAction->setCheckable(true);
+    m_showPresentationStateAction->setChecked(true);
+    m_showPresentationStateAction->setText(tr("Presentation state"));
+    m_showPresentationStateAction->setToolTip(tr("Show/Hide the annotations of the presentation states"));
+    m_showPresentationStateAction->setStatusTip(m_showPresentationStateAction->toolTip());
+    connect(m_showPresentationStateAction, SIGNAL(toggled(bool)), SLOT(showPresentationState(bool)));
+
     m_viewerLayersToolButton->setDefaultAction(m_showViewersTextualInformationAction);
     
     QMenu *viewerInformationMenu = new QMenu(this);
     viewerInformationMenu->addAction(m_showOverlaysAction);
     viewerInformationMenu->addAction(m_showDisplayShuttersAction);
+    viewerInformationMenu->addAction(m_showPresentationStateAction);
     m_viewerLayersToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_viewerLayersToolButton->setMenu(viewerInformationMenu);
     
@@ -661,6 +670,8 @@ void Q2DViewerExtension::activateNewViewer(Q2DViewerWidget *newViewerWidget)
     newViewerWidget->getViewer()->showImageOverlays(m_showOverlaysAction->isChecked());
     // Shutters
     newViewerWidget->getViewer()->showDisplayShutters(m_showDisplayShuttersAction->isChecked());
+    // Presentation state annotations
+    newViewerWidget->getViewer()->setPresentationStateEnabled(m_showPresentationStateAction->isChecked());
 
     // Afegim l'eina de sincronització pel nou viewer
     // Per defecte només configurem la sincronització a nivell d'scroll
@@ -788,6 +799,16 @@ void Q2DViewerExtension::showDisplayShutters(bool show)
     for (int viewerNumber = 0; viewerNumber < numberOfViewers; ++viewerNumber)
     {
         m_workingArea->getViewerWidget(viewerNumber)->getViewer()->showDisplayShutters(show);
+    }
+}
+
+void Q2DViewerExtension::showPresentationState(bool show)
+{
+    int numberOfViewers = m_workingArea->getNumberOfViewers();
+
+    for (int viewerNumber = 0; viewerNumber < numberOfViewers; ++viewerNumber)
+    {
+        m_workingArea->getViewerWidget(viewerNumber)->getViewer()->setPresentationStateEnabled(show);
     }
 }
 

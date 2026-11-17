@@ -21,6 +21,7 @@
 #include "series.h"
 #include "dicomsource.h"
 #include "keyobjectselection.h"
+#include "graphicpresentationstate.h"
 
 namespace udg {
 
@@ -142,6 +143,15 @@ public:
     /// Returns the SOP Instance UIDs of all the images of the series of the study.
     QSet<QString> getImageSopInstanceUids() const;
 
+    /// Adds a Softcopy Presentation State to the study. It returns false, and does not add it, if it is null or the study has it already.
+    bool addPresentationState(const GraphicPresentationState &state);
+
+    /// Returns the Softcopy Presentation States of the study.
+    const QList<GraphicPresentationState>& getPresentationStates() const;
+
+    /// Returns the Softcopy Presentation States of the study that refer to the instance with the given SOP Instance UID.
+    QList<GraphicPresentationState> getPresentationStatesReferencing(const QString &sopInstanceUid) const;
+
     /// Ens diu si existeix una serie amb aquest uid a la llista
     /// @param uid l'uid que busquem
     /// @return Cert si existeix, fals altrament
@@ -242,6 +252,9 @@ private:
 
     /// The Key Object Selection Documents of the study
     QList<KeyObjectSelection> m_keyObjectSelections;
+
+    /// The Softcopy Presentation States of the study
+    QList<GraphicPresentationState> m_presentationStates;
 
     /// L'entitat Patient a la qual pertany aquest estudi
     Patient *m_parentPatient;

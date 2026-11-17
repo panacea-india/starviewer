@@ -139,6 +139,9 @@ private slots:
 
     /// Mostra o amaga la informació textual de cada visualitzador
     void showViewersTextualInformation(bool show);
+
+    /// Shows or hides the graphic annotations of the presentation states in all the viewers.
+    void showPresentationState(bool show);
     
     /// Mostrar la pantalla de Dicom dump, amb informació de la imatge que es visualitza en aquell moment
     void showDicomDumpCurrentDisplayedImage();
@@ -226,6 +229,7 @@ private:
     QAction *m_screenShotTriggerAction;
     QAction *m_showOverlaysAction;
     QAction *m_showViewersTextualInformationAction;
+    QAction *m_showPresentationStateAction;
     QAction *m_showDisplayShuttersAction;
     QAction *m_synchronizeAllAction;
     QAction *m_desynchronizeAllAction;

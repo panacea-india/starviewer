@@ -144,6 +144,31 @@ def verify_key_objects(root, cases):
         check(len(referenced) - len(found) == truth.get("missing_images", 0), f"{name}: {truth.get('missing_images', 0)} missing image(s)")
 
 
+def verify_presentation_states(root, cases):
+    case = cases["presentation-states"]
+    ct_uids = {str(ds.SOPInstanceUID): int(ds.InstanceNumber) - 1 for ds in read_series(root / "ct-reference")}
+    study_uid = str(read_series(root / "ct-reference")[0].StudyInstanceUID)
+    for name, truth in case["documents"].items():
+        ds = pydicom.dcmread(root / "presentation-states" / f"{name}.dcm")
+        check(ds.Modality == "PR" and str(ds.StudyInstanceUID) == study_uid, f"{name}: a PR in the study of the reference CT")
+        referenced = [str(i.ReferencedSOPInstanceUID) for s in ds.ReferencedSeriesSequence for i in s.ReferencedImageSequence]
+        found = sorted(ct_uids[u] for u in referenced if u in ct_uids)
+        check(found == truth["images"], f"{name}: refers to CT images {truth['images']}")
+        check(len(referenced) - len(found) == truth.get("missing_images", 0), f"{name}: {truth.get('missing_images', 0)} missing image(s)")
+    # The drawings sit on what they mark: the fiducial dots and the sphere of the reference CT
+    ds = pydicom.dcmread(root / "presentation-states" / "gsps-annotations.dcm")
+    ct = {int(d.InstanceNumber) - 1: d for d in read_series(root / "ct-reference")}
+    line = ds.GraphicAnnotationSequence[0].GraphicObjectSequence[0].GraphicData
+    pixels = ct[20].pixel_array
+    check(pixels[int(line[1]), int(line[0])] == pixels[int(line[3]), int(line[2])] == max(pixels.max(), 0), "gsps line ends on the fiducial dots")
+    circle = ds.GraphicAnnotationSequence[1].GraphicObjectSequence[0].GraphicData
+    sphere = ct[50].pixel_array
+    # Stored values are HU + 1024, with noise of 5 HU: the sphere is at about 1124 and the body around it at about 1024
+    edge_inside = int(sphere[int(circle[1]), int(circle[0] + (circle[2] - circle[0]) - 3)])
+    edge_outside = int(sphere[int(circle[1]), int(circle[0] + (circle[2] - circle[0]) + 3)])
+    check(edge_inside > 1080 and edge_outside < 1070, "gsps circle follows the edge of the soft tissue sphere")
+
+
 def verify_broken(root):
     missing = read_series(root / "broken" / "missing-slice")
     positions = [float(s.ImagePositionPatient[2]) for s in missing]
@@ -167,6 +192,7 @@ def main():
     verify_other(root, cases)
     verify_transfer_syntaxes(root, cases)
     verify_key_objects(root, cases)
+    verify_presentation_states(root, cases)
     verify_broken(root)
     print(f"\n{'FAILED: ' + str(len(failures)) if failures else 'All checks passed'}")
     sys.exit(1 if failures else 0)

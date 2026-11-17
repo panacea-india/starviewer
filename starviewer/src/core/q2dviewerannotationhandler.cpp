@@ -397,6 +397,43 @@ QString getKeyObjectMarker(const Q2DViewer *viewer)
     return lines.join("\n");
 }
 
+// Returns the label of the presentation states that apply to the current image of each input, and says what of them is not applied, or an empty string if
+// none applies to it.
+QString getPresentationStateMarker(const Q2DViewer *viewer)
+{
+    QStringList lines;
+
+    for (int i = 0; i < viewer->getNumberOfInputs(); i++)
+    {
+        Image *image = viewer->getCurrentDisplayedImageOnInput(i);
+        Series *series = image ? image->getParentSeries() : nullptr;
+        Study *study = series ? series->getParentStudy() : nullptr;
+
+        if (!study)
+        {
+            continue;
+        }
+
+        for (const GraphicPresentationState &state : study->getPresentationStatesReferencing(image->getSOPInstanceUID()))
+        {
+            QString label = state.getLabel().isEmpty() ? QObject::tr("presentation state") : state.getLabel();
+            QString text = QObject::tr("PS") + ": " + label;
+
+            if (!state.getNotApplied().isEmpty())
+            {
+                text += "\n" + QObject::tr("PS NOT FULLY APPLIED") + ": " + state.getNotApplied().join(", ");
+            }
+
+            if (!lines.contains(text))
+            {
+                lines << text;
+            }
+        }
+    }
+
+    return lines.join("\n");
+}
+
 // Map from variable to getter function.
 const QHash<QString, decltype(&getDicomPatientID)> VariableGetters{
     {"PatientID", &getDicomPatientID},
@@ -634,6 +671,13 @@ void Q2DViewerAnnotationHandler::updateCornerAnnotation(CornerAnnotationIndexTyp
             if (!keyObjectMarker.isEmpty())
             {
                 annotation += "\n" + keyObjectMarker;
+            }
+
+            QString presentationStateMarker = getPresentationStateMarker(m_2DViewer);
+
+            if (!presentationStateMarker.isEmpty())
+            {
+                annotation += "\n" + presentationStateMarker;
             }
         }
 

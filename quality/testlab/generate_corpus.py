@@ -31,6 +31,7 @@ XA_STORAGE = "1.2.840.10008.5.1.4.1.1.12.1"
 MG_PRESENTATION_STORAGE = "1.2.840.10008.5.1.4.1.1.1.2"
 ENCAPSULATED_PDF_STORAGE = "1.2.840.10008.5.1.4.1.1.104.1"
 KEY_OBJECT_SELECTION_STORAGE = "1.2.840.10008.5.1.4.1.1.88.59"
+GRAYSCALE_PRESENTATION_STATE_STORAGE = "1.2.840.10008.5.1.4.1.1.11.1"
 
 STUDY_DATE = "20260101"
 INJECTION_TIME = "090000"
@@ -303,6 +304,120 @@ def generate_key_objects(writer):
                             "overlay": "REJECTED: Rejected for Quality Reasons"},
             "ko-missing-image": {"title": "For Teaching", "kind": "selection", "images": [10], "missing_images": 1,
                                  "overlay": "KEY IMAGE: For Teaching", "warning": "refers to 1 of its 2 images that are not loaded"},
+        },
+    }
+
+
+def referenced_image_item(number):
+    item = Dataset()
+    item.ReferencedSOPClassUID = CT_STORAGE
+    item.ReferencedSOPInstanceUID = uid("ct-reference", "ct", number)
+    return item
+
+
+def graphic_object(kind, units, points, filled="N"):
+    item = Dataset()
+    item.GraphicAnnotationUnits = units
+    item.GraphicDimensions = 2
+    item.NumberOfGraphicPoints = len(points)
+    item.GraphicData = [float(v) for point in points for v in point]
+    item.GraphicType = kind
+    item.GraphicFilled = filled
+    return item
+
+
+def text_object(text, anchor):
+    item = Dataset()
+    item.UnformattedTextValue = text
+    item.AnchorPoint = [float(anchor[0]), float(anchor[1])]
+    item.AnchorPointAnnotationUnits = "PIXEL"
+    item.AnchorPointVisibility = "N"
+    return item
+
+
+def annotation(images, graphics, texts=()):
+    item = Dataset()
+    item.GraphicLayer = "ANNOTATIONS"
+    item.ReferencedImageSequence = Sequence([referenced_image_item(n) for n in images])
+    if graphics:
+        item.GraphicObjectSequence = Sequence(graphics)
+    if texts:
+        item.TextObjectSequence = Sequence(texts)
+    return item
+
+
+def write_presentation_state(writer, name, label, images, annotations, extra=None):
+    """A grayscale softcopy presentation state in the study of the reference CT, with the pixel coordinates of a 256 x 256 image."""
+    case = "ct-reference"
+    ds = writer.base(case, name, 0, GRAYSCALE_PRESENTATION_STATE_STORAGE, "PR", "PHANTOM^CT", "QA-CT-001", label)
+    ds.SeriesNumber = 950 + len(name)
+    ds.ContentLabel = label.upper().replace(" ", "_")[:16]
+    ds.ContentDescription = label
+    ds.ContentCreatorName = "SYNTHETIC^AUTHOR"
+    ds.PresentationCreationDate = STUDY_DATE
+    ds.PresentationCreationTime = "110000"
+    series_item = Dataset()
+    series_item.SeriesInstanceUID = uid(case, "ct", "series")
+    series_item.ReferencedImageSequence = Sequence([referenced_image_item(n) for n in images])
+    ds.ReferencedSeriesSequence = Sequence([series_item])
+    layer = Dataset()
+    layer.GraphicLayer = "ANNOTATIONS"
+    layer.GraphicLayerOrder = 1
+    ds.GraphicLayerSequence = Sequence([layer])
+    ds.GraphicAnnotationSequence = Sequence(annotations)
+    area = Dataset()
+    area.ReferencedImageSequence = Sequence([referenced_image_item(n) for n in images])
+    area.DisplayedAreaTopLeftHandCorner = [1, 1]
+    area.DisplayedAreaBottomRightHandCorner = [256, 256]
+    area.PresentationSizeMode = "SCALE TO FIT"
+    area.PresentationPixelAspectRatio = [1, 1]
+    ds.DisplayedAreaSelectionSequence = Sequence([area])
+    ds.PresentationLUTShape = "IDENTITY"
+    for key, value in (extra or {}).items():
+        setattr(ds, key, value)
+    writer.save(ds, "presentation-states", f"{name}.dcm")
+
+
+def generate_presentation_states(writer):
+    # The fiducial dots of image 20 are 3 x 3 pixels centred on the columns 66 and 191 of the row 128. A pixel at (column, row)
+    # has its center at (column + 0.5, row + 0.5) in the coordinates of a presentation state.
+    write_presentation_state(
+        writer, "gsps-annotations", "Annotations", [20, 50, 70],
+        [
+            annotation([20], [graphic_object("POLYLINE", "PIXEL", [(66.5, 128.5), (191.5, 128.5)])],
+                       [text_object("FIDUCIALS 100 mm", (128.0, 118.0))]),
+            # The soft sphere is centred on the column 77.5 and the row 102.5 of image 50, with a radius of 25 pixels
+            annotation([50], [graphic_object("CIRCLE", "PIXEL", [(78.0, 103.0), (103.0, 103.0)])], [text_object("SOFT SPHERE", (78.0, 70.0))]),
+            annotation([70], [graphic_object("POLYLINE", "DISPLAY", [(0.25, 0.25), (0.75, 0.25), (0.75, 0.75), (0.25, 0.75), (0.25, 0.25)])]),
+        ])
+    # It asks for a rotation and a shutter, which Starviewer does not apply, and refers to an image that is not in the corpus
+    shutter = {"ShutterShape": "RECTANGULAR", "ShutterLeftVerticalEdge": 20, "ShutterRightVerticalEdge": 236,
+               "ShutterUpperHorizontalEdge": 20, "ShutterLowerHorizontalEdge": 236, "ImageRotation": 90}
+    write_presentation_state(
+        writer, "gsps-not-applied", "Rotated with a shutter", [30, 9999],
+        [annotation([30], [graphic_object("POINT", "PIXEL", [(128.0, 128.0)])])], extra=shutter)
+    writer.cases["presentation-states"] = {
+        "modality": "PR",
+        "instances": 2,
+        "study": "the study of ct-reference",
+        "documents": {
+            "gsps-annotations": {
+                "label": "ANNOTATIONS",
+                "images": [20, 50, 70],
+                "overlay": "PS: ANNOTATIONS",
+                "drawn": {
+                    "20": "a line from the left fiducial to the right fiducial (125 pixels, 100 mm) and the text FIDUCIALS 100 mm",
+                    "50": "a circle of 25 pixels around the soft tissue sphere and the text SOFT SPHERE",
+                    "70": "a rectangle from 25% to 75% of the image in both directions",
+                },
+            },
+            "gsps-not-applied": {
+                "label": "ROTATED_WITH_A_S",
+                "images": [30],
+                "missing_images": 1,
+                "overlay": "PS: ROTATED_WITH_A_S, then PS NOT FULLY APPLIED: Display shutter, Rotation or flip",
+                "warning": "refers to 1 of its 2 images that are not loaded, and asks for what is not applied: Display shutter, Rotation or flip",
+            },
         },
     }
 
@@ -810,7 +925,7 @@ def main():
         shutil.rmtree(root)
     root.mkdir(parents=True)
     writer = Writer(root)
-    for generator in (generate_ct, generate_key_objects, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_key_objects, generate_presentation_states, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         generator(writer)
         print(f"generated {generator.__name__.removeprefix('generate_')}", flush=True)

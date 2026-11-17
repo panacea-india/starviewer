@@ -109,7 +109,8 @@ void warnAboutMissingOpenGL(QWidget *parent)
 
 }
 
-// Says, once for each document, that a Key Object Selection Document refers to images that were not loaded: the selection cannot be shown as it was made.
+// Says, once for each document, that a Key Object Selection Document or a presentation state cannot be shown as it was made: it refers to images
+// that were not loaded, or asks for something that is not applied.
 static void warnAboutUnresolvedKeyObjects(const QList<Study*> &studies, QWidget *parent)
 {
     static QSet<QString> warned;
@@ -133,12 +134,40 @@ static void warnAboutUnresolvedKeyObjects(const QList<Study*> &studies, QWidget 
                             .arg(unresolved).arg(selection.getReferences().size());
             }
         }
+
+        for (const GraphicPresentationState &state : study->getPresentationStates())
+        {
+            if (warned.contains(state.getSopInstanceUid()))
+            {
+                continue;
+            }
+
+            QString name = state.getLabel().isEmpty() ? QObject::tr("The presentation state") : QObject::tr("The presentation state \"%1\"").arg(state.getLabel());
+            int unresolved = state.getUnresolvedReferences(available).size();
+
+            if (unresolved > 0)
+            {
+                WARN_LOG(QString("The presentation state %1 refers to %2 of %3 images that are not loaded")
+                         .arg(state.getSopInstanceUid()).arg(unresolved).arg(state.getReferencedImages().size()));
+                messages << QObject::tr("%1 refers to %2 of its %3 images that are not loaded.").arg(name).arg(unresolved)
+                            .arg(state.getReferencedImages().size());
+            }
+
+            if (!state.getNotApplied().isEmpty())
+            {
+                WARN_LOG(QString("The presentation state %1 asks for what is not applied: %2").arg(state.getSopInstanceUid())
+                         .arg(state.getNotApplied().join(", ")));
+                messages << QObject::tr("%1 asks for what is not applied: %2.").arg(name).arg(state.getNotApplied().join(", "));
+            }
+
+            warned.insert(state.getSopInstanceUid());
+        }
     }
 
     if (!messages.isEmpty())
     {
         QMessageBox::warning(parent, ApplicationNameString,
-                             QObject::tr("Some key images or rejections cannot be shown as they were made, because the images are not loaded:\n\n%1")
+                             QObject::tr("Some key images, rejections or presentation states cannot be shown as they were made:\n\n%1")
                              .arg(messages.join("\n")));
     }
 }

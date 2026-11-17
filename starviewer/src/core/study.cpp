@@ -617,4 +617,43 @@ QSet<QString> Study::getImageSopInstanceUids() const
     return uids;
 }
 
+bool Study::addPresentationState(const GraphicPresentationState &state)
+{
+    if (state.isNull())
+    {
+        return false;
+    }
+
+    for (const GraphicPresentationState &existing : m_presentationStates)
+    {
+        if (existing.getSopInstanceUid() == state.getSopInstanceUid())
+        {
+            return false;
+        }
+    }
+
+    m_presentationStates << state;
+    return true;
+}
+
+const QList<GraphicPresentationState>& Study::getPresentationStates() const
+{
+    return m_presentationStates;
+}
+
+QList<GraphicPresentationState> Study::getPresentationStatesReferencing(const QString &sopInstanceUid) const
+{
+    QList<GraphicPresentationState> states;
+
+    for (const GraphicPresentationState &state : m_presentationStates)
+    {
+        if (state.references(sopInstanceUid))
+        {
+            states << state;
+        }
+    }
+
+    return states;
+}
+
 }

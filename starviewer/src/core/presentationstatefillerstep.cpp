@@ -13,12 +13,13 @@
  *************************************************************************************/
 
 #include "presentationstatefillerstep.h"
+
+#include "dicomtagreader.h"
+#include "graphicpresentationstate.h"
 #include "logging.h"
 #include "patientfillerinput.h"
-#include "patient.h"
-#include "study.h"
 #include "series.h"
-#include "dicomtagreader.h"
+#include "study.h"
 
 namespace udg {
 
@@ -31,18 +32,42 @@ PresentationStateFillerStep::~PresentationStateFillerStep()
 {
 }
 
-void PresentationStateFillerStep::processPresentationState()
+bool PresentationStateFillerStep::fillIndividually()
 {
-    DICOMTagReader dicomReader;
-    bool ok = false;
-//     ok = dicomReader.setFile(presentationState->getPath());
-    if (ok)
+    const DICOMTagReader *dicomReader = m_input->getDICOMFile();
+
+    if (!dicomReader)
     {
-        // TODO per implementar
-        DEBUG_LOG("Not implemented yet!");
+        return true;
     }
-//     else
-//         DEBUG_LOG("Could not open the file with the tagReader: " + presentationState->getPath());
+
+    QString sopClass = dicomReader->getValueAttributeAsQString(DICOMSOPClassUID);
+
+    if (sopClass != UIDGrayscaleSoftcopyPresentationStateStorage && sopClass != UIDColorSoftcopyPresentationStateStorage
+        && sopClass != UIDPseudoColorSoftcopyPresentationStateStorage)
+    {
+        return true;
+    }
+
+    QString error;
+    GraphicPresentationState state = GraphicPresentationState::fromDICOM(*dicomReader, &error);
+
+    if (state.isNull())
+    {
+        WARN_LOG(QString("The presentation state %1 was not used: %2").arg(dicomReader->getFileName()).arg(error));
+        return true;
+    }
+
+    Series *series = m_input->getCurrentSeries();
+    Study *study = series ? series->getParentStudy() : nullptr;
+
+    if (study && study->addPresentationState(state))
+    {
+        INFO_LOG(QString("Presentation state %1 (%2) refers to %3 images").arg(state.getSopInstanceUid()).arg(state.getLabel())
+                 .arg(state.getReferencedImages().size()));
+    }
+
+    return true;
 }
 
-}
+} // End namespace udg

@@ -44,6 +44,7 @@ class BlendFilter;
 class VolumeDisplayUnit;
 class VolumePixelData;
 class Q2DViewerAnnotationHandler;
+class Q2DViewerPresentationStateHandler;
 class VolumeDisplayUnitHandlerFactory;
 class GenericVolumeDisplayUnitHandler;
 class TransferFunction;
@@ -99,6 +100,10 @@ public:
     /// Ens retorna el drawer per poder pintar-hi primitives
     /// @return Objecte drawer del viewer
     Drawer* getDrawer() const;
+
+    /// Turns on or off the graphic annotations of the presentation states. They are on by default.
+    void setPresentationStateEnabled(bool enabled);
+    bool isPresentationStateEnabled() const;
 
     /// Returns the VOI LUT that is currently applied to the image in this viewer.
     virtual VoiLut getCurrentVoiLut() const;
@@ -605,6 +610,9 @@ private:
 
     /// Handles the textual annotations of the viewer
     Q2DViewerAnnotationHandler *m_annotationsHandler;
+
+    /// Draws the annotations of the presentation states
+    Q2DViewerPresentationStateHandler *m_presentationStateHandler;
 
     /// Fusion balance stored as a value in the range [0, 100] representing the weight of the second input.
     int m_fusionBalance;

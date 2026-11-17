@@ -28,6 +28,7 @@ set(SOURCES
     test_externalapplication.cpp
     test_filter.cpp
     test_filteroutput.cpp
+    test_graphicpresentationstate.cpp
     test_griditerator.cpp
     test_hangingprotocol.cpp
     test_hangingprotocolfiller.cpp

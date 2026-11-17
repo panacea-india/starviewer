@@ -39,6 +39,7 @@
 #include "mammographyimagehelper.h"
 #include "slicelocator.h"
 #include "q2dviewerannotationhandler.h"
+#include "q2dviewerpresentationstatehandler.h"
 #include "volumedisplayunithandlerfactory.h"
 #include "genericvolumedisplayunithandler.h"
 #include "patientbrowsermenu.h"
@@ -83,6 +84,9 @@ Q2DViewer::Q2DViewer(QWidget *parent)
 
     // Creem el drawer, passant-li com a visor l'objecte this
     m_drawer = new Drawer(this);
+
+    m_presentationStateHandler = new Q2DViewerPresentationStateHandler(this);
+    connect(this, SIGNAL(newVolumesRendered()), m_presentationStateHandler, SLOT(rebuild()));
 
     m_imageOrientationOperationsMapper = new ImageOrientationOperationsMapper();
 
@@ -1404,6 +1408,16 @@ void Q2DViewer::updateImageSlices()
 
     // TODO Si separem els renderers potser caldria aplicar-ho a cada renderer?
     getRenderer()->ResetCameraClippingRange();
+}
+
+void Q2DViewer::setPresentationStateEnabled(bool enabled)
+{
+    m_presentationStateHandler->setEnabled(enabled);
+}
+
+bool Q2DViewer::isPresentationStateEnabled() const
+{
+    return m_presentationStateHandler->isEnabled();
 }
 
 void Q2DViewer::enableAnnotations(bool enable)
