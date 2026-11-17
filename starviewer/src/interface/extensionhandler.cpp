@@ -32,6 +32,7 @@
 #include "patient.h"
 #include "image.h"
 #include "volumehelper.h"
+#include "openglsupport.h"
 
 // PACS --------------------------------------------
 #include "queryscreen.h"
@@ -86,8 +87,37 @@ void ExtensionHandler::request(Request request)
     }
 }
 
+namespace {
+
+// Only the PDF extension works without OpenGL. The rest show images through VTK, which needs OpenGL 3.2 or newer.
+bool needsOpenGL(const QString &extensionIdentifier)
+{
+    return extensionIdentifier != "PdfExtension";
+}
+
+void warnAboutMissingOpenGL(QWidget *parent)
+{
+    QString found = OpenGLSupport::getFoundVersion();
+    QString details = found.isEmpty() ? QObject::tr("This computer gave no OpenGL context.")
+                                      : QObject::tr("This computer gave OpenGL %1.").arg(found);
+    QMessageBox::warning(parent, ApplicationNameString,
+                         QObject::tr("The image viewers need OpenGL %1 or newer, and they cannot open on this computer.\n\n%2\n\n"
+                                     "Update the graphics card driver. On a virtual machine, enable 3D acceleration or use a software OpenGL library.\n"
+                                     "The rest of %3 works: you can still search and retrieve studies, but not view them.")
+                         .arg(OpenGLSupport::getRequiredVersion()).arg(details).arg(ApplicationNameString));
+}
+
+}
+
 bool ExtensionHandler::request(const QString &who)
 {
+    if (needsOpenGL(who) && !OpenGLSupport::isAvailable())
+    {
+        WARN_LOG("The extension " + who + " was not opened because OpenGL " + OpenGLSupport::getRequiredVersion() + " or newer is not available");
+        warnAboutMissingOpenGL(m_mainApp);
+        return false;
+    }
+
     bool ok = true;
     ExtensionMediator *mediator = ExtensionMediatorFactory::instance()->create(who);
     if (!mediator)
@@ -434,8 +464,18 @@ void ExtensionHandler::openDefaultExtensions(QList<Study*> newStudies)
         }
     }
 
+    // Without OpenGL no viewer can open: say it once instead of once for each extension that is tried
+    bool openGLAvailable = OpenGLSupport::isAvailable();
+    bool warnedAboutOpenGL = false;
+
     // Images are done the last so that their extension gets the focus if requested, so that they have priority over other entities
-    if (dicomEntities.testFlag(DicomEntity::Image))
+    if (dicomEntities.testFlag(DicomEntity::Image) && !openGLAvailable)
+    {
+        warnedAboutOpenGL = true;
+        WARN_LOG("The images are not shown because OpenGL " + OpenGLSupport::getRequiredVersion() + " or newer is not available");
+        warnAboutMissingOpenGL(m_mainApp);
+    }
+    else if (dicomEntities.testFlag(DicomEntity::Image))
     {
         QString defaultExtension = settings.getValue(InterfaceSettings::DefaultImageExtension).toString();
 
@@ -448,8 +488,15 @@ void ExtensionHandler::openDefaultExtensions(QList<Study*> newStudies)
 
     if (m_mainApp->getExtensionWorkspace()->count() == 0)
     {
-        WARN_LOG(QString("No extension has been open yet. Requesting 2d viewer extension by default."));
-        request("Q2DViewerExtension");
+        if (openGLAvailable)
+        {
+            WARN_LOG(QString("No extension has been open yet. Requesting 2d viewer extension by default."));
+            request("Q2DViewerExtension");
+        }
+        else if (!warnedAboutOpenGL)
+        {
+            warnAboutMissingOpenGL(m_mainApp);
+        }
     }
 }
 

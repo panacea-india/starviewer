@@ -152,6 +152,7 @@ set(SOURCES
     nonclosedangletool.cpp
     nondicomfileclassifierfillerstep.cpp
     opacitytransferfunction.cpp
+    openglsupport.cpp
     optimalviewersgridestimator.cpp
     orderimagesfillerstep.cpp
     ordervolumesfillerstep.cpp

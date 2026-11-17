@@ -53,6 +53,7 @@ set(SOURCES
     test_orderimagesfillerstep.cpp
     test_orthogonalplane.cpp
     test_patient.cpp
+    test_openglsupport.cpp
     test_patientcomparer.cpp
     test_patientfillerinput.cpp
     test_patientorientation.cpp
