@@ -254,6 +254,31 @@ void test_DicomDeidentifier::process_ShouldMarkTheObjectAsDeidentified()
 
     QCOMPARE(value(&ds, DCM_PatientIdentityRemoved), QString("YES"));
     QVERIFY(value(&ds, DCM_DeidentificationMethod).contains("Basic Application Level Confidentiality Profile"));
+    QVERIFY(value(&ds, DCM_DeidentificationMethod).length() <= 64);
+
+    // The profile and the option are coded
+    DcmSequenceOfItems *sequence = nullptr;
+    QVERIFY(ds.findAndGetSequence(DCM_DeidentificationMethodCodeSequence, sequence).good());
+    QCOMPARE(static_cast<int>(sequence->card()), 2);
+    QCOMPARE(value(sequence->getItem(0), DCM_CodeValue), QString("113100"));
+    QCOMPARE(value(sequence->getItem(1), DCM_CodeValue), QString("113106"));
+    QCOMPARE(value(sequence->getItem(1), DCM_CodingSchemeDesignator), QString("DCM"));
+
+    // Processing a second object does not pile up the codes
+    DcmDataset another;
+    fill(&another);
+    deidentifier.process(&another);
+    another.findAndGetSequence(DCM_DeidentificationMethodCodeSequence, sequence);
+    QCOMPARE(static_cast<int>(sequence->card()), 2);
+
+    // The cleaned pixels are said
+    DcmDataset cleaned;
+    fill(&cleaned);
+    DicomDeidentifier::Options cleanedOptions;
+    cleanedOptions.pixelsCleaned = true;
+    DicomDeidentifier(cleanedOptions).process(&cleaned);
+    cleaned.findAndGetSequence(DCM_DeidentificationMethodCodeSequence, sequence);
+    QCOMPARE(value(sequence->getItem(1), DCM_CodeValue), QString("113101"));
 }
 
 void test_DicomDeidentifier::process_ShouldGiveTheSameCodeToTheSamePatientAndAnotherToAnother()

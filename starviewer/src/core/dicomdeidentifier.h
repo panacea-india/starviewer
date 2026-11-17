@@ -45,6 +45,8 @@ public:
         bool retainDeviceIdentity = false;
         bool retainUids = false;
         bool cleanDescriptors = false;
+        /// Says in the object that the pixels were cleaned (set by whoever blanked the text in them, as DeidentificationJob does)
+        bool pixelsCleaned = false;
         /// The name given to the patient, and the ID (an empty one is a code made from the original ID, the same for the same original)
         QString patientName = "ANONYMOUS";
         QString patientId;

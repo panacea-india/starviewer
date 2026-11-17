@@ -200,40 +200,65 @@ DicomDeidentifier::Report DicomDeidentifier::process(DcmDataset *dataset)
     dataset->putAndInsertString(DCM_PatientName, m_options.patientName.toLatin1().constData());
     dataset->putAndInsertString(DCM_PatientID, patientId.toLatin1().constData());
     dataset->putAndInsertString(DCM_PatientIdentityRemoved, "YES");
-    QStringList method;
-    method << "Basic Application Level Confidentiality Profile";
+    // The method: the profile as text, and each option as a code of the DICOM context group 7050
+    struct Code {
+        const char *value;
+        const char *meaning;
+    };
 
-    if (m_options.retainDates)
-    {
-        method << "Retain Longitudinal Temporal Information Full Dates Option";
-    }
+    QList<Code> codes;
+    codes << Code{"113100", "Basic Application Confidentiality Profile"};
 
-    if (m_options.retainModifiedDates)
+    if (m_options.pixelsCleaned)
     {
-        method << "Retain Longitudinal Temporal Information Modified Dates Option";
-    }
-
-    if (m_options.retainPatientCharacteristics)
-    {
-        method << "Retain Patient Characteristics Option";
-    }
-
-    if (m_options.retainDeviceIdentity)
-    {
-        method << "Retain Device Identity Option";
-    }
-
-    if (m_options.retainUids)
-    {
-        method << "Retain UIDs Option";
+        codes << Code{"113101", "Clean Pixel Data Option"};
     }
 
     if (m_options.cleanDescriptors)
     {
-        method << "Clean Descriptors Option";
+        codes << Code{"113105", "Clean Descriptors Option"};
     }
 
-    dataset->putAndInsertString(DCM_DeidentificationMethod, method.join("; ").left(64).toLatin1().constData());
+    if (m_options.retainDates)
+    {
+        codes << Code{"113106", "Retain Longitudinal Temporal Information Full Dates Option"};
+    }
+
+    if (m_options.retainModifiedDates)
+    {
+        codes << Code{"113107", "Retain Longitudinal Temporal Information Modified Dates Option"};
+    }
+
+    if (m_options.retainPatientCharacteristics)
+    {
+        codes << Code{"113108", "Retain Patient Characteristics Option"};
+    }
+
+    if (m_options.retainDeviceIdentity)
+    {
+        codes << Code{"113109", "Retain Device Identity Option"};
+    }
+
+    if (m_options.retainUids)
+    {
+        codes << Code{"113110", "Retain UIDs Option"};
+    }
+
+    dataset->putAndInsertString(DCM_DeidentificationMethod, "Starviewer: Basic Application Level Confidentiality Profile");
+    dataset->findAndDeleteElement(DCM_DeidentificationMethodCodeSequence);
+
+    for (const Code &code : codes)
+    {
+        DcmItem *item = nullptr;
+
+        if (dataset->findOrCreateSequenceItem(DCM_DeidentificationMethodCodeSequence, item, -2).good() && item)
+        {
+            item->putAndInsertString(DCM_CodeValue, code.value);
+            item->putAndInsertString(DCM_CodingSchemeDesignator, "DCM");
+            item->putAndInsertString(DCM_CodeMeaning, code.meaning);
+        }
+    }
+
     return report;
 }
 

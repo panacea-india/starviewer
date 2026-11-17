@@ -872,6 +872,27 @@ ffmpeg 8.1 (a GPL build from FFmpeg-Builds, for testing only: it is not shipped)
 
 The PDF and the pictures of the real CT were deleted after the check.
 
+### Run 38: De-identification and the DICOM tag editor (Phase 5), on the real LCTSC CT and its structure set
+
+Tools > "De-identify images..." with the folder of the 130 CT images and the structure set, "move the dates" and "keep the sex, age, size and weight" on. The result was checked with pydicom and hashlib, not with the viewer.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Batch run | Passed | 131 images written, 0 failed, 2 files left out as not DICOM (the license files of the downloads); progress bar to 100% |
+| 2. Identity | Passed | The original patient ID and name are in none of the 131 files (searched in the raw bytes); the name is ANONYMOUS and the ID a code (ANON-...); Patient Identity Removed = YES; no private attribute left (393 were removed, in the sequences too) |
+| 3. UIDs | Passed | 1 study UID and 2 series UIDs, none of the original ones; the meta information matches each image; the 130 contour references of the structure set all point to the new CT images; the frame of reference was replaced once for all |
+| 4. Pixels | Passed | The pixel data of all 130 CT images is identical to the originals |
+| 5. Dates | Passed | The study date moved from 2004-03-03 to 2003-12-26 (69 days), the sex was kept (option) |
+| 6. The method in the object | Fixed after this run | The text of the method was cut at 64 characters; the options are now coded in the De-identification Method Code Sequence (context group 7050), and the text is short |
+| 7. The new series in the viewer | Passed | It opens, shows ANONYMOUS and the new ID, and the contours of the structure set are drawn on the right images |
+| 8. DICOM tag editor: open, edit | Passed | Tools > "DICOM tag editor..." lists the attributes with name, type and value; a person name with six components is refused with a message and nothing changes; ROE^JANE is accepted and the title says "(changed)" |
+| 9. Save | Passed | Saving over the file that is open is refused ("The file that was opened is not written over", also after answering Yes to the question of Windows); saved in another file: exactly one attribute differs (PatientName), the pixels are identical, the file that was open is unchanged |
+| 10. Blanking text in the pixels (rectangles) on screen | Not tried on screen | Covered by unit tests (8 and 16 bits, color, frames, MONOCHROME1, clipping, refusal of compressed pixels, and the job that does not write an image whose text it cannot blank) |
+
+Limits: the engine does not look at the pixels (it warns for burned-in annotation and for modalities that often have text), does not remove text inside the values of free-text attributes it does not know, handles compressed pixels only by refusing to blank them, and is not a certified tool: a person has to look at the images before they are shared. The profile table is a subset of the PS 3.15 table E.1-1 plus rules (every UID, every person name, every private attribute).
+
+The output folders were deleted after the check.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

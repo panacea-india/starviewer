@@ -22,6 +22,8 @@
 #include "qconfigurationdialog.h"
 #include "qshortcutsdialog.h"
 #include "qhangingprotocolsdialog.h"
+#include "qdeidentifydialog.h"
+#include "qtageditordialog.h"
 #include "volume.h"
 #include "settings.h"
 #include "extensionfactory.h"
@@ -431,6 +433,8 @@ void QApplicationMainWindow::createMenus()
     m_toolsMenu->addAction(m_configurationAction);
     m_toolsMenu->addAction(tr("&Keyboard shortcuts..."), this, [this]() { QShortcutsDialog dialog(this); dialog.exec(); });
     m_toolsMenu->addAction(tr("&Hanging protocols..."), this, [this]() { QHangingProtocolsDialog dialog(this); dialog.exec(); });
+    m_toolsMenu->addAction(tr("&DICOM tag editor..."), this, [this]() { QTagEditorDialog dialog(this); dialog.exec(); });
+    m_toolsMenu->addAction(tr("De-&identify images..."), this, [this]() { QDeidentifyDialog dialog(this); dialog.exec(); });
     m_toolsMenu->addAction(m_runDiagnosisTestsAction);
     m_externalApplicationsMenu = 0;
     createExternalApplicationsMenu();

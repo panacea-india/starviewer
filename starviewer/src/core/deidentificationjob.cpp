@@ -68,7 +68,9 @@ DeidentificationJob::Result DeidentificationJob::run(const QString &inputFolder,
     }
 
     files.sort();
-    DicomDeidentifier deidentifier(options, salt);
+    DicomDeidentifier::Options usedOptions = options;
+    usedOptions.pixelsCleaned = !blackout.isEmpty();
+    DicomDeidentifier deidentifier(usedOptions, salt);
     QSet<QString> warningSet;
     int index = 0;
 
