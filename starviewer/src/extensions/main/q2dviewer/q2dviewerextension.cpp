@@ -17,6 +17,7 @@
 #include <vtkImageData.h>
 #include <QInputDialog>
 #include "registeredvolumes.h"
+#include "imagefilters.h"
 #include "rigidregistration.h"
 #include "starviewerapplication.h"
 
@@ -169,6 +170,10 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     viewerInformationMenu->addAction(m_showPresentationStateAction);
     viewerInformationMenu->addSeparator();
     viewerInformationMenu->addAction(m_registerAndFuseAction);
+    viewerInformationMenu->addSeparator();
+    viewerInformationMenu->addAction(tr("Smooth the images"), this, [this]() { applyImageFilter(1); });
+    viewerInformationMenu->addAction(tr("Sharpen the images"), this, [this]() { applyImageFilter(2); });
+    viewerInformationMenu->addAction(tr("Show the images as loaded"), this, [this]() { applyImageFilter(0); });
     m_viewerLayersToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_viewerLayersToolButton->setMenu(viewerInformationMenu);
     
@@ -816,6 +821,57 @@ void Q2DViewerExtension::showDisplayShutters(bool show)
     for (int viewerNumber = 0; viewerNumber < numberOfViewers; ++viewerNumber)
     {
         m_workingArea->getViewerWidget(viewerNumber)->getViewer()->showDisplayShutters(show);
+    }
+}
+
+void Q2DViewerExtension::applyImageFilter(int kind)
+{
+    Q2DViewerWidget *selectedViewerWidget = m_workingArea->getSelectedViewer();
+    Volume *shown = selectedViewerWidget ? selectedViewerWidget->getViewer()->getMainInput() : nullptr;
+
+    if (!shown)
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Select a viewer that shows a volume first."));
+        return;
+    }
+
+    // The source of a filtered volume is the volume that was loaded
+    Volume *source = m_filteredSources.value(shown, shown);
+    Volume *target = source;
+
+    if (kind != 0)
+    {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        vtkSmartPointer<vtkImageData> filtered = kind == 1 ? ImageFilters::gaussianSmooth(source->getVtkData(), 1.0) : ImageFilters::unsharpMask(source->getVtkData(), 1.5, 1.0);
+        QApplication::restoreOverrideCursor();
+
+        if (!filtered)
+        {
+            QMessageBox::warning(this, ApplicationNameString, tr("These images cannot be filtered (only gray images can)."));
+            return;
+        }
+
+        target = new Volume(this);
+        target->setImages(source->getImages());
+        target->setData(filtered);
+        m_filteredSources.insert(target, source);
+        RegisteredVolumes::add(target, QString("FILTER:") + (kind == 1 ? tr("smoothed") : tr("sharpened")));
+    }
+
+    if (target == shown)
+    {
+        return;
+    }
+
+    int slice = selectedViewerWidget->getViewer()->getCurrentSlice();
+    selectedViewerWidget->getViewer()->setInput(target);
+    selectedViewerWidget->getViewer()->setSlice(slice);
+
+    // The filtered volume that is no longer shown is not needed
+    if (m_filteredSources.contains(shown))
+    {
+        m_filteredSources.remove(shown);
+        delete shown;
     }
 }
 

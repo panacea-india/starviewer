@@ -1416,7 +1416,15 @@ void Q2DViewer::updateImageSlices()
 
 QString Q2DViewer::getRegistrationNote() const
 {
-    return getNumberOfInputs() > 1 ? RegisteredVolumes::getNote(getInput(1)) : QString();
+    QString note = getNumberOfInputs() > 1 ? RegisteredVolumes::getNote(getInput(1)) : QString();
+
+    // A filtered volume (smoothed or sharpened) is the first input, and is marked the same way
+    if (note.isEmpty() && getNumberOfInputs() > 0)
+    {
+        note = RegisteredVolumes::getNote(getInput(0));
+    }
+
+    return note;
 }
 
 void Q2DViewer::setPresentationStateEnabled(bool enabled)

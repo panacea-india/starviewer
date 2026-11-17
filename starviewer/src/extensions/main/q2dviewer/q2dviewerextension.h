@@ -145,6 +145,8 @@ private slots:
 
     /// Asks for a second volume of the patient, registers it to the volume of the selected viewer, and shows both fused.
     void registerAndFuse();
+    /// Shows the volume of the selected viewer smoothed (1), sharpened (2) or as it was loaded (0). The images are not changed, and are marked as filtered.
+    void applyImageFilter(int kind);
     
     /// Mostrar la pantalla de Dicom dump, amb informació de la imatge que es visualitza en aquell moment
     void showDicomDumpCurrentDisplayedImage();
@@ -234,6 +236,7 @@ private:
     QAction *m_showViewersTextualInformationAction;
     QAction *m_showPresentationStateAction;
     QAction *m_registerAndFuseAction;
+    QHash<Volume*, Volume*> m_filteredSources;
 
     /// The volumes made by registrations, which the extension owns
     QList<Volume*> m_registeredVolumes;

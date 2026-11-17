@@ -70,6 +70,7 @@ set(SOURCES
     test_qspherevoidialog.cpp
     test_curvedreformation.cpp
     test_savedview.cpp
+    test_imagefilters.cpp
     test_ziparchive.cpp
     test_rtstructureset.cpp
     test_gantrytiltcorrector.cpp

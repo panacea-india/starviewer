@@ -438,6 +438,11 @@ QString getPresentationStateMarker(const Q2DViewer *viewer)
 QString getRegistrationMarker(const Q2DViewer *viewer)
 {
     QString note = viewer->getRegistrationNote();
+    if (note.startsWith("FILTER:"))
+    {
+        return QObject::tr("FILTERED") + ": " + note.mid(7) + " (" + QObject::tr("not for measuring values") + ")";
+    }
+
     return note.isEmpty() ? QString() : QObject::tr("REGISTERED") + ": " + note;
 }
 
