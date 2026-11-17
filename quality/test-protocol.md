@@ -801,7 +801,7 @@ Case `rt-structure-sets` with the CT of `ct-reference` (slice 50, through both s
 
 Volumes (added later in the same run): the list shows SoftSphere 33.3 mL (a sphere of 20 mm radius is 33.5 mL) and BoneSphere 4.1 mL (10 mm radius: 4.2 mL).
 
-Automatic tests: 5,250 passed, 0 failed, 9 skipped (`test_RtRegionStatistics`, 10 more: areas, a sphere within 3%, a box, the middle distance, several contours on a plane, open contours, one plane).
+Automatic tests: 5,250 passed, 0 failed, 9 skipped (`test_RtRegionStatistics`, 10 more: areas, a sphere within 3%, a box, the middle distance, several contours on a plane, open contours, one plane). Later: holes are taken away (a ring, a piece inside a hole, two pieces side by side) with a test of the point-in-contour check in any plane: 5,263 passed.
 
 ### Run 33: Automatic path between two points (Phase 3, item 10)
 
