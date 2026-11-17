@@ -23,6 +23,7 @@
 #include <algorithm>
 #include "movieencoder.h"
 #include "flythroughpath.h"
+#include "endoscopytransferfunction.h"
 #include "savedviewstore.h"
 #include "volumesculptor.h"
 #include "series.h"
@@ -255,6 +256,23 @@ void Q3DViewerExtension::loadRenderingStyles()
     QStandardItem *item;
     RenderingStyle renderingStyle;
     TransferFunction *transferFunction;
+
+    // The two styles for the flight inside a cavity or a vessel: the lumen is transparent and its wall is the surface
+    for (int kind = 0; kind < 2; kind++)
+    {
+        item = new QStandardItem(kind == 0 ? tr("Inside: air") : tr("Inside: contrast"));
+        item->setToolTip(kind == 0 ? tr("For looking from inside an airway, the colon or a sinus: the air is transparent and the tissue is the wall")
+                                   : tr("For looking from inside a vessel or a heart cavity full of contrast: the contrast is transparent and the tissue is the wall"));
+        renderingStyle.setMethod(RenderingStyle::RayCasting);
+        renderingStyle.setShading(true);
+        renderingStyle.setAmbientCoefficient(0.3);
+        renderingStyle.setDiffuseCoefficient(0.7);
+        renderingStyle.setSpecularCoefficient(0.2);
+        renderingStyle.setSpecularPower(16.0);
+        renderingStyle.setTransferFunction(kind == 0 ? EndoscopyTransferFunction::airFilledLumen() : EndoscopyTransferFunction::contrastFilledLumen());
+        item->setData(renderingStyle.toVariant());
+        m_renderingStyleModel->appendRow(item);
+    }
 
     item = new QStandardItem(QIcon(":/extensions/Q3DViewerExtension/renderingstyles/spine2.png"), tr("Spine"));
     renderingStyle.setMethod(RenderingStyle::RayCasting);
