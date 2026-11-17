@@ -857,6 +857,21 @@ Limits: the path of a structure with branches is the shortest way between the tw
 
 The 64 MB file was deleted after the check: a model of a patient is personal data, even from a public collection.
 
+### Run 37: MP4 export, PDF printing and DICOM video, with ffmpeg installed
+
+ffmpeg 8.1 (a GPL build from FFmpeg-Builds, for testing only: it is not shipped) in `C:\dev\tools\ffmpeg`, found through `FFMPEG_PATH` in the launch script. The real chest CT of LIDC-IDRI-0365 was used.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. "Export a movie of the slices..." | Passed | 101 pictures and "The video movie.mp4 was made in the same folder" |
+| 2. The MP4 checked with ffprobe and ffmpeg | Passed | H.264, yuv420p, 750 x 718, 101 frames at 10 frames a second (10.1 s), decodes with no error; the frame 50 is the slice 51 of 101 with its annotations |
+| 3. "Save the image as PDF..." | Passed | Checked with PyMuPDF: 1 page of 595 x 842 pt (A4), the image (750 x 717, stored as JPEG, 99 KiB: Qt compresses it, so the printout is lossy), the annotations in it, and the footer "Starviewer - Not for diagnostic use - <date and time>". The page renders as expected |
+| 4. DICOM video, `video-real` (H.264, 320 x 240, 25 fps, made with ffmpeg) | Passed as a refusal | On this Windows 10 N edition there is no media player service, and the viewer says so: "it has no media player service ... (on Windows N editions, the Media Feature Pack)". Playing needs that Windows component, which was not installed (it is a change of the system): to check on a normal Windows computer |
+| 5. The undecodable video | Passed | Listed apart, and not played |
+| 6. Printing on a printer | Not possible here | There is no printer; the PDF goes through the same code |
+
+The PDF and the pictures of the real CT were deleted after the check.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
