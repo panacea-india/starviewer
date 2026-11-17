@@ -74,6 +74,8 @@ set(SOURCES
     test_timeintensitycurve.cpp
     test_digitalsubtraction.cpp
     test_flythroughpath.cpp
+    test_dicomdeidentifier.cpp
+    test_dicomtageditor.cpp
     test_centerlinefinder.cpp
     test_rtregionstatistics.cpp
     test_endoscopytransferfunction.cpp

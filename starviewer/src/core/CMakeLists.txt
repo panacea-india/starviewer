@@ -31,6 +31,10 @@ set(SOURCES
     timeintensitycurve.cpp
     digitalsubtraction.cpp
     flythroughpath.cpp
+    dicomdeidentifier.cpp
+    dicompixelblackout.cpp
+    deidentificationjob.cpp
+    dicomtageditor.cpp
     centerlinefinder.cpp
     rtregionstatistics.cpp
     endoscopytransferfunction.cpp
