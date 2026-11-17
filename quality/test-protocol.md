@@ -606,6 +606,21 @@ One row of the first run was wrong in the test (247.3 for 247.5) and was correct
 
 Not tried: the accuracy on a real acquisition, a measurement between two points that are both off the grid of the voxels (each end can be half a voxel off), the sagittal and coronal views, and Linux.
 
+### Run 19: Curved MPR (Phase 3)
+
+The `curved-tube` case was opened, slice 31 (the plane of the tube) was shown, "Curved MPR" was chosen in the drawing tools menu, 7 points were clicked along the tube by hand (the last with a double click).
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Tool | Passed | "Curved MPR" in the drawing tools menu, after 3D distance; each click leaves a mark |
+| 2. Dialog | Passed | Two views a quarter of a turn apart, with the path length: 228.8 mm (the true length is 236.2 mm; the hand clicked points do not reach the ends of the tube) |
+| 3. View in the plane of the tube | Passed | The tube is a straight vertical band of constant width in the middle of the image |
+| 4. View across the plane | Passed with remark | The band is almost straight, with small waves where the hand clicked points are off the center line by a few pixels |
+
+Automatic tests: 5,074 passed, 0 failed, 9 skipped, which is 1 more than before (`test_CurvedReformation`; one earlier run had a tangent tolerance that was too tight for a spline through points 10 mm apart, and was relaxed). The test runner printed empty output files in this session with `-saveOutputToDir`; each suite was run with its own `-o` file instead (cause not found, the results are complete).
+
+Not tried: a real angiography, a path that is nearly parallel to the reference direction of the views, and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
