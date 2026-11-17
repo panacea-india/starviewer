@@ -690,6 +690,19 @@ Automatic tests: 5,149 passed, 0 failed, 9 skipped, which is 27 more than before
 
 Not tried: the MP4 itself (it needs ffmpeg with libx264), a viewer that shows a fusion or a filtered volume, and Linux.
 
+### Run 25: Manual calibration (Phase 4)
+
+Three slices of the reference CT were saved with no Pixel Spacing and opened. "Calibrate" was chosen, the two fiducial squares (100 mm apart) were clicked, and 100 mm entered.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Calibrate | Passed | The dialog gave pixels of 0.8025 mm (the true size is 0.8: the clicks were about 0.3% off) |
+| 2. Measure | Passed | A new distance over the same screen length read "100.00 mm (calibrated)" |
+
+Automatic tests: 5,155 passed, 0 failed, 9 skipped, which is 6 more than before (`test_CalibrationTool`: the size from the length and the pixels, the spacing of the data, bad input, and the flag of the image).
+
+Not tried: images that already have a pixel size (refused with a message, not clicked), and a calibration across slices of a different series.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
