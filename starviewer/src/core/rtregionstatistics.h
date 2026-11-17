@@ -21,8 +21,7 @@ namespace udg {
 
 /**
     The volume of a region of an RT structure set, from its contours: the area of the closed contours of each plane, times the distance between planes (the middle distance of the planes,
-    so a plane that was left out does not change it much). Open contours are left out. A region with a hole drawn as a second contour inside the first one counts the hole as part of
-    the region, so its volume is too big: this is a limit of this version. The numbers are in mm and mL (1 mL = 1000 mm3).
+    so a plane that was left out does not change it much). Open contours are left out. A contour that is inside another one of the same plane is a hole (inside a hole, a piece again, and so on), and its area is taken away. The numbers are in mm and mL (1 mL = 1000 mm3).
  */
 class RtRegionStatistics {
 public:
@@ -40,6 +39,9 @@ public:
 
     /// The area in mm2 of a closed planar polygon in space (the contour is closed by the last point and the first one). 0 for fewer than 3 points.
     static double area(const QList<std::array<double, 3>> &points);
+
+    /// True if the point (projected on the plane of the contour) is inside the contour.
+    static bool contains(const RtStructureSet::Contour &contour, const std::array<double, 3> &point);
 };
 
 } // End namespace udg

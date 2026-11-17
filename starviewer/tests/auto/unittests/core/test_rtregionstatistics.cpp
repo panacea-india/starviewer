@@ -23,6 +23,8 @@ private slots:
     void compute_ShouldAddContoursOfTheSamePlane();
     void compute_ShouldLeaveOutOpenContoursAndGiveNoVolumeForOnePlane();
     void compute_ShouldBeEmptyForARegionWithoutContours();
+    void compute_ShouldTakeAwayHoles();
+    void contains_ShouldTellIfAPointIsInsideInAnyPlane();
 
 private:
     static RtStructureSet::Contour circle(double radius, double z, int segments = 360, bool closed = true);
@@ -140,7 +142,14 @@ void test_RtRegionStatistics::compute_ShouldAddContoursOfTheSamePlane()
     // Two separate pieces on each of two planes
     for (double z : {0.0, 2.0})
     {
-        roi.contours << rectangle(10, 10, z) << rectangle(5, 4, z);
+        RtStructureSet::Contour apart = rectangle(5, 4, z);
+
+        for (std::array<double, 3> &point : apart.points)
+        {
+            point[0] += 30.0;
+        }
+
+        roi.contours << rectangle(10, 10, z) << apart;
     }
 
     RtRegionStatistics::Result result = RtRegionStatistics::compute(roi);
@@ -173,6 +182,68 @@ void test_RtRegionStatistics::compute_ShouldBeEmptyForARegionWithoutContours()
     QCOMPARE(result.contours, 0);
     QCOMPARE(result.planes, 0);
     QCOMPARE(result.volumeMl, 0.0);
+}
+
+void test_RtRegionStatistics::compute_ShouldTakeAwayHoles()
+{
+    RtStructureSet::Roi roi;
+
+    // A ring (outer 10, hole 5) on two planes 2 mm apart: (314.16 - 78.54) x 2 mm
+    for (double z : {0.0, 2.0})
+    {
+        roi.contours << circle(10, z) << circle(5, z);
+    }
+
+    RtRegionStatistics::Result ring = RtRegionStatistics::compute(roi);
+    QVERIFY(std::abs(ring.volumeMl - 2 * (3.14159265358979 * 100 - 3.14159265358979 * 25) * 2.0 / 1000.0) < 0.01);
+
+    // A piece inside the hole is part of the region again
+    for (double z : {0.0, 2.0})
+    {
+        roi.contours << circle(2, z);
+    }
+
+    RtRegionStatistics::Result island = RtRegionStatistics::compute(roi);
+    QVERIFY(std::abs(island.volumeMl - 2 * (3.14159265358979 * 100 - 3.14159265358979 * 25 + 3.14159265358979 * 4) * 2.0 / 1000.0) < 0.01);
+
+    // Two separate pieces side by side are not holes of each other
+    RtStructureSet::Roi side;
+
+    for (double z : {0.0, 2.0})
+    {
+        RtStructureSet::Contour left = rectangle(10, 10, z);
+        RtStructureSet::Contour right = rectangle(10, 10, z);
+
+        for (std::array<double, 3> &p : right.points)
+        {
+            p[0] += 30.0;
+        }
+
+        side.contours << left << right;
+    }
+
+    QVERIFY(std::abs(RtRegionStatistics::compute(side).volumeMl - 2 * 200.0 * 2.0 / 1000.0) < 1e-9);
+}
+
+void test_RtRegionStatistics::contains_ShouldTellIfAPointIsInsideInAnyPlane()
+{
+    RtStructureSet::Contour box = rectangle(10, 10, 4.0);
+
+    QVERIFY(RtRegionStatistics::contains(box, {{5, 5, 4}}));
+    QVERIFY(!RtRegionStatistics::contains(box, {{15, 5, 4}}));
+    QVERIFY(!RtRegionStatistics::contains(box, {{5, -1, 4}}));
+
+    // The same square standing in the plane x = 3 (y and z are its sides)
+    RtStructureSet::Contour standing;
+    standing.closed = true;
+
+    for (const std::array<double, 3> &p : box.points)
+    {
+        standing.points << std::array<double, 3>{{3.0, p[0], p[1]}};
+    }
+
+    QVERIFY(RtRegionStatistics::contains(standing, {{3, 5, 5}}));
+    QVERIFY(!RtRegionStatistics::contains(standing, {{3, 15, 5}}));
 }
 
 DECLARE_TEST(test_RtRegionStatistics)

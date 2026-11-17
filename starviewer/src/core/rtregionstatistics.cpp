@@ -45,6 +45,30 @@ Vec newell(const QList<Vec> &p)
 
 }
 
+bool RtRegionStatistics::contains(const RtStructureSet::Contour &contour, const std::array<double, 3> &point)
+{
+    // The contour and the point in the plane of the two axes that are not the main one of the normal
+    Vec n = newell(contour.points);
+    int drop = std::abs(n[0]) >= std::abs(n[1]) && std::abs(n[0]) >= std::abs(n[2]) ? 0 : std::abs(n[1]) >= std::abs(n[2]) ? 1 : 2;
+    int a = drop == 0 ? 1 : 0;
+    int b = drop == 2 ? 1 : 2;
+    bool inside = false;
+    int count = contour.points.size();
+
+    for (int i = 0, j = count - 1; i < count; j = i++)
+    {
+        const Vec &p = contour.points[i];
+        const Vec &q = contour.points[j];
+
+        if ((p[b] > point[b]) != (q[b] > point[b]) && point[a] < (q[a] - p[a]) * (point[b] - p[b]) / (q[b] - p[b]) + p[a])
+        {
+            inside = !inside;
+        }
+    }
+
+    return inside;
+}
+
 double RtRegionStatistics::area(const QList<std::array<double, 3>> &points)
 {
     if (points.size() < 3)
@@ -61,6 +85,15 @@ RtRegionStatistics::Result RtRegionStatistics::compute(const RtStructureSet::Roi
     Result result;
     // The area of each plane, by its position along the normal in units of 0.01 mm
     QMap<qint64, double> areas;
+
+    // The closed contours of each plane, to tell which are inside others (holes)
+    struct Item {
+        const RtStructureSet::Contour *contour;
+        double area;
+        qint64 plane;
+    };
+
+    QList<Item> items;
 
     for (const RtStructureSet::Contour &contour : roi.contours)
     {
@@ -92,8 +125,24 @@ RtRegionStatistics::Result RtRegionStatistics::compute(const RtStructureSet::Roi
         }
 
         double position = n[0] * contour.points[0][0] + n[1] * contour.points[0][1] + n[2] * contour.points[0][2];
-        areas[static_cast<qint64>(std::llround(position * 100.0))] += 0.5 * length;
+        items.append({&contour, 0.5 * length, static_cast<qint64>(std::llround(position * 100.0))});
         result.contours++;
+    }
+
+    // A contour inside an odd number of others of its plane is a hole: its area is taken away
+    for (int i = 0; i < items.size(); i++)
+    {
+        int depth = 0;
+
+        for (int j = 0; j < items.size(); j++)
+        {
+            if (i != j && items[i].plane == items[j].plane && items[j].area > items[i].area && contains(*items[j].contour, items[i].contour->points[0]))
+            {
+                depth++;
+            }
+        }
+
+        areas[items[i].plane] += (depth % 2 == 0 ? 1.0 : -1.0) * items[i].area;
     }
 
     result.planes = areas.size();
