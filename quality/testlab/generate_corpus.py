@@ -589,6 +589,67 @@ def generate_registration_pair(writer):
     }
 
 
+TUBE_RADIUS_MM = 5.0
+TUBE_Z_MM = 75.0
+
+
+def tube_center_y(x):
+    """The center line of the winding tube: a sine across x, in the plane z = TUBE_Z_MM (patient coordinates, mm)."""
+    return 30.0 * math.sin(x / 70.0 * math.pi * 1.5)
+
+
+def generate_curved_tube(writer):
+    """A CT of a body with a winding tube in it, like a contrast filled vessel, for the curved MPR. Straightened along its center line the tube has to be
+    a straight band of TUBE_RADIUS_MM * 2 in width in the middle of the image."""
+    case = "curved-tube"
+    size = 128
+    spacing = 1.5
+    thickness = 2.5
+    slices = 60
+    origin = (-(size - 1) * spacing / 2.0, -(size - 1) * spacing / 2.0)
+    frame = uid(case, "frame")
+    xs = origin[0] + np.arange(size) * spacing
+    ys = origin[1] + np.arange(size) * spacing
+    x, y = np.meshgrid(xs, ys)
+    rng = np.random.default_rng(hash_int(case))
+    for index in range(slices):
+        z = index * thickness
+        hu = np.full((size, size), -1000.0)
+        body = x ** 2 + y ** 2 <= BODY_RADIUS ** 2
+        hu[body] = 0.0
+        hu[body] += rng.normal(0.0, 5.0, hu.shape)[body]
+        on_path = (np.abs(x) <= 70.0)
+        distance = np.sqrt((y - np.vectorize(tube_center_y)(x)) ** 2 + (z - TUBE_Z_MM) ** 2)
+        hu[on_path & (distance <= TUBE_RADIUS_MM)] = 300.0
+        ds = writer.base(case, "tube", index, CT_STORAGE, "CT", "PHANTOM^TUBE", "QA-TUBE-001", "CT with a winding tube")
+        ds.ImageType = ["ORIGINAL", "PRIMARY", "AXIAL"]
+        ds.KVP = 120
+        monochrome(ds)
+        axial_plane(ds, origin, spacing, thickness, z, frame)
+        ds.RescaleIntercept = -1024
+        ds.RescaleSlope = 1
+        ds.RescaleType = "HU"
+        ds.WindowCenter = 100
+        ds.WindowWidth = 600
+        stored = np.clip(np.rint(hu + 1024), 0, 4095).astype(np.uint16)
+        set_pixels(ds, stored, 12)
+        writer.save(ds, case, f"TB{index:04d}.dcm")
+    writer.cases[case] = {
+        "modality": "CT",
+        "instances": slices,
+        "pixel_spacing_mm": [spacing, spacing],
+        "slice_spacing_mm": thickness,
+        "tube": {
+            "radius_mm": TUBE_RADIUS_MM,
+            "hu": 300.0,
+            "plane_z_mm": TUBE_Z_MM,
+            "center_line": "y = 30 sin(x / 70 pi 1.5), for x from -70 to 70 mm",
+            "length_mm": round(float(sum(math.hypot(0.1, tube_center_y(-70.0 + (i + 1) * 0.1) - tube_center_y(-70.0 + i * 0.1)) for i in range(1399))), 2),
+        },
+        "expected": "a curved MPR along the tube shows a straight band 10 mm wide in the middle of both views, as long as the path",
+    }
+
+
 def generate_ct_large(writer):
     case = "benchmark-ct-1000"
     write_ct_series(writer, case, case, "ct", "BENCHMARK^CT", "QA-BENCH-001", "Benchmark CT 512x512x1000",
@@ -1094,7 +1155,7 @@ def main():
     root.mkdir(parents=True)
     writer = Writer(root)
     video_file = arguments.video
-    for generator in (generate_ct, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
+    for generator in (generate_ct, generate_curved_tube, generate_registration_pair, generate_key_objects, generate_presentation_states, generate_structured_reports, generate_videos, generate_mr, generate_pet_ct, generate_us, generate_xa, generate_mg,
                       generate_enhanced_ct, generate_pdf, generate_transfer_syntaxes, generate_broken):
         if generator is generate_videos:
             generator(writer, video_file)

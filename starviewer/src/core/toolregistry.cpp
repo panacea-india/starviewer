@@ -46,6 +46,7 @@
 #include "ellipticalroitool.h"
 #include "spherevoitool.h"
 #include "distance3dtool.h"
+#include "curvedmprtool.h"
 #include "automaticsynchronizationtool.h"
 #include "magnifyingglasstool.h"
 #include "circletool.h"
@@ -186,6 +187,10 @@ Tool* ToolRegistry::getTool(const QString &toolName, QViewer *viewer)
     else if (toolName == "Distance3DTool")
     {
         tool = new Distance3DTool(viewer);
+    }
+    else if (toolName == "CurvedMprTool")
+    {
+        tool = new CurvedMprTool(viewer);
     }
     else if (toolName == "AutomaticSynchronizationTool")
     {
@@ -423,6 +428,13 @@ QAction* ToolRegistry::getToolAction(const QString &toolName)
         toolAction->setShortcuts(ShortcutManager::getShortcuts(Shortcuts::TransDifferenceTool));
         statusTip = tr("Enable/Disable the translation difference tool");
         toolTip = toolAction->text();
+    }
+    else if (toolName == "CurvedMprTool")
+    {
+        toolAction->setText(tr("Curved MPR"));
+        toolAction->setIcon(QIcon(":/images/icons/kruler-west.svg"));
+        statusTip = tr("Click points along a winding structure and double click (or press Enter) to see it straightened");
+        toolTip = tr("Curved MPR: straighten the volume along a path");
     }
     else if (toolName == "Distance3DTool")
     {

@@ -144,6 +144,9 @@ set(SOURCES
     machineidentifier.cpp
     machineinformation.cpp
     magicroitool.cpp
+    curvedreformation.cpp
+    curvedmprtool.cpp
+    qcurvedmprdialog.cpp
     measurement3d.cpp
     distance3dtool.cpp
     magnifyingglasstool.cpp

@@ -221,6 +221,28 @@ def verify_registration_pair(root, cases):
     check(bool((moved[sample].pixel_array.astype(int) + fixed[sample].pixel_array.astype(int) == 4095).all()), "registration pair has the contrast inverted")
 
 
+def verify_curved_tube(root, cases):
+    truth = cases["curved-tube"]
+    series = {int(d.InstanceNumber): d for d in read_series(root / "curved-tube")}
+    check(len(series) == truth["instances"], "curved tube has 60 slices")
+    index = round(truth["tube"]["plane_z_mm"] / truth["slice_spacing_mm"]) + 1
+    ds = series[index]
+    hu = ds.pixel_array.astype(float) * float(ds.RescaleSlope) + float(ds.RescaleIntercept)
+    spacing = truth["pixel_spacing_mm"][0]
+    size = hu.shape[0]
+    origin = -(size - 1) * spacing / 2.0
+    # Points of the center line are tube (300 HU), and the points 3 times the radius away from it are not
+    worst = 0
+    for x_mm in range(-60, 61, 20):
+        y_mm = 30.0 * math.sin(x_mm / 70.0 * math.pi * 1.5)
+        column = int(round((x_mm - origin) / spacing))
+        row = int(round((y_mm - origin) / spacing))
+        inside = hu[row, column]
+        outside = hu[min(size - 1, row + int(15 / spacing)), column]
+        worst = max(worst, abs(inside - 300.0), abs(outside - 0.0) if outside > -500 else 0)
+    check(worst < 30.0, "curved tube: the center line is tube and beside it is body")
+
+
 def verify_broken(root):
     missing = read_series(root / "broken" / "missing-slice")
     positions = [float(s.ImagePositionPatient[2]) for s in missing]
@@ -247,6 +269,7 @@ def main():
     verify_presentation_states(root, cases)
     verify_structured_reports(root, cases)
     verify_registration_pair(root, cases)
+    verify_curved_tube(root, cases)
     verify_videos(root, cases)
     verify_broken(root)
     print(f"\n{'FAILED: ' + str(len(failures)) if failures else 'All checks passed'}")
