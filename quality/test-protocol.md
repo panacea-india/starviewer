@@ -799,7 +799,9 @@ Case `rt-structure-sets` with the CT of `ct-reference` (slice 50, through both s
 | 4. Fill | Passed | BoneSphere is filled with translucent green; the hidden SoftSphere stays hidden after the redraw |
 | 5. Two structure sets with the same region numbers | Not tried | They would share one entry (by design, documented) |
 
-No new automatic tests (the handler is tied to the viewer): 5,240 passed, 0 failed, 9 skipped, as before.
+Volumes (added later in the same run): the list shows SoftSphere 33.3 mL (a sphere of 20 mm radius is 33.5 mL) and BoneSphere 4.1 mL (10 mm radius: 4.2 mL).
+
+Automatic tests: 5,250 passed, 0 failed, 9 skipped (`test_RtRegionStatistics`, 10 more: areas, a sphere within 3%, a box, the middle distance, several contours on a plane, open contours, one plane).
 
 ### Fuzzing runs
 
