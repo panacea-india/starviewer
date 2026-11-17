@@ -771,6 +771,20 @@ On the test VM the viewer does not find the protocols that come with the program
 
 Automatic tests: 5,222 passed, 0 failed, 9 skipped (36 more than before: `test_HangingProtocolXMLWriter` reads, writes and reads again every protocol that ships and compares them field by field; `test_HangingProtocolFiles`: listing, copying, deleting and the validation of positions). The round trip found a member of `HangingProtocolImageSet` that was never initialised (`m_imageToDisplay`), which made `compareTo` give random results; it is now 0, what the filler uses.
 
+### Run 31: Flight along a curved MPR path (Phase 3, item 10)
+
+Case `curved-tube` (the winding tube, slice 32), on the test VM with the software renderer.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Path | Passed | Seven clicks along the tube with the Curved MPR tool and Enter: path length 236.5 mm (the tube is 236.2 mm) |
+| 2. 3D viewer, Views menu | Passed | "Fly along the last curved MPR path" is listed; running it moves the camera through the volume and puts the view back at the end |
+| 3. Movie | Passed | The movie dialog lists the flight; 12 pictures were written; they differ from one another (the camera and the orientation marker change) |
+| 4. What is seen inside | **Not useful yet** | Inside the volume the pictures are a gray gradient: the default rendering styles do not make the lumen transparent and show its wall. A style for the inside is needed before the flight is useful to a person |
+| 5. Shortcuts | Passed | Ctrl+E in the 2D viewer does nothing (no extension registers the clear-annotations tool; "Exams" is in the Lite build only): the shared default keys are not a problem in the full build |
+
+Automatic tests: 5,233 passed, 0 failed, 9 skipped (`test_FlythroughPath`, 11 more: even speed, look ahead, up direction perpendicular and turning little, vertical paths, repeated points, invalid input, length).
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

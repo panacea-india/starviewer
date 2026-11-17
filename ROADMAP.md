@@ -301,7 +301,7 @@ In priority order:
    the corrected volume. The workaround of `ImagePlane::projectPoint` (`vtkReconstructionHack`) is still there for the cursor. **Not done:** RT dose, plan and image objects; a list of
    the regions to turn them on and off one by one; contours in the sagittal and coronal views; filled regions; the volume and statistics of a region; a setting to turn the tilt
    correction off; and a check of both on a real radiotherapy study and on a real tilted head CT.
-10. Virtual endoscopy and 4D volume rendering, if internal users ask for them.
+10. Virtual endoscopy and 4D volume rendering, if internal users ask for them. **Started (endoscopy):** the path drawn with the Curved MPR tool in the 2D viewer is kept, and the 3D viewer can fly along it: Views > "Fly along the last curved MPR path" shows the flight, and Movie has the same flight as a kind of movie (`FlythroughPath`: a smooth curve through the points, even speed, a camera that looks 5 mm ahead with a 90 degree angle, and an up direction that turns as little as possible; tested without a window). **Not done:** a rendering style for the inside (with the default styles the inside of a uniform volume is a featureless gradient: the lumen has to be transparent and its wall visible), a path found automatically (centerline), a speed control and pause, and all of 4D volume rendering.
 
 Measurement and registration errors can mislead a reader, so these features
 carry the most risk in the roadmap. Keep their calculations in tested,
