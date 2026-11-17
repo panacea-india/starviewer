@@ -40,6 +40,9 @@ AppImportFile::AppImportFile(QObject *parent)
 #endif
 
     readSettings();
+
+    // The studies that were unpacked from a ZIP in earlier sessions are patient data in a temporary place: they are removed after a day
+    ZipArchive::removeOldExtractions(UserDataRootPath + "zip-import", 24);
 }
 
 AppImportFile::~AppImportFile()

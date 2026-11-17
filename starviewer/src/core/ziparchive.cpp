@@ -21,6 +21,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QObject>
+#include <QDateTime>
 #include <QSet>
 
 #include "itk_zlib.h"
@@ -256,6 +257,23 @@ QString ZipArchive::safeRelativePath(const QString &entryName)
     }
 
     return parts.join('/');
+}
+
+int ZipArchive::removeOldExtractions(const QString &rootFolder, int maxAgeHours)
+{
+    int removed = 0;
+    QDir root(rootFolder);
+    QDateTime limit = QDateTime::currentDateTime().addSecs(-static_cast<qint64>(maxAgeHours) * 3600);
+
+    for (const QFileInfo &info : root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
+    {
+        if (!info.isSymLink() && info.lastModified() < limit && QDir(info.absoluteFilePath()).removeRecursively())
+        {
+            removed++;
+        }
+    }
+
+    return removed;
 }
 
 ZipArchive::Result ZipArchive::extract(const QString &archivePath, const QString &destinationFolder, const Limits &limits)

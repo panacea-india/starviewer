@@ -50,6 +50,9 @@ public:
     /// The path of an entry as it goes under the folder (with / as the separator and no empty parts), or an empty string if the name is not safe: it is empty, absolute, has a drive or
     /// a stream (a ":"), a ".." part, a control character, or ends the way that Windows changes (a space or a dot at the end of a part).
     static QString safeRelativePath(const QString &entryName);
+
+    /// Removes the folders of the root that were last changed more than the given hours ago (the unpacked studies of earlier sessions: they are patient data). Returns how many were removed.
+    static int removeOldExtractions(const QString &rootFolder, int maxAgeHours);
 };
 
 } // End namespace udg

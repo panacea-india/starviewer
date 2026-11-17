@@ -666,7 +666,7 @@ The study of `ct-reference` with its RT structure set was packed with a ZIP prog
 
 Automatic tests: 17 new (`test_ZipArchive`), for stored and deflated files, subfolders, names that go outside (../, ..\\, absolute, a drive, a stream, a double slash: nothing is written, not even the good files), a wrong CRC, an entry that holds more than it says, the limits of total size, file size and entries, encrypted and duplicate entries, files that are not ZIP or are cut, and the safe path rules.
 
-Not tried: a ZIP made by Windows Explorer or by a CD export tool, names in the old DOS character set, a very large archive, ZIP64 (it is refused), and Linux. The unpacked files are not removed after use: that has to be added (they are patient data).
+Not tried: a ZIP made by Windows Explorer or by a CD export tool, names in the old DOS character set, a very large archive, ZIP64 (it is refused), and Linux. The unpacked files are removed at the next start when they are more than a day old (`ZipArchive::removeOldExtractions`, tested with 1 more test: 18 in all); they are not removed when the application closes.
 
 ### Run 23: Smooth and sharpen filters (Phase 4)
 

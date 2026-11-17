@@ -29,6 +29,7 @@ private slots:
     void extract_ShouldRefuseEncryptedAndDuplicateEntries();
     void extract_ShouldFail_ForFilesThatAreNotZip();
     void safeRelativePath_ShouldAcceptOrdinaryPaths();
+    void removeOldExtractions_ShouldRemoveOnlyTheOldFolders();
 };
 
 namespace {
@@ -246,6 +247,25 @@ void test_ZipArchive::safeRelativePath_ShouldAcceptOrdinaryPaths()
     QVERIFY(ZipArchive::safeRelativePath("").isEmpty());
     QVERIFY(ZipArchive::safeRelativePath("a/b ").isEmpty());
     QVERIFY(ZipArchive::safeRelativePath("a/./b").isEmpty());
+}
+
+void test_ZipArchive::removeOldExtractions_ShouldRemoveOnlyTheOldFolders()
+{
+    QTemporaryDir dir;
+    QDir(dir.path()).mkpath("one/inner");
+    QDir(dir.path()).mkpath("two");
+    QFile file(dir.filePath("one/inner/a.dcm"));
+    file.open(QIODevice::WriteOnly);
+    file.close();
+
+    // Folders that were just made are not old
+    QCOMPARE(ZipArchive::removeOldExtractions(dir.path(), 24), 0);
+    QVERIFY(QFile::exists(dir.filePath("one/inner/a.dcm")));
+    // With a negative age everything is older than the limit (which is in the future): the folders go, with what they hold
+    QCOMPARE(ZipArchive::removeOldExtractions(dir.path(), -1), 2);
+    QVERIFY(!QFile::exists(dir.filePath("one")));
+    QVERIFY(!QFile::exists(dir.filePath("two")));
+    QCOMPARE(ZipArchive::removeOldExtractions(dir.path() + "/missing", 24), 0);
 }
 
 DECLARE_TEST(test_ZipArchive)
