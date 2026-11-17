@@ -20,6 +20,7 @@
 #include "pacsconnection.h"
 #include "pacscredentialstore.h"
 #include "pacsdevicemanager.h"
+#include "pacsoauthtokenprovider.h"
 #include "starviewerapplication.h"
 
 #include <QFileDialog>
@@ -92,6 +93,7 @@ void QPacsDialog::setupDimse()
     m_baseUriLabel->hide();
     m_baseUriLineEdit->hide();
     setLoginFieldsVisible(false);
+    setOAuthFieldsVisible(false);
     setTransportFieldsVisible(true, true);
 }
 
@@ -112,6 +114,7 @@ void QPacsDialog::setupWado()
     m_baseUriLabel->show();
     m_baseUriLineEdit->show();
     setLoginFieldsVisible(true);
+    setOAuthFieldsVisible(true);
     setTransportFieldsVisible(false, false);
 }
 
@@ -134,6 +137,7 @@ void QPacsDialog::setupWadoUriDimse()
     m_baseUriLabel->show();
     m_baseUriLineEdit->show();
     setLoginFieldsVisible(true);
+    setOAuthFieldsVisible(true);
     setTransportFieldsVisible(true, false);
 }
 
@@ -240,6 +244,131 @@ void QPacsDialog::setLoginFieldsVisible(bool visible)
     updateLoginWarning();
 }
 
+void QPacsDialog::setOAuthFieldsVisible(bool visible)
+{
+    m_oauthCheckBox->setVisible(visible);
+    m_oauthTokenUriLabel->setVisible(visible);
+    m_oauthTokenUriLineEdit->setVisible(visible);
+    m_oauthClientIdLabel->setVisible(visible);
+    m_oauthClientIdLineEdit->setVisible(visible);
+    m_oauthClientSecretLabel->setVisible(visible);
+    m_oauthClientSecretLineEdit->setVisible(visible);
+    updateOAuthFields();
+}
+
+bool QPacsDialog::isOAuthChosen() const
+{
+    return m_pacsType != PacsDevice::Type::Dimse && m_oauthCheckBox->isChecked();
+}
+
+void QPacsDialog::updateOAuthFields()
+{
+    bool oauth = isOAuthChosen();
+    m_oauthTokenUriLabel->setEnabled(oauth);
+    m_oauthTokenUriLineEdit->setEnabled(oauth);
+    m_oauthClientIdLabel->setEnabled(oauth);
+    m_oauthClientIdLineEdit->setEnabled(oauth);
+    m_oauthClientSecretLabel->setEnabled(oauth);
+    m_oauthClientSecretLineEdit->setEnabled(oauth);
+
+    // OAuth 2 replaces the login
+    m_usernameLabel->setEnabled(!oauth);
+    m_usernameLineEdit->setEnabled(!oauth);
+    m_passwordLabel->setEnabled(!oauth);
+    m_passwordLineEdit->setEnabled(!oauth);
+    m_loginWarningLabel->setEnabled(!oauth);
+}
+
+void QPacsDialog::moveOAuthLoginFromTokenUriToFields()
+{
+    QUrl tokenUri(m_oauthTokenUriLineEdit->text());
+
+    if (!tokenUri.userInfo().isEmpty())
+    {
+        m_oauthClientIdLineEdit->setText(tokenUri.userName(QUrl::FullyDecoded));
+        m_oauthClientSecretLineEdit->setText(tokenUri.password(QUrl::FullyDecoded));
+        tokenUri.setUserInfo(QString());
+        m_oauthTokenUriLineEdit->setText(tokenUri.toString());
+    }
+}
+
+bool QPacsDialog::isOAuthValid()
+{
+    QUrl tokenUri(m_oauthTokenUriLineEdit->text().trimmed());
+
+    if (tokenUri.isEmpty())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("Token URI cannot be empty."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (!tokenUri.isValid() || (tokenUri.scheme() != "https" && tokenUri.scheme() != "http") || tokenUri.host().isEmpty())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("Token URI is not a valid http or https URI."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (m_oauthClientIdLineEdit->text().trimmed().isEmpty())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("Client ID cannot be empty."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (m_oauthClientIdLineEdit->text().contains(':'))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("Client ID cannot contain a colon."), QMessageBox::Ok);
+        return false;
+    }
+
+    if (m_oauthClientSecretLineEdit->text().isEmpty() && !keepsStoredOAuthSecret())
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("A client ID needs a client secret."), QMessageBox::Ok);
+        return false;
+    }
+
+    return true;
+}
+
+bool QPacsDialog::keepsStoredOAuthSecret() const
+{
+    return m_oauthClientSecretLineEdit->text().isEmpty() && storedOAuthSecretApplies();
+}
+
+bool QPacsDialog::storedOAuthSecretApplies() const
+{
+    return !m_storedOAuthClientId.isEmpty()
+        && m_oauthClientIdLineEdit->text() == m_storedOAuthClientId
+        && PacsCredentialStore::getKey(QUrl(m_oauthTokenUriLineEdit->text().trimmed())) == PacsCredentialStore::getKey(m_storedOAuthTokenUri);
+}
+
+void QPacsDialog::updateOAuthSecretPlaceholder()
+{
+    m_oauthClientSecretLineEdit->setPlaceholderText(storedOAuthSecretApplies() ? tr("Saved. Leave blank to keep it.") : QString());
+}
+
+void QPacsDialog::loadOAuth(const PacsDevice &pacsDevice)
+{
+    m_oauthCheckBox->setChecked(pacsDevice.isOAuthEnabled());
+    m_oauthTokenUriLineEdit->setText(pacsDevice.getOAuthTokenUri().toString());
+    m_oauthClientIdLineEdit->setText(pacsDevice.getOAuthClientId());
+    m_oauthClientSecretLineEdit->clear();
+
+    // The secret is only kept if the store has one, which is the case unless it could not be saved
+    if (pacsDevice.isOAuthEnabled() && !PacsCredentialStore::load(pacsDevice.getOAuthTokenUri()).password.isEmpty())
+    {
+        m_storedOAuthTokenUri = pacsDevice.getOAuthTokenUri();
+        m_storedOAuthClientId = pacsDevice.getOAuthClientId();
+    }
+    else
+    {
+        m_storedOAuthTokenUri.clear();
+        m_storedOAuthClientId.clear();
+    }
+
+    updateOAuthSecretPlaceholder();
+    updateOAuthFields();
+}
+
 void QPacsDialog::createConnections()
 {
     connect(m_qrServiceEnabledCheckBox, &QCheckBox::toggled, m_qrServicePortSpinBox, &QWidget::setEnabled);
@@ -263,6 +392,11 @@ void QPacsDialog::createConnections()
     connect(m_usernameLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateLoginWarning);
     connect(m_baseUriLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updatePasswordPlaceholder);
     connect(m_usernameLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updatePasswordPlaceholder);
+
+    connect(m_oauthCheckBox, &QCheckBox::toggled, this, &QPacsDialog::updateOAuthFields);
+    connect(m_oauthTokenUriLineEdit, &QLineEdit::editingFinished, this, &QPacsDialog::moveOAuthLoginFromTokenUriToFields);
+    connect(m_oauthTokenUriLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateOAuthSecretPlaceholder);
+    connect(m_oauthClientIdLineEdit, &QLineEdit::textChanged, this, &QPacsDialog::updateOAuthSecretPlaceholder);
 
     connect(m_dicomTlsCheckBox, &QCheckBox::toggled, this, &QPacsDialog::updateTransportFields);
     connect(m_cGetCheckBox, &QCheckBox::clicked, [this](bool checked) { m_cGetChosen = checked; });
@@ -347,6 +481,12 @@ void QPacsDialog::updateLoginWarning()
 bool QPacsDialog::arePacsSettingsValid()
 {
     moveLoginFromBaseUriToFields();
+    moveOAuthLoginFromTokenUriToFields();
+
+    if (isOAuthChosen() && !isOAuthValid())
+    {
+        return false;
+    }
 
     if (!areCertificatesValid())
     {
@@ -387,7 +527,7 @@ bool QPacsDialog::arePacsSettingsValid()
             return false;
         }
 
-        if (!isLoginValid())
+        if (!isOAuthChosen() && !isLoginValid())
         {
             return false;
         }
@@ -418,7 +558,7 @@ bool QPacsDialog::arePacsSettingsValid()
             return false;
         }
 
-        if (!isLoginValid())
+        if (!isOAuthChosen() && !isLoginValid())
         {
             return false;
         }
@@ -440,7 +580,13 @@ PacsDevice QPacsDialog::getPacsDevice() const
     pacsDevice.setStoreServicePort(m_sendServicePortSpinBox->value());
     pacsDevice.setBaseUri(m_baseUriLineEdit->text());
 
-    if (m_pacsType != PacsDevice::Type::Dimse && !keepsStoredPassword())
+    if (isOAuthChosen())
+    {
+        // An empty secret means that the stored one is kept
+        pacsDevice.setOAuth(QUrl(m_oauthTokenUriLineEdit->text().trimmed()), m_oauthClientIdLineEdit->text().trimmed(),
+                            m_oauthClientSecretLineEdit->text());
+    }
+    else if (m_pacsType != PacsDevice::Type::Dimse && !keepsStoredPassword())
     {
         pacsDevice.setLogin(m_usernameLineEdit->text(), m_passwordLineEdit->text());
     }
@@ -517,6 +663,12 @@ void QPacsDialog::test()
     else if (pacsDevice.getType() == PacsDevice::Type::Wado)
     {
         EchoToWadoPacs echoToWadoPacs;
+
+        if (pacsDevice.isOAuthEnabled())
+        {
+            // A token got earlier would make the test pass with whatever client secret is typed now
+            PacsOAuthTokenProvider::clear();
+        }
 
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         INFO_LOG(QString("Doing ECHO to PACS with base URI %1.").arg(pacsDevice.getBaseUri().toString()));
@@ -606,6 +758,7 @@ void QPacsDialog::finishSavingLogin(const PacsDevice &pacsDevice)
     }
 
     loadStoredLogin();
+    loadOAuth(PacsDeviceManager::getPacsDeviceById(pacsDevice.getID()));
 }
 
 void QPacsDialog::reset()
@@ -624,6 +777,7 @@ void QPacsDialog::reset()
         m_passwordLineEdit->setPlaceholderText(QString());
         m_storedUsername.clear();
         m_storedLoginBaseUri.clear();
+        loadOAuth(PacsDevice());
         m_cGetChosen = false;
         m_dicomTlsCheckBox->setChecked(false);
         m_caCertificateLineEdit->clear();
@@ -646,6 +800,7 @@ void QPacsDialog::reset()
         m_sendServicePortSpinBox->setValue(pacsDevice.getStoreServicePort());
         m_baseUriLineEdit->setText(pacsDevice.getBaseUri().toString());
         loadStoredLogin();
+        loadOAuth(pacsDevice);
         m_cGetChosen = pacsDevice.isCGetEnabled();
         m_dicomTlsCheckBox->setChecked(pacsDevice.isDicomTlsEnabled());
         m_caCertificateLineEdit->setText(pacsDevice.getCaCertificateFile());

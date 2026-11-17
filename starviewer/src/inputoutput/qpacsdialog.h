@@ -53,6 +53,24 @@ private:
     /// Shows or hides the login fields.
     void setLoginFieldsVisible(bool visible);
 
+    /// Shows or hides the OAuth 2 fields.
+    void setOAuthFieldsVisible(bool visible);
+
+    /// Returns true if OAuth 2 is chosen and applies to this type of PACS.
+    bool isOAuthChosen() const;
+
+    /// Returns true if the current values in the OAuth 2 fields are valid and false otherwise, in which case it shows a warning.
+    bool isOAuthValid();
+
+    /// Returns true if the stored client secret must be kept: the token URI and the client ID are the stored ones and no secret has been entered.
+    bool keepsStoredOAuthSecret() const;
+
+    /// Returns true if the stored client secret applies to the current token URI and client ID.
+    bool storedOAuthSecretApplies() const;
+
+    /// Fills the OAuth 2 fields from the given PACS. The stored client secret is never put in the dialog.
+    void loadOAuth(const PacsDevice &pacsDevice);
+
     /// Shows or hides the fields for DICOM TLS and C-GET, and shows the CA certificate field, which all types have.
     void setTransportFieldsVisible(bool dicomTls, bool cGet);
 
@@ -91,6 +109,15 @@ private slots:
     /// Shows the warning about sending a password without encryption if it applies to the current values.
     void updateLoginWarning();
 
+    /// Enables the OAuth 2 fields while it is chosen, and the login fields while it is not.
+    void updateOAuthFields();
+
+    /// Says in the client secret field that the stored secret will be kept, only while it applies to the current token URI and client ID.
+    void updateOAuthSecretPlaceholder();
+
+    /// If the token URI field has a login, moves it to the client ID and secret fields, so that it's never saved or shown in the token URI.
+    void moveOAuthLoginFromTokenUriToFields();
+
     /// Says in the password field that the stored password will be kept, only while it applies to the current base URI and user name.
     void updatePasswordPlaceholder();
 
@@ -118,6 +145,9 @@ private:
     QUrl m_storedLoginBaseUri;
     /// Stored user name read into the dialog, if any.
     QString m_storedUsername;
+    /// Token URI and client ID of the PACS read into the dialog, if it used OAuth 2 and has a client secret stored.
+    QUrl m_storedOAuthTokenUri;
+    QString m_storedOAuthClientId;
     /// Whether C-GET is chosen, apart from DICOM TLS, which always uses it. The C-GET box shows this while DICOM TLS is off.
     bool m_cGetChosen;
 };

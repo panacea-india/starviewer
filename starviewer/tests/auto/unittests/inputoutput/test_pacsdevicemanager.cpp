@@ -56,6 +56,17 @@ PacsDevice createWadoPacsWithLogin(const QString &baseUri)
     return pacs;
 }
 
+const QUrl OAuthTokenUri("https://auth.example.com/token");
+
+PacsDevice createWadoPacsWithOAuth(const QString &baseUri)
+{
+    PacsDevice pacs;
+    pacs.setType(PacsDevice::Type::Wado);
+    pacs.setBaseUri(QUrl(baseUri));
+    pacs.setOAuth(OAuthTokenUri, "client", "client-secret");
+    return pacs;
+}
+
 Settings::SettingsListItemType createWadoSettingsItem(const QString &id, const QUrl &baseUri)
 {
     Settings::SettingsListItemType item;
@@ -83,6 +94,12 @@ private slots:
     void updatePacs_ShouldRemoveTheLoginOfTheOldUri_WhenTheUriChanges();
     void deletePacs_ShouldRemoveTheLogin();
     void deletePacs_ShouldKeepTheLogin_WhenAnotherPacsUsesTheSameUri();
+    void addPacs_ShouldStoreTheClientSecretOutsideTheSettings();
+    void updatePacs_ShouldRemoveTheClientSecret_WhenOAuthIsTurnedOff();
+    void updatePacs_ShouldRemoveTheClientSecretOfTheOldUri_WhenTheTokenUriChanges();
+    void updatePacs_ShouldKeepTheClientSecret_WhenTheTokenUriIsTheSame();
+    void deletePacs_ShouldRemoveTheClientSecret();
+    void deletePacs_ShouldKeepTheClientSecret_WhenAnotherPacsUsesTheSameTokenUri();
     void moveLoginsToCredentialStore_ShouldMoveTheLoginOutOfTheSettings();
     void moveLoginsToCredentialStore_ShouldLeaveTheLogin_WhenTheStoreRefusesIt();
     void moveLoginsToCredentialStore_ShouldNotChangeUrisWithoutLogin();
@@ -1109,6 +1126,78 @@ void test_PacsDeviceManager::deletePacs_ShouldKeepTheLogin_WhenAnotherPacsUsesTh
     PacsDeviceManager::deletePacs(wado.getID());
 
     QCOMPARE(PacsCredentialStore::load(LoginBaseUri).username, QString("user"));
+}
+
+void test_PacsDeviceManager::addPacs_ShouldStoreTheClientSecretOutsideTheSettings()
+{
+    PacsDevice pacs = createWadoPacsWithOAuth("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    QCOMPARE(PacsCredentialStore::load(OAuthTokenUri).password, QString("client-secret"));
+    PacsDevice saved = PacsDeviceManager::getPacsDeviceById(pacs.getID());
+    QCOMPARE(saved.getOAuthTokenUri(), OAuthTokenUri);
+    QCOMPARE(saved.getOAuthClientId(), QString("client"));
+    QVERIFY(saved.getOAuthClientSecret().isEmpty());
+}
+
+void test_PacsDeviceManager::updatePacs_ShouldRemoveTheClientSecret_WhenOAuthIsTurnedOff()
+{
+    PacsDevice pacs = createWadoPacsWithOAuth("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    pacs.setOAuth(QUrl(), QString(), QString());
+    PacsDeviceManager::updatePacs(pacs);
+
+    QVERIFY(PacsCredentialStore::load(OAuthTokenUri).isEmpty());
+    QVERIFY(!PacsDeviceManager::getPacsDeviceById(pacs.getID()).isOAuthEnabled());
+}
+
+void test_PacsDeviceManager::updatePacs_ShouldRemoveTheClientSecretOfTheOldUri_WhenTheTokenUriChanges()
+{
+    PacsDevice pacs = createWadoPacsWithOAuth("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    QUrl newTokenUri("https://other.example.com/token");
+    pacs.setOAuth(newTokenUri, "client", "new-secret");
+    PacsDeviceManager::updatePacs(pacs);
+
+    QVERIFY(PacsCredentialStore::load(OAuthTokenUri).isEmpty());
+    QCOMPARE(PacsCredentialStore::load(newTokenUri).password, QString("new-secret"));
+}
+
+void test_PacsDeviceManager::updatePacs_ShouldKeepTheClientSecret_WhenTheTokenUriIsTheSame()
+{
+    PacsDevice pacs = createWadoPacsWithOAuth("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    // The dialog leaves the secret empty to keep the stored one
+    pacs.setOAuth(OAuthTokenUri, "client", QString());
+    pacs.setDescription("changed");
+    PacsDeviceManager::updatePacs(pacs);
+
+    QCOMPARE(PacsCredentialStore::load(OAuthTokenUri).password, QString("client-secret"));
+}
+
+void test_PacsDeviceManager::deletePacs_ShouldRemoveTheClientSecret()
+{
+    PacsDevice pacs = createWadoPacsWithOAuth("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(pacs);
+
+    PacsDeviceManager::deletePacs(pacs.getID());
+
+    QVERIFY(PacsCredentialStore::load(OAuthTokenUri).isEmpty());
+}
+
+void test_PacsDeviceManager::deletePacs_ShouldKeepTheClientSecret_WhenAnotherPacsUsesTheSameTokenUri()
+{
+    PacsDevice first = createWadoPacsWithOAuth("https://example.com/dicom-web/");
+    PacsDeviceManager::addPacs(first);
+    PacsDevice second = createWadoPacsWithOAuth("https://other.example.com/dicom-web/");
+    PacsDeviceManager::addPacs(second);
+
+    PacsDeviceManager::deletePacs(first.getID());
+
+    QCOMPARE(PacsCredentialStore::load(OAuthTokenUri).password, QString("client-secret"));
 }
 
 void test_PacsDeviceManager::moveLoginsToCredentialStore_ShouldMoveTheLoginOutOfTheSettings()

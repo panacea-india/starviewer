@@ -18,6 +18,7 @@
 #include "inputoutputsettings.h"
 #include "logging.h"
 #include "pacscredentialstore.h"
+#include "pacsoauthtokenprovider.h"
 #include "pacsdevice.h"
 
 namespace udg {
@@ -61,6 +62,27 @@ void removeLoginIfUnused(const QUrl &baseUri)
     {
         PacsCredentialStore::remove(baseUri);
     }
+}
+
+// Removes the stored client secret for the given token URI of a PACS that has been deleted or changed, unless a configured PACS still uses it.
+void removeOAuthSecretIfUnused(const PacsDevice &oldPacs)
+{
+    if (!oldPacs.isOAuthEnabled())
+    {
+        return;
+    }
+
+    QString key = PacsCredentialStore::getKey(oldPacs.getOAuthTokenUri());
+
+    for (const PacsDevice &pacs : PacsDeviceManager::getPacsList())
+    {
+        if (pacs.isOAuthEnabled() && PacsCredentialStore::getKey(pacs.getOAuthTokenUri()) == key)
+        {
+            return;
+        }
+    }
+
+    PacsCredentialStore::remove(oldPacs.getOAuthTokenUri());
 }
 
 // Converts a PacsDevice instance to a Settings::SettingsListItemType instance.
@@ -228,6 +250,8 @@ bool PacsDeviceManager::addPacs(PacsDevice &pacs)
 
     if (pacs.isOAuthEnabled() && !pacs.getOAuthClientSecret().isEmpty())
     {
+        // Tokens got with the previous secret must not outlive it
+        PacsOAuthTokenProvider::clear();
         PacsCredentialStore::save(pacs.getOAuthTokenUri(), PacsLogin{pacs.getOAuthClientId(), pacs.getOAuthClientSecret()});
     }
 
@@ -276,6 +300,8 @@ void PacsDeviceManager::updatePacs(PacsDevice &pacsToUpdate)
     {
         removeLoginIfUnused(oldPacs.getBaseUri());
     }
+
+    removeOAuthSecretIfUnused(oldPacs);
 }
 
 void PacsDeviceManager::moveLoginsToCredentialStore()
@@ -338,6 +364,7 @@ void PacsDeviceManager::deletePacs(const QString &pacsID)
     }
 
     removeLoginIfUnused(pacsToDelete.getBaseUri());
+    removeOAuthSecretIfUnused(pacsToDelete);
 }
 
 QList<PacsDevice> PacsDeviceManager::getPacsList(PacsFilter filter)
