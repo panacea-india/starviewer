@@ -66,7 +66,7 @@ void ConvertToDicomdir::addStudy(const QString &studyUID)
     QList<Patient*> patientList = localDatabaseManager.queryPatientsAndStudies(studyMask);
     if (localDatabaseManager.getLastError() != LocalDatabaseManager::Ok)
     {
-        ERROR_LOG(QString("Error al afegir un study per generar un DICOMDIR; Error: %1; StudyUID: %2")
+        ERROR_LOG(QString("Error adding a study to generate a DICOMDIR; Error: %1; StudyUID: %2")
                   .arg(localDatabaseManager.getLastError())
                   .arg(studyUID));
         return;
@@ -175,7 +175,7 @@ Status ConvertToDicomdir::convert(const QString &dicomdirPath, CreateDicomdir::r
 
     if (m_anonymizeDICOMDIR)
     {
-        INFO_LOG("El DICOMDIR es creara anonimitzat");
+        INFO_LOG("The DICOMDIR will be created anonymized");
         m_DICOMAnonymizer = new DICOMAnonymizer();
         m_DICOMAnonymizer->setPatientNameAnonymized(m_patientNameAnonymized);
         m_DICOMAnonymizer->setReplacePatientIDInsteadOfRemove(true);

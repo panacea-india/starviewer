@@ -122,7 +122,7 @@ bool DICOMDIRBurningApplication::burnIsoImageFile()
         m_lastErrorDescription = QObject::tr("An error occurred during the ISO image file burn process.");
         m_lastError = InternalError;
 
-        ERROR_LOG("Error writing the ISO image with command: " + burningApplicationPath + "; Amb paràmetres: " + processParameters.join(" ") +
+        ERROR_LOG("Error writing the ISO image with command: " + burningApplicationPath + "; With parameters: " + processParameters.join(" ") +
                   "; Exit code qprocess: " + process.exitCode());
         return false;
     }

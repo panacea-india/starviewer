@@ -106,7 +106,7 @@ PMIB_TCPTABLE_OWNER_MODULE WindowsPortInUseByAnotherApplication::getTCPTables()
         {
             // Si ens dona un error diferent, el loguem i retornem null
             found = true;
-            ERROR_LOG(QString("Error al obtenir la taula TCP: %1").arg(GetLastError()));
+            ERROR_LOG(QString("Error getting the TCP table: %1").arg(GetLastError()));
             free(tcpTable);
             tcpTable = NULL;
         }

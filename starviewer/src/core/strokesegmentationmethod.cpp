@@ -985,11 +985,11 @@ double StrokeSegmentationMethod::applyMethodEdema(Volume *lesionMask)
     DEBUG_LOG("Study time:");
     DEBUG_LOG(QString("Dilate          : %1").arg((double)(t2 - t1) / 1000000.0));
     DEBUG_LOG(QString("Resample inicial: %1").arg((double)(t3 - t2) / 1000000.0));
-    DEBUG_LOG(QString("Mean i init     : %1").arg((double)(t4 - t3) / 1000000.0));
+    DEBUG_LOG(QString("Mean and init  : %1").arg((double)(t4 - t3) / 1000000.0));
     DEBUG_LOG(QString("fast marching   : %1").arg((double)(t5 - t4) / 1000000.0));
     DEBUG_LOG(QString("resample 2      : %1").arg((double)(t8 - t5) / 1000000.0));
     DEBUG_LOG(QString("median filter   : %1").arg((double)(t6 - t8) / 1000000.0));
-    DEBUG_LOG(QString("dif i volume    : %1").arg((double)(t7 - t6) / 1000000.0));
+    DEBUG_LOG(QString("dif and volume : %1").arg((double)(t7 - t6) / 1000000.0));
     DEBUG_LOG(QString("TOTAL           : %1").arg((double)(t7 - t1) / 1000000.0));
 
     return (double)m_edemaCont * volspacing[0] * volspacing[1] * volspacing[2];

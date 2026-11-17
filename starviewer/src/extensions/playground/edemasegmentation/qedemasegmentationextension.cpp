@@ -313,7 +313,7 @@ void QEdemaSegmentationExtension::applyMethod()
         m_lesionMaskVolume = new Volume();
     }
     m_segMethod->setMask(m_lesionMaskVolume);
-    DEBUG_LOG("Inici apply method!!");
+    DEBUG_LOG("Start of the apply method!!");
     QApplication::setOverrideCursor(Qt::WaitCursor);
     m_segMethod->setInsideMaskValue (m_insideValue);
     m_segMethod->setOutsideMaskValue(m_outsideValue);

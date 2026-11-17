@@ -333,8 +333,8 @@ void VolumePixelDataReaderITKGDCM::checkZeroSpacingException()
 
         if (spacing[0] == 0.0 || spacing[1] == 0.0)
         {
-            WARN_LOG(QString("x o y spacing és 0; [x,y] = [%1,%2]. Donem el volum per vàlid igualment.").arg(spacing[0]).arg(spacing[1]));
-            DEBUG_LOG(QString("x o y spacing és 0; [x,y] = [%1,%2]. Donem el volum per vàlid igualment.").arg(spacing[0]).arg(spacing[1]));
+            WARN_LOG(QString("x or y spacing is 0; [x,y] = [%1,%2]. The volume is accepted as valid anyway.").arg(spacing[0]).arg(spacing[1]));
+            DEBUG_LOG(QString("x or y spacing is 0; [x,y] = [%1,%2]. The volume is accepted as valid anyway.").arg(spacing[0]).arg(spacing[1]));
         }
         else if (spacing[2] == 0.0)
         {

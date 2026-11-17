@@ -222,7 +222,7 @@ QImage ThumbnailCreator::createThumbnail(DicomImage *dicomImage, int resolution)
     else
     {
         ok = false;
-        DEBUG_LOG(QString("Error en carregar la DicomImage. Error: %1 ").arg(DicomImage::getString(dicomImage->getStatus())));
+        DEBUG_LOG(QString("Error loading the DicomImage. Error: %1 ").arg(DicomImage::getString(dicomImage->getStatus())));
     }
 
     // Si no hem pogut generar el thumbnail, creem un de buit

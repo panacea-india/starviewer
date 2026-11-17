@@ -530,7 +530,7 @@ void QInputOutputLocalDatabaseWidget::sendSelectedStudiesToSelectedPacs()
 
         if (localDatabaseManager.getLastError() != LocalDatabaseManager::Ok)
         {
-            ERROR_LOG(QString("Error a la base de dades intentar obtenir els estudis que s'han d'enviar al PACS, Error: %1; StudyUID: %2")
+            ERROR_LOG(QString("Database error when getting the studies to send to the PACS, Error: %1; StudyUID: %2")
                               .arg(localDatabaseManager.getLastError())
                               .arg(dicomMaskToSend.getStudyInstanceUID()));
 

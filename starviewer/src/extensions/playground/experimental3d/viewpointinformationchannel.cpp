@@ -45,7 +45,7 @@ void ViewpointInformationChannel::setColorVomiPalette(const QVector<Vector3Float
 
     if (nColors == 1) // tots el mateix
     {
-        DEBUG_LOG("tots els colors iguals");
+        DEBUG_LOG("all the colors are equal");
         for (int i = 0; i < nViewpoints; i++)
         {
             m_viewpointColors[i] = colorVomiPalette.at(0);

@@ -59,7 +59,7 @@ int DicomPrint::print(DicomPrinter printer, DicomPrintJob printJob)
 
         while (indexNumberOfCopies < numberOfCopies)
         {
-            INFO_LOG("Envio a imprimir la copia " + QString().setNum(indexNumberOfCopies + 1) + "/" + QString().setNum(numberOfCopies));
+            INFO_LOG("Sending the copy to print " + QString().setNum(indexNumberOfCopies + 1) + "/" + QString().setNum(numberOfCopies));
             // Enviem a imprimir cada pàgina
             foreach (const QString &dcmtkStoredPrintPathFile, dcmtkStoredPrintPathFileList)
             {

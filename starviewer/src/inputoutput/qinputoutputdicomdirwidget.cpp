@@ -119,7 +119,7 @@ bool QInputOutputDicomdirWidget::openDicomdir()
         }
         else
         {
-            INFO_LOG("Obert el DICOMDIR " + dicomdirPath);
+            INFO_LOG("Opened the DICOMDIR " + dicomdirPath);
             settings.setValue(InputOutputSettings::LastOpenedDICOMDIRPath, QFileInfo(dicomdirPath).dir().path());
             ok = true;
             // Cerquem els estudis al dicomdir per a que es mostrin

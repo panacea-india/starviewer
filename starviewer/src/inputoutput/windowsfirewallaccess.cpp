@@ -208,7 +208,7 @@ HRESULT WindowsFirewallAccess::windowsFirewallIsOn(INetFwProfile *firewallProfil
     result = firewallProfile->get_FirewallEnabled(&firewallEnabled);
     if (FAILED(result))
     {
-        ERROR_LOG(QString("get_FirewallEnabled ha fallat: %1\n").arg(result));
+        ERROR_LOG(QString("get_FirewallEnabled failed: %1\n").arg(result));
     }
 
     // Comprovar si el firewall està activat.
@@ -243,7 +243,7 @@ HRESULT WindowsFirewallAccess::doesWindowsFirewallAllowExceptions(INetFwProfile 
     result = firewallProfile->get_ExceptionsNotAllowed(&exceptionsNotAllowed);
     if (FAILED(result))
     {
-        ERROR_LOG(QString("get_ExceptionsNotAllowed ha fallat: %1\n").arg(result));
+        ERROR_LOG(QString("get_ExceptionsNotAllowed failed: %1\n").arg(result));
     }
     
     // VARIANT_BOOL es compara amb VARIANT_TRUE i VARIANT_FALSE, que valen 0x0000 i 0xffff
@@ -281,7 +281,7 @@ HRESULT WindowsFirewallAccess::isApplicationEnabledAtFirewall(INetFwProfile *fir
     result = firewallProfile->get_AuthorizedApplications(&firewallApplications);
     if (FAILED(result))
     {
-        ERROR_LOG(QString("get_AuthorizedApplications ha fallat: %1\n").arg(result));
+        ERROR_LOG(QString("get_AuthorizedApplications failed: %1\n").arg(result));
     }
     else
     {

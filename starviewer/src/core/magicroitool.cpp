@@ -370,7 +370,7 @@ void MagicROITool::computeRegionMask()
     }
     else
     {
-        DEBUG_LOG("Ha petat i sortim");
+        DEBUG_LOG("It failed, so we exit");
         return;
     }
 

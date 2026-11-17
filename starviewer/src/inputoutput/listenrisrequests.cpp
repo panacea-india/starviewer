@@ -65,7 +65,7 @@ void ListenRISRequests::newRISRequest()
     if (tcpSocket->waitForReadyRead(TimeOutToReadData))
     {
         risRequestData = QString(tcpSocket->readAll());
-        INFO_LOG("Dades rebudes: " + risRequestData);
+        INFO_LOG("Data received: " + risRequestData);
     }
     else
     {
@@ -74,7 +74,7 @@ void ListenRISRequests::newRISRequest()
 
     INFO_LOG("Tanco socket");
     tcpSocket->disconnectFromHost();
-    INFO_LOG("Faig delete del socket");
+    INFO_LOG("Deleting the socket");
     delete tcpSocket;
 
     if (!risRequestData.isEmpty())

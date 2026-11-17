@@ -409,7 +409,7 @@ void CreateDicomPrintSpool::setImageBoxAttributes()
         }
     }
 
-    INFO_LOG("Afegits els atributs al ImageBox");
+    INFO_LOG("Attributes added to the ImageBox");
 }
 
 void CreateDicomPrintSpool::createAnnotationBoxes()

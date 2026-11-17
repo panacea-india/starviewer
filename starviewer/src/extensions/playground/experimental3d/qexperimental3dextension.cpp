@@ -4684,12 +4684,12 @@ void QExperimental3DExtension::generateAndEvolveTransferFunctionFromIntensityClu
             evolved = mii / HI;
             if (maximizeMiiOverHI)
             {
-                DEBUG_LOG(QString(".......................................... I(V;I)/H(I) màxima = %1, I(V;I)/H(I) evolucionada = %2").arg(best).arg(evolved));
+                DEBUG_LOG(QString(".......................................... I(V;I)/H(I) maximum = %1, I(V;I)/H(I) evolved = %2").arg(best).arg(evolved));
                 accept = evolved > best;
             }
             if (minimizeMiiOverHI)
             {
-                DEBUG_LOG(QString(".......................................... I(V;I)/H(I) mínima = %1, I(V;I)/H(I) evolucionada = %2").arg(best).arg(evolved));
+                DEBUG_LOG(QString(".......................................... I(V;I)/H(I) minimum = %1, I(V;I)/H(I) evolved = %2").arg(best).arg(evolved));
                 accept = evolved < best;
             }
         }
@@ -4700,13 +4700,13 @@ void QExperimental3DExtension::generateAndEvolveTransferFunctionFromIntensityClu
             evolved = mii / jointEntropy;
             if (maximizeMiiOverJointEntropy)
             {
-                DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) màxima = %1, I(V;I)/H(V,I) evolucionada = %2").arg(best)
+                DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) maximum = %1, I(V;I)/H(V,I) evolved = %2").arg(best)
                                                                                                                                           .arg(evolved));
                 accept = evolved > best;
             }
             if (minimizeMiiOverJointEntropy)
             {
-                DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) mínima = %1, I(V;I)/H(V,I) evolucionada = %2").arg(best)
+                DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) minimum = %1, I(V;I)/H(V,I) evolved = %2").arg(best)
                                                                                                                                           .arg(evolved));
                 accept = evolved < best;
             }
@@ -5003,13 +5003,13 @@ void QExperimental3DExtension::fineTuneGeneticTransferFunctionFromIntensityClust
                 fineTuned = mii / HI;
                 if (maximizeMiiOverHI)
                 {
-                    DEBUG_LOG(QString(".......................................... I(V;I)/H(I) màxima = %1, I(V;I)/H(I) ajustada = %2").arg(best)
+                    DEBUG_LOG(QString(".......................................... I(V;I)/H(I) maximum = %1, I(V;I)/H(I) fine-tuned = %2").arg(best)
                                                                                                                                       .arg(fineTuned));
                     accept = fineTuned > best;
                 }
                 if (minimizeMiiOverHI)
                 {
-                    DEBUG_LOG(QString(".......................................... I(V;I)/H(I) mínima = %1, I(V;I)/H(I) ajustada = %2").arg(best)
+                    DEBUG_LOG(QString(".......................................... I(V;I)/H(I) minimum = %1, I(V;I)/H(I) fine-tuned = %2").arg(best)
                                                                                                                                       .arg(fineTuned));
                     accept = fineTuned < best;
                 }
@@ -5021,13 +5021,13 @@ void QExperimental3DExtension::fineTuneGeneticTransferFunctionFromIntensityClust
                 fineTuned = mii / jointEntropy;
                 if (maximizeMiiOverJointEntropy)
                 {
-                    DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) màxima = %1, I(V;I)/H(V,I) ajustada = %2").arg(best)
+                    DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) maximum = %1, I(V;I)/H(V,I) fine-tuned = %2").arg(best)
                                                                                                                                           .arg(fineTuned));
                     accept = fineTuned > best;
                 }
                 if (minimizeMiiOverJointEntropy)
                 {
-                    DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) mínima = %1, I(V;I)/H(V,I) ajustada = %2").arg(best)
+                    DEBUG_LOG(QString(".......................................... I(V;I)/H(V,I) minimum = %1, I(V;I)/H(V,I) fine-tuned = %2").arg(best)
                                                                                                                                           .arg(fineTuned));
                     accept = fineTuned < best;
                 }

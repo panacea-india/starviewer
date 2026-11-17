@@ -248,7 +248,7 @@ void fillDisplayShutterInformation(Image *image, const C *displayShutterContaine
             QStringList vertices = dicomValue->getValueAsQString().split("\\");
             if (MathTools::isOdd(vertices.count()))
             {
-                ERROR_LOG("L'atribut Vertices of the Polygonal Shutter està en un format inesperat: " + dicomValue->getValueAsQString());
+                ERROR_LOG("The attribute Vertices of the Polygonal Shutter is in an unexpected format: " + dicomValue->getValueAsQString());
             }
             else
             {
