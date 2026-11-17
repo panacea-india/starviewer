@@ -24,6 +24,7 @@
 #include "qhangingprotocolsdialog.h"
 #include "qdeidentifydialog.h"
 #include "qroutingdialog.h"
+#include "qmodulesdialog.h"
 #include "qtageditordialog.h"
 #include "volume.h"
 #include "settings.h"
@@ -437,6 +438,7 @@ void QApplicationMainWindow::createMenus()
     m_toolsMenu->addAction(tr("&DICOM tag editor..."), this, [this]() { QTagEditorDialog dialog(this); dialog.exec(); });
     m_toolsMenu->addAction(tr("De-&identify images..."), this, [this]() { QDeidentifyDialog dialog(this); dialog.exec(); });
     m_toolsMenu->addAction(tr("&Route images..."), this, [this]() { QRoutingDialog dialog(this); dialog.exec(); });
+    m_toolsMenu->addAction(tr("&Modules..."), this, [this]() { QModulesDialog dialog(this); dialog.exec(); });
     m_toolsMenu->addAction(m_runDiagnosisTestsAction);
     m_externalApplicationsMenu = 0;
     createExternalApplicationsMenu();

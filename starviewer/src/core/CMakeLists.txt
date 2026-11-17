@@ -36,6 +36,7 @@ set(SOURCES
     deidentificationjob.cpp
     dicomtageditor.cpp
     dicompdfreport.cpp
+    externalmodule.cpp
     centerlinefinder.cpp
     rtregionstatistics.cpp
     endoscopytransferfunction.cpp

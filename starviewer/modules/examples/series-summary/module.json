@@ -1,0 +1,11 @@
+{
+  "name": "Folder summary (example)",
+  "version": "1.0",
+  "description": "An example of a module: counts the files of the input folder, tells which ones are DICOM files, and writes summary.json and summary.txt in the output folder. It reads nothing but the first bytes of each file and does not use the network.",
+  "protocol": 1,
+  "executable": "run.cmd",
+  "arguments": [],
+  "researchOnly": true,
+  "network": "none",
+  "timeoutSeconds": 300
+}

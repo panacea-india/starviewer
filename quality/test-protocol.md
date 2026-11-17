@@ -918,6 +918,23 @@ Limits: the routing is applied when the user asks, on a folder; it is not automa
 
 Automatic tests: 5,376 passed, 0 failed, 9 skipped (`test_DicomPdfReport`: 8, `test_RoutingRules`: 26).
 
+### Run 40: Extension boundary and the example module (Phase 5)
+
+Tools > "Modules..." with the example module `series-summary` copied to the modules folder of the user data (and removed after), on the folder of the real LCTSC CT and its structure set.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Discovery | Passed | The module is listed with its description, "RESEARCH ONLY" and "Network: none", read from its manifest |
+| 2. Run | Passed | A confirmation says what the module is, that it is for research, what it says about the network and that it can read the folder and write in the results folder (the default is No); the progress bar goes to "done (100%)"; the log shows "133 files, 131 of them DICOM" and the two results |
+| 3. The results checked outside the viewer | Passed | `summary.txt` and `summary.json` exist in the results folder: 133 files, 131 DICOM, 2 other, 70.5 MB, by extension (.dcm 131, .png 2): the numbers agree with the folder |
+| 4. The protocol and the safeguards | Passed in the unit tests (48, with real child processes) | A module that does not say hello, writes a line that is not JSON, ends without a result, crashes (the error output is shown), says an error, takes longer than its timeout (stopped, and what it started with it), ignores a cancel (killed after 10 seconds), or gives an output outside the results folder (also with ..): every one is a failure and no output is kept. A manifest with an executable that is absolute or goes up with .. is refused |
+| 5. A defect found by the tests | Fixed | A module started through a script (.cmd) left its child running after the timeout (the script was killed, not the program): the whole tree of processes is stopped now on Windows (and the temporary folder can be deleted) |
+| 6. Linux | Not tried | The process code is portable, the launcher of the example is for Windows; on Linux a wrapper script has to use exec |
+
+The results folder and the copy of the module were deleted after the check.
+
+Automatic tests: 5,424 passed, 0 failed, 9 skipped.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files

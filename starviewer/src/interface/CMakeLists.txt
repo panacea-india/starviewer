@@ -12,6 +12,7 @@ set(SOURCES
     qdeidentifydialog.cpp
     qtageditordialog.cpp
     qroutingdialog.cpp
+    qmodulesdialog.cpp
     qlicensedialog.cpp
     starviewerapplicationcommandline.cpp
 )

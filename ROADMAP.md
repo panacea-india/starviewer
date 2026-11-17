@@ -188,6 +188,10 @@ QtXmlPatterns usage is added.
 Certification-ready practices add overhead on top of these figures, probably
 15-25% once established, with more at the start while the foundations are set up.
 
+**Where the work stands (2026-11-17).** Phases 3, 4 and 5 have a first version of every item, tested with automatic tests (5,400 or so), synthetic cases, public real CT and the Orthanc of the test lab, with
+the results in [quality/test-protocol.md](quality/test-protocol.md). What is left is what this machine cannot do: one round on a real Windows computer with a GPU, a printer, the video codecs and the installer, then
+a check by a person who knows the clinical work (the contours, the de-identification, the measurements), and the items that are marked "not done" in each phase.
+
 ### Phase 0.5: Close out Phase 0
 
 Everything after this builds on the assumption that the baseline works.
@@ -272,6 +276,12 @@ the user rather than silently showing the image without it.
 
 ### Phase 3: Advanced MPR and 3D
 
+**Status (2026-11-17): all ten items are started; none is finished or validated with internal users, so the exit criteria are not met.** Each has a tested core class with no interface and a first
+interface in the 2D or 3D viewer, and has been tried on synthetic cases and on real public CT (LCTSC with its structure set, LIDC-IDRI chest; runs 25 to 36 of the
+[test protocol](quality/test-protocol.md)). Not checked, because the test machine has no GPU: the 3D viewer from inside a volume (the flight and the "Inside: air" and "Inside: contrast" styles) and everything
+that picks in the 3D image. Not built: angle and path tools in 3D, sculpting by picking, 4D volume rendering, a speed control for the flight. Not checked on real data: gantry tilt (no open tilted series was
+found) and perfusion.
+
 In priority order:
 
 1. Rigid registration, which fusion across different acquisitions depends on.
@@ -312,6 +322,12 @@ measurement accuracy checks against known phantoms.
 
 ### Phase 4: Remaining viewing parity
 
+**Status (2026-11-17): done and tested, except the performance work, which was skipped on purpose (a virtual machine gives no timings that mean anything).** Verified in runs 25 to 37:
+calibration, the filters, DSA (as a function of the 2D viewer), time-intensity curves, ZIP import, the shortcuts dialog, the hanging protocol editor (first version), the movie of the slices with an MP4 (checked
+with ffprobe: H.264, the right number of frames, decodes without error), and printing to PDF (checked with PyMuPDF: one A4 page, the image, the annotations, the footer; the image is stored as JPEG by Qt).
+Not checked: a real printer, and the playing of DICOM video, which on a Windows N edition without the Media Feature Pack is refused with a clear message and needs a normal Windows to be tried.
+The exit criteria (timings no worse than RadiAnt's, the items that internal users rank highest shipped) are not met.
+
 - **Measurement:** manual calibration, for images with no pixel spacing (**done:** the "Calibrate" tool of the drawing menu: click the two ends of something of known size and give its length; all the images of the volume get that pixel size and are marked calibrated, so new measurements read "... mm (calibrated)"; refused for images that have a pixel size from the DICOM file; **not done:** non-square pixels, recalculating measurements drawn before, and calibration of images that already have a size).
 - **Image tools:** sharpen and smooth filters (**done:** "Smooth the images", "Sharpen the images" and "Show the images as loaded" in the layers menu of the 2D viewer; `ImageFilters` works slice by slice in the plane, the result is a copy shown in the viewer and marked "FILTERED: ... (not for measuring values)"; fixed strengths, 1 mm and 1.5 mm; **not done:** a choice of strength, and the 3D and MPR viewers); DSA (**done**, as a function of the 2D viewer and not as a promotion of the playground extension, whose translation tool has a disabled automatic registration and no tests:
   "Subtract a mask image (DSA)..." in the layers menu takes the number of the mask image, takes it away from every image and shows the result as a copy with signed 16 bit values, marked
@@ -332,17 +348,32 @@ users rank highest are shipped.
 
 ### Phase 5: Workflow, data tools and AI
 
-- **Editing and anonymisation:** DICOM tag editor; batch anonymisation with
-  burned-in text removal and a choice of de-identification profiles. Today
-  anonymisation only runs when creating a DICOMDIR.
-- **Routing:** auto-routing rules.
-- **Reporting:** simple reports saved as DICOM PDF.
-- **Extension boundary:** a documented API for separate-process modules (see
-  [Open core](#open-core)).
-- **AI segmentation:** review the 2025 `segmentation-ai` branch, which adds
-  TensorFlow and Torch back ends in a playground extension, and rebuild it behind
-  the extension boundary. Keep it marked as research, because AI functions can
-  raise a product's regulatory class.
+**Status (2026-11-17): every item has a first version, tested on synthetic and on real public data (runs 38 and 39); the exit criteria are partly met** (a study can be edited, de-identified, routed by rules
+and reported on from the application, and one module runs against the documented boundary) but **none of it has been used by a person other than the developer**, and the AI part is a review and a plan, not a module.
+
+- **Editing and anonymisation (done as a first version):** Tools > "DICOM tag editor..." (`DicomTagEditor`: lists the attributes, also in sequences; changes a value only if it is right for its VR; removes and
+  adds attributes of the dictionary; saves in another file and never over the one that is open) and Tools > "De-identify images..." (`DicomDeidentifier`, `DicomPixelBlackout`, `DeidentificationJob`: the Basic
+  Application Level Confidentiality Profile as a table of attributes plus rules for every UID, every person name and every private attribute; options to keep the dates, to move them by a number of days that
+  is the same for each patient, to keep the patient characteristics, the device identity, the UIDs, and the descriptions that do not have the name or the ID; the options are coded in the object; rectangles to
+  blank text that is burned into uncompressed pixels, and an image whose text cannot be blanked is not written; warnings for the images that may have text; no list to give the identity back). Checked
+  on the real LCTSC CT and its structure set: no trace of the original identity in 131 files, all the UIDs replaced consistently (also the 130 references of the structure set), the pixels identical, the new series
+  opens with its contours. **Not done:** the profile table is a subset of table E.1-1 of PS 3.15; blanking the pixels of compressed images (it refuses them); finding text in the pixels by itself; a check of the
+  result by a person or a certified tool (the output must be looked at before sharing); a tag editor for several files at once and for the private attributes.
+- **Routing (done as a first version, not automatic):** Tools > "Route images..." (`RoutingRules`, `RoutingJob`, `DicomStoreSender`): rules in JSON (conditions on the modality, the descriptions, the body part,
+  the institution and others, with equals, contains, starts with, ends with and regular expressions, all or any, and a PACS as destination), a plan that shows what would go where without sending, and the sending
+  with C-STORE after a confirmation. Checked against the Orthanc of the test lab: 130 CT images sent and the structure set kept back by the rule, the other 21 studies untouched, and the message for a PACS that does
+  not answer. **Not done:** applying the rules automatically when a study arrives (the program cannot receive pushed studies yet, see "Later"), DICOM TLS for the sender, and a form to edit the rules (the JSON is edited
+  as text and checked).
+- **Reporting (done as a first version):** layers menu of the 2D viewer > "Write a report..." (`DicomPdfReport`): title, findings, impression and author go to an A4 PDF that says "Draft - not for diagnostic use",
+  inside an Encapsulated PDF object of the same patient and study as the image, in a new series. Checked with pydicom and PyMuPDF and in the PDF tab of the viewer. **Not done:** templates, a structured report
+  (SR), signing, putting the report in the local database or sending it to a PACS from the dialog (it is a file; Route images can send it), and opening the PDF in a viewer of the program.
+- **Extension boundary (done as version 1):** `doc/extension-boundary.md`, `ExternalModules` and `ModuleRunner` (a manifest, lines of JSON on the standard input and output, a timeout, cancel, outputs that have to
+  be inside the results folder, the process stopped with what it started), tested with real child processes (48 tests), Tools > "Modules..." and an example module (`modules/examples/series-summary`) that ran on
+  the real CT. **Not done:** loading the outputs of a module as a series or an overlay, a form for the parameters from the manifest, a limit of memory, signing of modules, a module that stays running, and modules on
+  Linux (the launcher of the example is for Windows).
+- **AI segmentation (reviewed; the module is not written):** `doc/ai-segmentation-review.md` reviews the 2025 `segmentation-ai` branch (what it does, what to keep, why it should not be merged as it is: the AI
+  libraries are linked into `core`, it runs in the process of the viewer, nothing about the model or its validation, a mask that is not a DICOM object) and plans the module that would replace it. It is marked as
+  research. It needs a model, an environment with TensorFlow or PyTorch and a validation set, none of which are on the test machine.
 
 **Exit:** a study can be edited, de-identified, routed and reported on from
 inside the application, and one module runs against the documented boundary.
