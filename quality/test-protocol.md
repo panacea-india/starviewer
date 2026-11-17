@@ -571,6 +571,24 @@ two values against the counts, the size of non-cubic voxels, the maximum and whe
 Not tried: the statistics in the interface (there is none yet), a real CT or PET, a large volume (the surface of 512 x 512 x 500 takes seconds and some hundreds of MB), opening the STL in
 other programs (the file was read back by VTK and checked by hand), and Linux.
 
+### Run 17: sphere VOI on a PET/CT (Phase 3)
+
+The corpus case `petct-suv` was opened (PET on the left, CT on the right), the "Sphere VOI" tool was chosen in the drawing tools menu, the PET was moved to slice 26 (z = 125 mm,
+the middle of the hot sphere of SUV 8.0 and radius 20 mm), and the center of the sphere was clicked.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Tool | Passed | "Sphere VOI" is in the drawing tools menu, after Elliptical ROI |
+| 2. First try | Failed, then fixed | The dialog said that the sphere had no voxel of the volume. The click was at -40.7, -19.6 (right) but at -141 in z, because the world coordinate of an event has not the depth of the volume. The fix takes the point of each input with `getCurrentCursorImageCoordinateOnInput`, which has the depth of the slice that is shown |
+| 3. Radius 10 mm | Passed | Header "PET static FDG (bw)". Mean, maximum, peak (1 mL) and minimum are all 8.00 and the deviation is 0.00: the SUV of the corpus, from the dose, weight and times in the file. Volume 3.76 mL for the 4.19 mL of an ideal sphere: with voxels of 4 x 4 x 5 mm a sphere of 10 mm is made of 47 voxels, and the volume is only as exact as the voxels |
+| 4. Radius 30 mm and threshold 50% | Passed | Volume 33.28 mL (the lesion is 33.51 mL: -0.7%) and mean 8.00. The numbers change when the fields do |
+
+Automatic tests: 5,045 passed, 0 failed, 9 skipped, which is 6 more than before (`test_QSphereVoiDialog`: the values in SUV with the scale of the input, the numbers that change with the
+radius and with the threshold, and a sphere that has no voxel).
+
+Not tried: the CT column together with the PET (the dialog takes each volume of the viewer that the cursor is on, and the PET and the CT were in two viewers), a click in the sagittal or coronal views (the
+point comes from the same call, but it was not tried), the other SUV formulas, and Linux.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
