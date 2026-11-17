@@ -14,6 +14,8 @@
 
 #include "curvedmprtool.h"
 
+#include <algorithm>
+
 #include <vtkCommand.h>
 #include <vtkImageData.h>
 #include <vtkRenderWindowInteractor.h>
@@ -21,6 +23,7 @@
 #include <QApplication>
 #include <QMessageBox>
 
+#include "centerlinefinder.h"
 #include "curvedreformation.h"
 #include "flythroughpath.h"
 #include "drawer.h"
@@ -76,6 +79,27 @@ void CurvedMprTool::finish()
     if (m_points.size() < 6 || !volume || !volume->getVtkData())
     {
         return;
+    }
+
+    // With only two points (the ends of a vessel), the path between them is found through what is like the first point
+    if (m_points.size() == 6)
+    {
+        double range[2];
+        volume->getVtkData()->GetScalarRange(range);
+        double tolerance = std::max(20.0, 0.05 * (range[1] - range[0]));
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        CenterlineFinder::Result path = CenterlineFinder::findAutomatically(volume->getVtkData(), m_points.constData(), m_points.constData() + 3, tolerance);
+        QApplication::restoreOverrideCursor();
+
+        if (!path.success)
+        {
+            m_points.clear();
+            QMessageBox::warning(m_2DViewer, ApplicationNameString, tr("The path between the two points could not be found by itself: %1\n\nClick points along the structure to draw the path by hand.").arg(path.message));
+            return;
+        }
+
+        INFO_LOG(QString("Found a path of %1 mm between two points through %2 voxels").arg(path.lengthMm).arg(path.structureVoxels));
+        m_points = path.points;
     }
 
     // The 3D viewer can fly along this path

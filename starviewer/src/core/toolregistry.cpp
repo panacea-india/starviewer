@@ -457,7 +457,7 @@ QAction* ToolRegistry::getToolAction(const QString &toolName)
     {
         toolAction->setText(tr("Curved MPR"));
         toolAction->setIcon(QIcon(":/images/icons/kruler-west.svg"));
-        statusTip = tr("Click points along a winding structure and double click (or press Enter) to see it straightened");
+        statusTip = tr("Click points along a winding structure and double click (or press Enter) to see it straightened. With only two points, its ends, the path between them is found by itself");
         toolTip = tr("Curved MPR: straighten the volume along a path");
     }
     else if (toolName == "Distance3DTool")
