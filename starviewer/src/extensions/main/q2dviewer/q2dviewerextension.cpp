@@ -18,6 +18,12 @@
 #include <QInputDialog>
 #include "registeredvolumes.h"
 #include "imagefilters.h"
+#include "movieencoder.h"
+#include <QDateTime>
+#include <QFileDialog>
+#include <vtkPNGWriter.h>
+#include <vtkRenderWindow.h>
+#include <vtkWindowToImageFilter.h>
 #include "rigidregistration.h"
 #include "starviewerapplication.h"
 
@@ -174,6 +180,8 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     viewerInformationMenu->addAction(tr("Smooth the images"), this, [this]() { applyImageFilter(1); });
     viewerInformationMenu->addAction(tr("Sharpen the images"), this, [this]() { applyImageFilter(2); });
     viewerInformationMenu->addAction(tr("Show the images as loaded"), this, [this]() { applyImageFilter(0); });
+    viewerInformationMenu->addSeparator();
+    viewerInformationMenu->addAction(tr("Export a movie of the slices..."), this, &Q2DViewerExtension::exportMovie);
     m_viewerLayersToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_viewerLayersToolButton->setMenu(viewerInformationMenu);
     
@@ -822,6 +830,94 @@ void Q2DViewerExtension::showDisplayShutters(bool show)
     {
         m_workingArea->getViewerWidget(viewerNumber)->getViewer()->showDisplayShutters(show);
     }
+}
+
+void Q2DViewerExtension::exportMovie()
+{
+    Q2DViewerWidget *selectedViewerWidget = m_workingArea->getSelectedViewer();
+    Q2DViewer *viewer = selectedViewerWidget ? selectedViewerWidget->getViewer() : nullptr;
+
+    if (!viewer || !viewer->hasInput())
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Select a viewer that shows a volume first."));
+        return;
+    }
+
+    QString parent = QFileDialog::getExistingDirectory(this, tr("Folder for the movie"));
+
+    if (parent.isEmpty())
+    {
+        return;
+    }
+
+    QDir folder(parent);
+    QString subfolder = "movie_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+
+    if (!folder.mkpath(subfolder) || !folder.cd(subfolder))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The folder for the pictures could not be created."));
+        return;
+    }
+
+    int first = viewer->getMinimumSlice();
+    int last = viewer->getMaximumSlice();
+    int original = viewer->getCurrentSlice();
+    QProgressDialog progress(tr("Making the pictures..."), tr("Cancel"), 0, last - first + 1, this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(0);
+    int written = 0;
+    bool failed = false;
+
+    for (int slice = first; slice <= last && !progress.wasCanceled(); slice++)
+    {
+        progress.setValue(slice - first);
+        viewer->setSlice(slice);
+
+        vtkSmartPointer<vtkWindowToImageFilter> grabber = vtkSmartPointer<vtkWindowToImageFilter>::New();
+        grabber->SetInput(viewer->getRenderWindow());
+        grabber->ReadFrontBufferOff();
+        grabber->Update();
+
+        vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+        writer->SetFileName(qPrintable(folder.filePath(MovieEncoder::frameFileName(written))));
+        writer->SetInputConnection(grabber->GetOutputPort());
+        writer->Write();
+
+        if (writer->GetErrorCode() != 0)
+        {
+            failed = true;
+            break;
+        }
+
+        written++;
+    }
+
+    progress.setValue(last - first + 1);
+    viewer->setSlice(original);
+
+    if (failed)
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("A picture could not be written to %1.").arg(QDir::toNativeSeparators(folder.absolutePath())));
+        return;
+    }
+
+    QString text = tr("%1 pictures were written to %2.").arg(written).arg(QDir::toNativeSeparators(folder.absolutePath()));
+
+    if (written == last - first + 1 && !MovieEncoder::findFfmpeg().isEmpty())
+    {
+        QString problem = MovieEncoder::encode(folder.absolutePath(), 10, folder.filePath("movie.mp4"));
+        text += "\n\n" + (problem.isEmpty() ? tr("The video movie.mp4 was made in the same folder.") : problem);
+    }
+    else if (written == last - first + 1)
+    {
+        text += "\n\n" + tr("ffmpeg was not found on this computer, so there is no video: any video editor can join the pictures, which are in order.");
+    }
+    else
+    {
+        text += "\n\n" + tr("The movie was cancelled before the last picture.");
+    }
+
+    QMessageBox::information(this, ApplicationNameString, text + "\n\n" + tr("The pictures show the patient: keep them as such."));
 }
 
 void Q2DViewerExtension::applyImageFilter(int kind)

@@ -145,6 +145,8 @@ private slots:
 
     /// Asks for a second volume of the patient, registers it to the volume of the selected viewer, and shows both fused.
     void registerAndFuse();
+    /// Writes the images of the selected viewer (from the first slice to the last) as numbered pictures, and as an MP4 if ffmpeg is on the computer.
+    void exportMovie();
     /// Shows the volume of the selected viewer smoothed (1), sharpened (2) or as it was loaded (0). The images are not changed, and are marked as filtered.
     void applyImageFilter(int kind);
     
