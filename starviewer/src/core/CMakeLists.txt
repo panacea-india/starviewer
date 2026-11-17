@@ -287,6 +287,8 @@ set(SOURCES
     slicehandler.cpp
     slicelocator.cpp
     sliceorientedvolumepixeldata.cpp
+    spherevoitool.cpp
+    qspherevoidialog.cpp
     slicingkeyboardtool.cpp
     slicingmousetool.cpp
     slicingtool.cpp

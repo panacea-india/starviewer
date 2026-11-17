@@ -44,6 +44,7 @@
 #include "clippingplanestool.h"
 #include "transdifferencetool.h"
 #include "ellipticalroitool.h"
+#include "spherevoitool.h"
 #include "automaticsynchronizationtool.h"
 #include "magnifyingglasstool.h"
 #include "circletool.h"
@@ -176,6 +177,10 @@ Tool* ToolRegistry::getTool(const QString &toolName, QViewer *viewer)
     else if (toolName == "EllipticalROITool")
     {
         tool = new EllipticalROITool(viewer);
+    }
+    else if (toolName == "SphereVoiTool")
+    {
+        tool = new SphereVoiTool(viewer);
     }
     else if (toolName == "AutomaticSynchronizationTool")
     {
@@ -413,6 +418,13 @@ QAction* ToolRegistry::getToolAction(const QString &toolName)
         toolAction->setShortcuts(ShortcutManager::getShortcuts(Shortcuts::TransDifferenceTool));
         statusTip = tr("Enable/Disable the translation difference tool");
         toolTip = toolAction->text();
+    }
+    else if (toolName == "SphereVoiTool")
+    {
+        toolAction->setText(tr("Sphere VOI"));
+        toolAction->setIcon(QIcon(":/images/icons/draw-ellipse.svg"));
+        statusTip = tr("Click a point to get the statistics of a sphere of the volume around it");
+        toolTip = tr("Sphere VOI: statistics of a sphere of the volume");
     }
     else if (toolName == "EllipticalROITool")
     {

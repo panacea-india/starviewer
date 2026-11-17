@@ -66,6 +66,7 @@ set(SOURCES
     test_q2dviewer.cpp
     test_relativegeometrylayout.cpp
     test_rigidregistration.cpp
+    test_qspherevoidialog.cpp
     test_roidata.cpp
     test_screen.cpp
     test_screenlayout.cpp
