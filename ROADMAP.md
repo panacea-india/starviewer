@@ -314,7 +314,7 @@ measurement accuracy checks against known phantoms.
 ### Phase 4: Remaining viewing parity
 
 - **Measurement:** manual calibration, for images with no pixel spacing.
-- **Image tools:** sharpen and smooth filters; promote DSA from the playground
+- **Image tools:** sharpen and smooth filters (**done:** "Smooth the images", "Sharpen the images" and "Show the images as loaded" in the layers menu of the 2D viewer; `ImageFilters` works slice by slice in the plane, the result is a copy shown in the viewer and marked "FILTERED: ... (not for measuring values)"; fixed strengths, 1 mm and 1.5 mm; **not done:** a choice of strength, and the 3D and MPR viewers); promote DSA from the playground
   into a supported extension; time-intensity curves, building on
   `PolylineTemporalROITool`.
 - **Input and output:** ZIP import (**done:** File > Open Files takes a .zip, which `ZipArchive` unpacks into a folder of the user data and opens like a folder; it refuses unsafe paths,

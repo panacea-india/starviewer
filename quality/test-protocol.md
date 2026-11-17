@@ -668,6 +668,17 @@ Automatic tests: 17 new (`test_ZipArchive`), for stored and deflated files, subf
 
 Not tried: a ZIP made by Windows Explorer or by a CD export tool, names in the old DOS character set, a very large archive, ZIP64 (it is refused), and Linux. The unpacked files are not removed after use: that has to be added (they are patient data).
 
+### Run 23: Smooth and sharpen filters (Phase 4)
+
+The reference CT was opened and "Smooth the images" chosen in the layers menu of the 2D viewer.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. Smooth | Passed | The noise is gone and the edge of the body and the L are softer; the viewer says "FILTERED: smoothed (not for measuring values)" at the top left; the slice stayed. The image was larger after the change (the zoom was reset) |
+| 2. Others | Not tried on screen | "Sharpen the images" and "Show the images as loaded" were not clicked; they are covered by tests only |
+
+Automatic tests: 5,149 passed, 0 failed, 9 skipped, which is 27 more than before (`test_ImageFilters`: 10, for a constant image, the sum and peak of an impulse, slices not mixed, the use of the spacing, the edge of an unsharp mask, the range of the type, bad input, and the original left unchanged; `test_ZipArchive`: 17, run 22).
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
