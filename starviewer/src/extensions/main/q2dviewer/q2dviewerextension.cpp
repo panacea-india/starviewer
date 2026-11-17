@@ -17,6 +17,9 @@
 #include <vtkImageData.h>
 #include <QInputDialog>
 #include <QCheckBox>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QPlainTextEdit>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPixmap>
@@ -24,6 +27,7 @@
 #include "registeredvolumes.h"
 #include "imagefilters.h"
 #include "digitalsubtraction.h"
+#include "dicompdfreport.h"
 #include "q2dviewerrtstructurehandler.h"
 #include "movieencoder.h"
 #include <QImage>
@@ -193,6 +197,7 @@ Q2DViewerExtension::Q2DViewerExtension(QWidget *parent)
     viewerInformationMenu->addAction(tr("Sharpen the images"), this, [this]() { applyImageFilter(2); });
     viewerInformationMenu->addAction(tr("Subtract a mask image (DSA)..."), this, &Q2DViewerExtension::applyMaskSubtraction);
     viewerInformationMenu->addAction(tr("Radiotherapy regions..."), this, &Q2DViewerExtension::showRtRegions);
+    viewerInformationMenu->addAction(tr("Write a report..."), this, &Q2DViewerExtension::writeReport);
     viewerInformationMenu->addAction(tr("Show the images as loaded"), this, [this]() { applyImageFilter(0); });
     viewerInformationMenu->addSeparator();
     viewerInformationMenu->addAction(tr("Export a movie of the slices..."), this, &Q2DViewerExtension::exportMovie);
@@ -1074,6 +1079,79 @@ void Q2DViewerExtension::showDerivedVolume(Q2DViewerWidget *viewerWidget, Volume
         m_filteredSources.remove(shown);
         delete shown;
     }
+}
+
+void Q2DViewerExtension::writeReport()
+{
+    Q2DViewerWidget *selectedViewerWidget = m_workingArea->getSelectedViewer();
+    Image *image = selectedViewerWidget ? selectedViewerWidget->getViewer()->getCurrentDisplayedImage() : nullptr;
+
+    if (!image || image->getPath().isEmpty())
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("Select a viewer that shows an image first."));
+        return;
+    }
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Write a report"));
+    dialog.resize(560, 480);
+    QLineEdit *title = new QLineEdit(&dialog);
+    title->setText(tr("Report"));
+    QPlainTextEdit *findings = new QPlainTextEdit(&dialog);
+    QPlainTextEdit *impression = new QPlainTextEdit(&dialog);
+    impression->setMaximumHeight(110);
+    QLineEdit *author = new QLineEdit(&dialog);
+    QFormLayout *form = new QFormLayout();
+    form->addRow(tr("Title:"), title);
+    form->addRow(tr("Findings:"), findings);
+    form->addRow(tr("Impression:"), impression);
+    form->addRow(tr("Written by:"), author);
+
+    QLabel *note = new QLabel(tr("The report is saved as a PDF inside a DICOM file of the same patient and study as the image that is shown. The PDF says that it is a draft that is not for diagnostic use. "
+                                 "The file is not sent anywhere."), &dialog);
+    note->setWordWrap(true);
+    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, &dialog);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+    layout->addLayout(form);
+    layout->addWidget(note);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted)
+    {
+        return;
+    }
+
+    DicomPdfReport::Content content;
+    content.title = title->text();
+    content.findings = findings->toPlainText();
+    content.impression = impression->toPlainText();
+    content.author = author->text();
+
+    if (!DicomPdfReport::hasText(content))
+    {
+        QMessageBox::information(this, ApplicationNameString, tr("The report has no text."));
+        return;
+    }
+
+    QString path = QFileDialog::getSaveFileName(this, tr("Save the report"), "report.dcm", tr("DICOM files (*.dcm)"));
+
+    if (path.isEmpty())
+    {
+        return;
+    }
+
+    QString error;
+
+    if (!DicomPdfReport::write(image->getPath(), content, path, &error))
+    {
+        QMessageBox::warning(this, ApplicationNameString, tr("The report could not be saved: %1").arg(error));
+        return;
+    }
+
+    INFO_LOG(QString("A report was saved as %1").arg(path));
+    QMessageBox::information(this, ApplicationNameString, tr("The report was saved in %1.").arg(QDir::toNativeSeparators(path)));
 }
 
 void Q2DViewerExtension::showRtRegions()

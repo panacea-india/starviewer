@@ -35,6 +35,7 @@ set(SOURCES
     dicompixelblackout.cpp
     deidentificationjob.cpp
     dicomtageditor.cpp
+    dicompdfreport.cpp
     centerlinefinder.cpp
     rtregionstatistics.cpp
     endoscopytransferfunction.cpp

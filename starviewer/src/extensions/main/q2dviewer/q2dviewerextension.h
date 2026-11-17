@@ -155,6 +155,8 @@ private slots:
     void applyMaskSubtraction();
     /// Lists the regions of the RT structure sets on the images of the selected viewer, to show or hide each one, and the choice of filling them.
     void showRtRegions();
+    /// Asks for the text of a report about the image that is shown and saves it as a DICOM encapsulated PDF of the same patient and study (a file, which is not sent anywhere).
+    void writeReport();
     /// Shows the target volume in the viewer in place of the shown one, and deletes the shown one if it was a derived volume.
     void showDerivedVolume(Q2DViewerWidget *viewerWidget, Volume *shown, Volume *target);
     

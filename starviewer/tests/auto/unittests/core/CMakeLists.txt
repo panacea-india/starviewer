@@ -76,6 +76,7 @@ set(SOURCES
     test_flythroughpath.cpp
     test_dicomdeidentifier.cpp
     test_dicomtageditor.cpp
+    test_dicompdfreport.cpp
     test_centerlinefinder.cpp
     test_rtregionstatistics.cpp
     test_endoscopytransferfunction.cpp
