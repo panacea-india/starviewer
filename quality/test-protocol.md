@@ -755,6 +755,22 @@ Case `dsa-run` (new: 10 XA frames, a moving background and a vessel that fills).
 
 Automatic tests: 5,186 passed, 0 failed, 9 skipped (`test_DigitalSubtraction`: 11 more); the corpus has 1 case more, checked by `verify_corpus.py`.
 
+### Run 30: Hanging protocols dialog (Phase 4)
+
+On the test VM the viewer does not find the protocols that come with the program (it looks for them in `../../starviewer/hangingprotocols` from the program, a layout this VM does not have), so a copy was put there for this run and removed after it.
+
+| Step | Result | Notes |
+| --- | --- | --- |
+| 1. List | Passed | Tools > Hanging protocols... shows the built-in protocols with modalities, priority and source; with no protocols folder found the list is empty (the viewer loads none either) |
+| 2. Copy to mine | Passed | "Cor" copied as "My coronal": it is listed last as "Mine"; the file `My_coronal.xml` is in the user folder |
+| 3. Edit, checks | Passed | A position with x1 bigger than x2 is refused with a message that says what is wrong; nothing is saved |
+| 4. Edit, save | Passed | New position and priority 7 were saved; the XML file has them and keeps the restrictions and the expressions ("1 and 2") |
+| 5. Delete | Passed | After the question, the file is gone and the row too |
+| 6. Built-in protocols | Not tried on screen | Edit and Delete are disabled for them (by the code; the buttons were seen disabled for the selected built-in "SAG+AXIAL") |
+| 7. Use of a changed protocol when a study is opened | Not tried | A changed protocol is read when the program starts; it was not opened with a study of that kind |
+
+Automatic tests: 5,222 passed, 0 failed, 9 skipped (36 more than before: `test_HangingProtocolXMLWriter` reads, writes and reads again every protocol that ships and compares them field by field; `test_HangingProtocolFiles`: listing, copying, deleting and the validation of positions). The round trip found a member of `HangingProtocolImageSet` that was never initialised (`m_imageToDisplay`), which made `compareTo` give random results; it is now 0, what the filler uses.
+
 ### Fuzzing runs
 
 The harnesses of [quality/fuzz](fuzz/README.md) ran on the Windows VM of run 9, on the 495 smaller files
